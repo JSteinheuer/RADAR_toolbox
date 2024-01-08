@@ -3,7 +3,7 @@
 # Julian Steinheuer; November 2023                                            #
 # PLOT_QVP.py                                                                 #
 #                                                                             #
-# Functions to plot QVPs from given synthetic (EMVORADO) QVP netcdfs.         #
+# Functions to plot QVPs from given synthetic (EMVORADO) QVP netcdf files.    #
 ###############################################################################
 
 import matplotlib as mpl
