@@ -1,9 +1,20 @@
+#!/usr/bin/env python3.11
+###############################################################################
+# Julian Steinheuer; November 2023                                            #
+# plot_QVP_for_JM.py                                                          #
+#                                                                             #
+# Run the functions in PLOT_QVP.py for generating specific QVP plot.          #
+###############################################################################
+
+import os
+import xarray as xr
+import HEADER_RADAR_toolbox as header
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import xarray as xr
-from PLOT_QVP import *
+from PLOT_QVP import plot_qvp_of_polarimetric_variable
+
+###############################################################################
 
 location = 'PRO'
 date = '20170725'
@@ -11,15 +22,15 @@ filter = False
 hhmm_start = '00:00'
 # hhmm_end = '23:55'
 hhmm_end = '10:00'
+
 year = date[0:4]
 mon = date[4:6]
 day = date[6:8]
 date_start = '-'.join([year, mon, day, hhmm_start])
 date_end = '-'.join([year, mon, day, hhmm_end])
 
-folder_plot = '/automount/agradar/operation_hydrometeors/plots/QVP/'
+folder_plot = header.folder_qvp_plot
 mod_names = ''
-
 n_rows = 4
 n_cols = 4
 plt.figure(figsize=(n_cols * 9, n_rows * 7))
@@ -32,6 +43,7 @@ current_row = 0
 
 folder_obs = '/automount/realpep/upload/s6toscha/Statistik/' + \
              'CBAND_OBS_FERTIG_BRINGI_BUCH/NEU_PHI_NEU_TIME/'
+# TODO: TS style data?
 
 path = folder_obs + 'fin_qvp_' + location.lower() + date + '.nc'
 obs_nc = xr.open_dataset(path)
@@ -75,9 +87,9 @@ n_i = n_cols * (current_row - 1)
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zh_obs,
-    cmap=cmap,
-    norm=norm_zh,
-    levels=levels_zh,
+    cmap=header.cmap_radar,
+    norm=header.norm_zh,
+    levels=header.levels_zh,
     mom_cs=qvp_zh_obs,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_obs,
@@ -92,9 +104,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zdr_obs,
-    cmap=cmap,
-    norm=norm_zdr,
-    levels=levels_zdr,
+    cmap=header.cmap_radar,
+    norm=header.norm_zdr,
+    levels=header.levels_zdr,
     mom_cs=qvp_zh_obs,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_obs,
@@ -109,9 +121,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_kdp_obs,
-    cmap=cmap,
-    norm=norm_kdp,
-    levels=levels_kdp,
+    cmap=header.cmap_radar,
+    norm=header.norm_kdp,
+    levels=header.levels_kdp,
     mom_cs=qvp_zh_obs,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_obs,
@@ -126,9 +138,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_rho_obs,
-    cmap=cmap,
-    norm=norm_rhohv,
-    levels=levels_rhohv,
+    cmap=header.cmap_radar,
+    norm=header.norm_rhohv,
+    levels=header.levels_rhohv,
     mom_cs=qvp_zh_obs,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_obs,
@@ -146,7 +158,7 @@ obs_nc.close()
 ###############################################################
 # CBAND SYN 1                                                 #
 ###############################################################
-folder_syn = '/automount/agradar/operation_hydrometeors/data/QVP'
+folder_syn = header.dir_data_qvp
 da_run = 'ASS_2211'
 icon_emvorado_run = 'MAIN_2211.0/EMVO_00000000.2'
 spin_up_mm = '30'
@@ -205,9 +217,9 @@ n_i = n_cols * (current_row - 1)
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zh_syn,
-    cmap=cmap,
-    norm=norm_zh,
-    levels=levels_zh,
+    cmap=header.cmap_radar,
+    norm=header.norm_zh,
+    levels=header.levels_zh,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -223,9 +235,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zdr_syn,
-    cmap=cmap,
-    norm=norm_zdr,
-    levels=levels_zdr,
+    cmap=header.cmap_radar,
+    norm=header.norm_zdr,
+    levels=header.levels_zdr,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -241,9 +253,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_kdp_syn,
-    cmap=cmap,
-    norm=norm_kdp,
-    levels=levels_kdp,
+    cmap=header.cmap_radar,
+    norm=header.norm_kdp,
+    levels=header.levels_kdp,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -259,9 +271,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_rho_syn,
-    cmap=cmap,
-    norm=norm_rhohv,
-    levels=levels_rhohv,
+    cmap=header.cmap_radar,
+    norm=header.norm_rhohv,
+    levels=header.levels_rhohv,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -279,7 +291,7 @@ syn_nc.close()
 ###############################################################
 # CBAND SYN 2                                                 #
 ###############################################################
-folder_syn = '/automount/agradar/operation_hydrometeors/data/QVP'
+folder_syn = header.dir_data_qvp
 da_run = 'ASS_2211'
 icon_emvorado_run = 'MAIN_2308.0/EMVO_00400000.2'
 spin_up_mm = '30'
@@ -338,9 +350,9 @@ n_i = n_cols * (current_row - 1)
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zh_syn,
-    cmap=cmap,
-    norm=norm_zh,
-    levels=levels_zh,
+    cmap=header.cmap_radar,
+    norm=header.norm_zh,
+    levels=header.levels_zh,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -356,9 +368,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zdr_syn,
-    cmap=cmap,
-    norm=norm_zdr,
-    levels=levels_zdr,
+    cmap=header.cmap_radar,
+    norm=header.norm_zdr,
+    levels=header.levels_zdr,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -374,9 +386,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_kdp_syn,
-    cmap=cmap,
-    norm=norm_kdp,
-    levels=levels_kdp,
+    cmap=header.cmap_radar,
+    norm=header.norm_kdp,
+    levels=header.levels_kdp,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -392,9 +404,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_rho_syn,
-    cmap=cmap,
-    norm=norm_rhohv,
-    levels=levels_rhohv,
+    cmap=header.cmap_radar,
+    norm=header.norm_rhohv,
+    levels=header.levels_rhohv,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -408,10 +420,11 @@ plot_qvp_of_polarimetric_variable(
     mom_height_unit='km',
 )
 syn_nc.close()
+
 ###############################################################
 # CBAND SYN 3                                                 #
 ###############################################################
-folder_syn = '/automount/agradar/operation_hydrometeors/data/QVP'
+folder_syn = header.dir_data_qvp
 da_run = 'ASS_2211'
 icon_emvorado_run = 'MAIN_2308.1/EMVO_00500000.2'
 spin_up_mm = '30'
@@ -470,9 +483,9 @@ n_i = n_cols * (current_row - 1)
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zh_syn,
-    cmap=cmap,
-    norm=norm_zh,
-    levels=levels_zh,
+    cmap=header.cmap_radar,
+    norm=header.norm_zh,
+    levels=header.levels_zh,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -488,9 +501,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_zdr_syn,
-    cmap=cmap,
-    norm=norm_zdr,
-    levels=levels_zdr,
+    cmap=header.cmap_radar,
+    norm=header.norm_zdr,
+    levels=header.levels_zdr,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -506,9 +519,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_kdp_syn,
-    cmap=cmap,
-    norm=norm_kdp,
-    levels=levels_kdp,
+    cmap=header.cmap_radar,
+    norm=header.norm_kdp,
+    levels=header.levels_kdp,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -524,9 +537,9 @@ plot_qvp_of_polarimetric_variable(
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
     mom=qvp_rho_syn,
-    cmap=cmap,
-    norm=norm_rhohv,
-    levels=levels_rhohv,
+    cmap=header.cmap_radar,
+    norm=header.norm_rhohv,
+    levels=header.levels_rhohv,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
@@ -540,6 +553,7 @@ plot_qvp_of_polarimetric_variable(
     mom_height_unit='km',
 )
 syn_nc.close()
+
 ###############################################################
 # SAVE                                                        #
 ###############################################################

@@ -16,7 +16,7 @@ import numpy as np
 path = sys.executable.split("/")[:-2]
 path.extend(["share", "proj"])
 path = "/".join(path)
-print(path)
+# print(path)
 os.environ["PROJ_LIB"] = path
 os.environ["PROJ_NETWORK"] = 'ON'
 # preamble ends.                                                            #
