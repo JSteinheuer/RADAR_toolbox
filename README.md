@@ -18,7 +18,6 @@ _syn_RADAR_volume_scan.py_
 <br>
 call the functions
 
-
 _QVP_FROM_VOLUME_SCAN.py_
 <br>
 functions to calculate Quasi vertical profiles from volume scans
@@ -36,6 +35,21 @@ _plot_QVP.py_
 <br>
 call the functions
 
+**Side-scripts**
+
+_change_folder_structure.py_
+<br>
+mv and cp commands moving TS into JS structure
+
+_extract_sort_obs_data.py_
+<br>
+script from KM for extracting ftp files to _change_folder_structure
+
+_rename_ass_icon_emv.py_
+<br>
+ new convention from JM: meaningful names for the old runs
+
+ 
 _January 5, 2024_
 
 This program is a free software distributed under the terms of the GNU General 

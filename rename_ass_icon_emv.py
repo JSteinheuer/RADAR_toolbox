@@ -3,8 +3,8 @@
 # Julian Steinheuer; December 2023                                            #
 # rename_ass_icon_emv.py                                                      #
 #                                                                             #
-# Following the new convention from JM, meaningfull names for the old runs    #
-# are given.                                                                  #
+# Following the new convention from JM, meaningful names for the old runs are #
+# given.                                                                      #
 ###############################################################################
 
 import glob
