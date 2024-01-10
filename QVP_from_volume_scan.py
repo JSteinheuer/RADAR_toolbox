@@ -1,15 +1,16 @@
 #!/usr/bin/env python3.11
-###############################################################################
-# Julian Steinheuer; November 2023                                            #
+# #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
+
+# --------------------------------------------------------------------------- #
+# Julian Steinheuer; 01.11.23                                                 #
 # QVP_from_volume_scan.py                                                     #
 #                                                                             #
 # Run the functions from QVP_FROM_VOLUME_SCAN.py:                             #
 # calculate QVPs from given synthetic (EMVORADO) volume scans                 #
-###############################################################################
+# --------------------------------------------------------------------------- #
 
 import HEADER_RADAR_toolbox as header
 from QVP_FROM_VOLUME_SCAN import qvp_from_syn_vol
-
 
 day = '20170725'
 da_run = 'ASS_2211'
@@ -23,7 +24,8 @@ qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
                  dir_data_in=header.dir_data_syn,
                  dir_data_out=header.dir_data_qvp)
 
-###############################################################################
+# --------------------------------------------------------------------------- #
+# one day
 
 # day = '20170725'
 # da_run = 'ASS_2211'
@@ -39,9 +41,9 @@ qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                  dir_data_in=header.dir_data_syn,
 #                  dir_data_out=header.dir_data_qvp)
 
-###############################################################################
-
+# --------------------------------------------------------------------------- #
 # all days, all ass, all main, all emv, only PRO
+
 for day in [
     '20170725',  # start this day
     '20170719',
@@ -78,6 +80,7 @@ for day in [
 
             ]:
                 qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
-                    icon_emvorado_run=icon_run + '/' + emvorado_run,
-                    dir_data_in=header.dir_data_syn,
-                    dir_data_out=header.dir_data_qvp)
+                                 icon_emvorado_run=icon_run + '/' +
+                                                   emvorado_run,
+                                 dir_data_in=header.dir_data_syn,
+                                 dir_data_out=header.dir_data_qvp)

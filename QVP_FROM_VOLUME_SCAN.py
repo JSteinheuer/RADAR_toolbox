@@ -1,10 +1,12 @@
 #!/usr/bin/env python3.11
-###############################################################################
-# Julian Steinheuer; November 2023                                            #
+# #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
+
+# --------------------------------------------------------------------------- #
+# Julian Steinheuer; 01.11.23                                                 #
 # QVP_FROM_VOLUME_SCAN.py                                                     #
 #                                                                             #
 # Functions to calculate QVPs from given synthetic (EMVORADO) volume scans.   #
-###############################################################################
+# --------------------------------------------------------------------------- #
 
 import pandas as pd
 import numpy as np
@@ -526,9 +528,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         time_end = day + str(int(hhmm_start) + 555).zfill(4)
         filter_comments = 'PPI ICON data are only included, if ' \
                           'corresponding EMVORADO PPI data exists. '
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # open nc files                                                       #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         dti_start = pd.to_datetime(time_start, format="%Y%m%d%H%M")
         dti_end = pd.to_datetime(time_end, format="%Y%m%d%H%M")
         dti = pd.date_range(dti_start, dti_end, freq="5min", inclusive='both')
@@ -569,9 +571,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         emv_nc = xr.open_dataset(dir_emv + file_emv)
         icon_nc = xr.open_dataset(dir_icon + file_icon)
 
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # PPI: common EMV and ICON mask                                       #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         emv_nc = emv_nc.sel(elevation=elevation_deg, drop=True)
         icon_nc = icon_nc.sel(elevation=elevation_deg, drop=True)
         emv_nc.attrs['elevation'] = str(elevation_deg) + ' degrees'
@@ -616,9 +618,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
             if emv_nc[var].dims == ('time', 'range', 'azimuth'):
                 emv_nc[var] = emv_nc[var].where(mask)
 
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # QVP: KDP Melting layer correction                                   #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # Wolfensberger
         qvp_first_nc = emv_nc.copy()
         for var in ['zrsim', 'phidpsim', 'rhvsim']:
@@ -697,9 +699,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
             comments=emv_nc[
                          'mlh_bottom'].comments + ' Refined with Giagrande.'))
 
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # QVP: EMV                                                            #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         pol_vars = [10 ** (0.1 * emv_nc.zrsim), 10 ** (0.1 * emv_nc.zdrsim),
                     emv_nc.rhvsim, emv_nc.kdpsim_ml_corrected]
         qvp_entropy = entropy_of_vars(pol_vars, dim='azimuth',
@@ -716,9 +718,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                                                      keep_attrs=True)
         emv_nc['azimuth'].data = np.nan
 
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # PPI: qi,qni -> diameters                                            #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         q_dens, qn_dens = adjust_icon_fields(icon_nc)
         multi_params = mgdparams(q_dens, qn_dens)
         moments = calc_moments(mgd=multi_params)
@@ -767,9 +769,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
             if icon_nc[var].dims == ('time', 'range', 'azimuth'):
                 icon_nc[var] = icon_nc[var].where(mask)
 
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # QVP: ICON                                                           #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         for var, da in icon_nc.data_vars.items():
             if 'azimuth' in icon_nc[var].dims:
                 count_values = icon_nc[var].count(dim='azimuth')
@@ -783,9 +785,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                                                        keep_attrs=True)
         icon_nc['azimuth'] = np.nan
 
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # QVP: MERGE                                                          #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         qvp_nc = xr.merge([emv_nc, icon_nc])
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc['min_entropy'] = qvp_entropy[-1, :]
@@ -799,16 +801,16 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         qvp_nc = qvp_nc.drop_vars('range')
         qvp_nc = qvp_nc.drop_vars('azimuth')
 
-        #######################################################################
+        # ------------------------------------------------------------------- #
         # QVP: SAVE                                                           #
-        #######################################################################
+        # ------------------------------------------------------------------- #
         emv_nc.close()
         icon_nc.close()
         Path(dir_qvp).mkdir(parents=True, exist_ok=True)
         qvp_nc.to_netcdf(dir_qvp + file_qvp, unlimited_dims='time')
         qvp_nc.close()
 
-    ###########################################################################
+    # ----------------------------------------------------------------------- #
     if merge:
         qvp_nc = xr.merge([xr.open_dataset(dir_qvp + files_qvp[0]),
                            xr.open_dataset(dir_qvp + files_qvp[1]),

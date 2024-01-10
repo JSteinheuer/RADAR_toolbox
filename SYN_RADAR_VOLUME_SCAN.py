@@ -1,10 +1,12 @@
 #!/usr/bin/env python3.11
-###############################################################################
-# Julian Steinheuer; October 2023                                             #
+# #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
+
+# --------------------------------------------------------------------------- #
+# Julian Steinheuer; 01.10.23                                                 #
 # SYN_RADAR_VOLUME_SCAN.py                                                    #
 #                                                                             #
 # Functions to calculate synthetic volume scans from EMVORADO and ICON.       #
-###############################################################################
+# --------------------------------------------------------------------------- #
 
 import xarray as xr
 import numpy as np
@@ -16,20 +18,7 @@ import wradlib.georef as georef
 from osgeo import osr
 import glob
 import multiprocessing as mp
-import sys
 import HEADER_RADAR_toolbox as header
-
-# #############################################################################
-# # preamble necessary for wrl.georef.reproject: Tell the shell where to find #
-# # the projection maps.                                                      #
-# path = sys.executable.split("/")[:-2]
-# path.extend(["share", "proj"])
-# path = "/".join(path)
-# print(path)
-# os.environ["PROJ_LIB"] = path
-# os.environ["PROJ_NETWORK"] = 'ON'
-# # preamble ends.                                                            #
-# #############################################################################
 
 
 def rad_dict(xband_res=None):

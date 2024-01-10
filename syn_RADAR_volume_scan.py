@@ -1,11 +1,13 @@
 #!/usr/bin/env python3.11
-###############################################################################
-# Julian Steinheuer; October 2023                                             #
+# #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
+
+# --------------------------------------------------------------------------- #
+# Julian Steinheuer; 01.10.23                                                 #
 # syn_RADAR_volume_scan.py                                                    #
 #                                                                             #
 # Run the functions from SYN_RADAR_VOLUME_SCAN.py:                            #
 # to calculate synthetic volume scans from EMVORADO and ICON                  #
-###############################################################################
+# --------------------------------------------------------------------------- #
 
 import os
 import HEADER_RADAR_toolbox as header
@@ -15,9 +17,9 @@ from SYN_RADAR_VOLUME_SCAN import \
     create_vol_nc, \
     rad_dict
 
-dir_data_in = '/automount/agradar/operation_hydrometeors/data/mod'
-###############################################################################
+dir_data_in = header.dir_data_mod
 
+# --------------------------------------------------------------------------- #
 # icon + emvorado mixtures
 
 day = '20170725'
@@ -45,8 +47,7 @@ for emvorado_run in [
                                     dir_data_in=header.dir_data_mod,
                                     dir_data_out=header.dir_data_vol)
 
-###############################################################################
-
+# --------------------------------------------------------------------------- #
 # icon + emvorado mixtures
 
 day = '20170725'
@@ -66,9 +67,10 @@ for emvorado_run in [
                                     dir_data_in=header.dir_data_mod,
                                     dir_data_out=header.dir_data_vol)
 
-###############################################################################
-# TODO: following produces daily files if previous day had some data
+# --------------------------------------------------------------------------- #
 # all days, all ass, all main, all emv, only PRO
+# TODO: following produces daily files if previous day had some data
+
 for day in [
     '20170725',  # start this day
     '20170719',
@@ -135,8 +137,7 @@ for day in [
                                                            da_run,
                                                            icon_emvorado_run]))
 
-###############################################################################
-
+# --------------------------------------------------------------------------- #
 # icon + emvorado mixtures
 
 day = '20170725'
@@ -157,8 +158,7 @@ for emvorado_run in [
                                     dir_data_in=header.dir_data_mod,
                                     dir_data_out=header.dir_data_vol)
 
-###############################################################################
-
+# --------------------------------------------------------------------------- #
 # reference
 
 day = '20170725'
@@ -178,4 +178,4 @@ for emvorado_run in [
                                     dir_data_in=header.dir_data_mod,
                                     dir_data_out=header.dir_data_vol)
 
-###############################################################################
+# --------------------------------------------------------------------------- #

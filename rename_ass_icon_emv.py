@@ -1,11 +1,13 @@
 #!/usr/bin/env python3.11
-###############################################################################
-# Julian Steinheuer; December 2023                                            #
+# #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
+
+# --------------------------------------------------------------------------- #
+# Julian Steinheuer; 01.12.23                                                 #
 # rename_ass_icon_emv.py                                                      #
 #                                                                             #
 # Following the new convention from JM, meaningful names for the old runs are #
 # given.                                                                      #
-###############################################################################
+# --------------------------------------------------------------------------- #
 
 import glob
 import os
