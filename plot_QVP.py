@@ -24,6 +24,7 @@ filter = False
 hhmm_start = '00:00'
 # hhmm_end = '23:55'
 hhmm_end = '10:00'
+elevation_deg = 12
 
 year = date[0:4]
 mon = date[4:6]
@@ -163,13 +164,14 @@ obs_nc.close()
 folder_syn = header.dir_data_qvp
 da_run = 'ASS_2211'
 icon_emvorado_run = 'MAIN_2308.1/EMVO_00500000.2'
-spin_up_mm = '30'
+spin_up_mm = '60'
 
 date_start = '-'.join([year, mon, day, hhmm_start])
+date_end = '-'.join([year, mon, day, hhmm_end])
 path = '/'.join([folder_syn, date, da_run, icon_emvorado_run,
-                 str(spin_up_mm) + 'min_spinup', 'QVP_Syn_' +
-                 location + '_' + date + '0000_' + date +
-                 '2355.nc'])
+                 str(spin_up_mm) + 'min_spinup', 'QVP_' +
+                 str(elevation_deg) + '_Syn_' + location + '_' +
+                 date + '0000_' + date + '2355.nc'])
 syn_nc = xr.open_dataset(path)
 
 top_height = 10
@@ -296,13 +298,14 @@ syn_nc.close()
 folder_syn = header.dir_data_qvp
 da_run = 'ASS_2211'
 icon_emvorado_run = 'MAIN_2308.1/EMVO_00600000.2'
-spin_up_mm = '30'
+spin_up_mm = '60'
 
 date_start = '-'.join([year, mon, day, hhmm_start])
+date_end = '-'.join([year, mon, day, hhmm_end])
 path = '/'.join([folder_syn, date, da_run, icon_emvorado_run,
-                 str(spin_up_mm) + 'min_spinup', 'QVP_Syn_' +
-                 location + '_' + date + '0000_' + date +
-                 '2355.nc'])
+                 str(spin_up_mm) + 'min_spinup', 'QVP_' +
+                 str(elevation_deg) + '_Syn_' + location + '_' +
+                 date + '0000_' + date + '2355.nc'])
 syn_nc = xr.open_dataset(path)
 
 top_height = 10
@@ -428,13 +431,14 @@ syn_nc.close()
 folder_syn = header.dir_data_qvp
 da_run = 'ASS_2109'
 icon_emvorado_run = 'MAIN_2109.0/EMVO_00000000.2'
-spin_up_mm = '30'
+spin_up_mm = '60'
 
 date_start = '-'.join([year, mon, day, hhmm_start])
+date_end = '-'.join([year, mon, day, hhmm_end])
 path = '/'.join([folder_syn, date, da_run, icon_emvorado_run,
-                 str(spin_up_mm) + 'min_spinup', 'QVP_Syn_' +
-                 location + '_' + date + '0000_' + date +
-                 '2355.nc'])
+                 str(spin_up_mm) + 'min_spinup', 'QVP_' +
+                 str(elevation_deg) + '_Syn_' + location + '_' +
+                 date + '0000_' + date + '2355.nc'])
 syn_nc = xr.open_dataset(path)
 
 top_height = 10
@@ -563,7 +567,8 @@ if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
 
 plt.savefig(
-    folder_plot + date + '_' + hhmm_start + '-' + hhmm_end + '_' +
-    location + '_' + mod_names +
+    folder_plot + 'QVP_' + str(elevation_deg) + '_' +
+    date + '_' + hhmm_start + '-' + hhmm_end + '_' +
+    location + mod_names +
     '.pdf', format='pdf', transparent=True)
 plt.close()

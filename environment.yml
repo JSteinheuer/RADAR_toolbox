@@ -43,6 +43,7 @@ dependencies:
   - click-params=0.4.1=pyhd8ed1ab_0
   - cloudpickle=2.2.1=pyhd8ed1ab_0
   - cloup=2.0.0.post1=pyhd8ed1ab_0
+  - cmweather=0.3.2=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
   - colorcet=3.0.1=pyhd8ed1ab_0
   - comm=0.1.2=pyhd8ed1ab_0
@@ -311,7 +312,7 @@ dependencies:
   - wheel=0.38.4=pyhd8ed1ab_0
   - widgetsnbextension=3.6.1=pyha770c72_0
   - windrose=1.6.8=pyh9f0ad1d_0
-  - wradlib=1.19.0=pyhd8ed1ab_0
+  - wradlib=2.0.3=pyhd8ed1ab_0
   - xarray=2023.2.0=pyhd8ed1ab_0
   - xarray-datatree=0.0.11=pyhd8ed1ab_0
   - xerces-c=3.2.4=h55805fa_1
@@ -328,7 +329,7 @@ dependencies:
   - xorg-renderproto=0.11.1=h7f98852_1002
   - xorg-xextproto=7.3.0=h0b41bf4_1003
   - xorg-xproto=7.0.31=h7f98852_1007
-  - xradar=0.1.0=pyhd8ed1ab_1
+  - xradar=0.4.2=pyhd8ed1ab_0
   - xz=5.2.6=h166bdaf_0
   - y-py=0.5.5=py311hfe55011_2
   - yaml=0.2.5=h7f98852_2

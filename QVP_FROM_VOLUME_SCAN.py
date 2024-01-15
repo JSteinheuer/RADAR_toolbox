@@ -514,7 +514,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
     dir_qvp = dir_data_out + dti[0].strftime('%Y%m%d') + '/' + \
               da_run + '/' + icon_emvorado_run + '/' + \
               str(spin_up_mm) + 'min_spinup/'
-    file_qvp_4 = 'QVP_Syn_' + radar_loc + '_' + \
+    file_qvp_4 = 'QVP_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
                  dti[0].strftime('%Y%m%d%H%M') + '_' + \
                  dti[-1].strftime('%Y%m%d%H%M') + '.nc'
     files_qvp = []
@@ -546,7 +546,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         file_icon = 'ICON_Vol_' + radar_loc + '_' + \
                     dti[0].strftime('%Y%m%d%H%M') + '_' + \
                     dti[-1].strftime('%Y%m%d%H%M') + '.nc'
-        file_qvp = 'QVP_Syn_' + radar_loc + '_' + \
+        file_qvp = 'QVP_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
                    dti[0].strftime('%Y%m%d%H%M') + '_' + \
                    dti[-1].strftime('%Y%m%d%H%M') + '.nc'
         files_qvp.append(file_qvp)

@@ -197,7 +197,7 @@ def get_lon_lat_alt(r, az, el, sitecoords):
 
     proj_wgs84 = georef.epsg_to_osr(4326)
     cent_coords = georef.spherical_to_centroids(r, az, el, sitecoords,
-                                                proj=proj_wgs84)
+                                                crs=proj_wgs84)
     cent_coords = np.squeeze(cent_coords)
     lon = cent_coords[..., 0]
     lat = cent_coords[..., 1]
