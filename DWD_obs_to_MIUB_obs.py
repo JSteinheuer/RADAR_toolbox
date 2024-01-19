@@ -7,10 +7,29 @@
 #                                                                             #
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
+# STEP 1: Load all moments and all times (of day) in one file.                #
+#         Adapted from Julian Giles:                                          #
+#         radar_processing_scripts/build_radar_database/concat_dwd_data_to_d* #
 # --------------------------------------------------------------------------- #
+"""
+@author: jgiles
+This script takes all dwd radar files from a folder (for one elevation) and
+merges them into a single file combining all moments along all timesteps.
+Then saves the resulting dataset into a new file with the same naming
+style but with "allmoms" instead of the moment name. Additionally, it saves
+either a true.txt or false.txt file alongside, if the data fulfills certain
+condition, as an attempt to check if there is actually something interesting
+in that period of data.
+"""
 
-import HEADER_RADAR_toolbox as header
+import datatree as dttree
+import numpy as np
 import sys
+import glob
+import HEADER_RADAR_toolbox as header
+from pathlib import Path
+import os
+
 sys.path.insert(0, header.dir_projects +
                 'RADAR_toolbox/radar_processing_scripts/')
 # maybe awkward because >import utils< would work now, but the following
@@ -18,67 +37,121 @@ sys.path.insert(0, header.dir_projects +
 # the folder containing /radar_processing_scripts/ was already in the (global)
 # sys.path variable (i.e. the project folder).
 from radar_processing_scripts import utils
-import warnings
-warnings.filterwarnings('ignore')
-# sys.path.insert(0, '../')
-from radar_processing_scripts.radarmet import *
-from radar_processing_scripts.read_cband_dwd import *
 
-DATES = ["20170727", "20180923", "20170725", "20170719", "20170724", "20170726",
-        "20190623", "20190720", "20180728", "20180809", "20190829", "20190830",
-        "20181202", "20170720",
-        ]
-LOCATIONS = ['boo', 'eis', 'fld', 'mem', 'neu', 'ros', 'tur', 'umd', 'drs',
-             'ess', 'fbg', 'hnr', 'isn', 'nhb', 'oft', 'pro'
+DATES = ["20210604",  # case01
+         "20210620", "20210621",  # case02
+         "20210628", "20210629",  # case03
+         "20220519", "20220520",  # case04
+         "20220623", "20220624", "20220625",  # case05
+         "20220626", "20220627", "20220628",  # case06+07
+         "20220630", "20220701",  # case08
+         "20210714",  # case09
+         "20221222",  # case10
+         ]
+LOCATIONS = ['boo', 'eis', 'fld', 'mem', 'neu', 'ros', 'tur', 'umd',
+             'drs', 'ess', 'fbg', 'hnr', 'isn', 'nhb', 'oft', 'pro'
              ]
-# Info on the DWD scanning strategy:
-# y https://www.dwd.de/EN/ourservices/radar_products/radar_products.html
-# Scans 00-05 are the volume scans (5.5°, 4.5°, 3.5°, 2.5°, 1.5° and 0.5°),
-# the rest are 8.0°, 12.0°, 17.0° and 25.0°
-SCANS = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09']
-# moments = ["DBZH", "DBZV", "TH", "TV", "ZDR", "UZDR",
-#            "ZDR1", "UZDR1", "VRADH", "VRADV", "UVRADH", "UVRADV",
-#            "FVRADH", "UFVRADH", "WRADH", "UWRADH", "UPHIDP", "KDP",
-#            "RHOHV", "URHOHV", "SQIH", "SQIV", "SQI2H", "SQI2V",
-#            "SQI3H", "SQI3V", "CPAH", "CPAV", "STDH", "STDV",
-#            "CCORH", "CCORV", "SNRHC", "SNRVC",
-#            # "DBSNRH", "DBSNRV",
-#            "CMAP", "CFLAGS",
-#            ]
-moments = None
+ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
+                           8.0, 12.0, 17.0, 25.0])
+ELEVATIONS = ELEVATIONS_ALL.copy()
+MODE = ['vol', 'pcp']
+overwrite = False
 
-fmt = "%Y%m%d"
+# START: Loop over cases, dates, and radars:
 
-date = DATES[2]
-loc = LOCATIONS[-1]
-scan = SCANS[7]
-case_studies = {cs: dt.datetime.strptime(cs, fmt) for cs in DATES}
-mode = "vol5minng01"  # "vol5minng01" 'pcpng01'
-path = header.dir_data_obs_realpep
+# DATES = ['20210604']
+# # DATES = ['20210714']
+# LOCATIONS = ['pro']
+# ELEVATIONS = np.array([12])
+# # MODE = ['pcp']
 
-date = "20210604"
-loc = "pro"
-case = "01"
-scan = SCANS[7]
-case_studies = {cs: dt.datetime.strptime(cs, fmt) for cs in [date]}
-mode = "vol5minng10"
-path = header.dir_data_obs + "OpHymet2-case" + case + "-" + date + "/"
+# date = '20210604'
+# # date = '20210714'
+# location = 'pro'
+# elevation_deg = 12
+# mode = ['vol']
 
-# Start and End time
-starttime = case_studies[date] + dt.timedelta(hours=0, minutes=0)
-endtime = case_studies[date] + dt.timedelta(hours=24, minutes=0)
+for date in DATES:
+    for location in LOCATIONS:
+        for elevation_deg in ELEVATIONS:
+            for mode in MODE:
 
-# Radardata filelist
-file_list_gen = create_dwd_filelist(path=path,
-                                    starttime=starttime,
-                                    endtime=endtime,
-                                    moments=moments,
-                                    mode=mode,
-                                    loc=loc,
-                                    scan=scan,
-                                    )
-file_list = list(file_list_gen)
+                year = date[0:4]
+                mon = date[4:6]
+                day = date[6:8]
+                sweep = '0' + str(np.where(ELEVATIONS_ALL ==
+                                           float(elevation_deg))[0][0])
+                if mode == 'pcp':
+                    sweep = '00'
 
-vol = wrl.io.open_odim(file_list, loader="h5py", chunks={})
-swp = vol[0].data.pipe(wrl.georef.georeference_dataset)
-swp.to_netcdf(header.dir_data_obs + '/test3.nc')
+                path_in = "/".join([header.dir_data_obs + '*' + date,
+                                    year, year + '-' + mon,
+                                    year + '-' + mon + '-' + day,
+                                    location, mode + '*', sweep, 'ras*'])
+                files = sorted(glob.glob(path_in))
+                if not files:
+                    path_in = "/".join([header.dir_data_obs_realpep + '' +
+                                        year, year + '-' + mon,
+                                        year + '-' + mon + '-' + day,
+                                        location, mode + '*', sweep, 'ras*'])
+                    files = sorted(glob.glob(path_in))
+                    path_out = '/'.join((files[0].split('/'))[:-1])
+                    path_out = path_out.replace(header.dir_data_obs_realpep,
+                                                header.dir_data_obs)
+                else:
+                    path_out = '/'.join((files[0].split('/'))[:-1])
+                files_temp = []
+                for file in files:
+                    if not 'allmoms' in file:
+                        files_temp.append(file)
+                    # else:
+                    #     print(file)
+
+                files = files_temp
+                name = files[0].split("/")[-1].split("_")
+                t_start = files[0].split("/")[-1].split("-")[2][:12]
+                t_end = files[-1].split("/")[-1].split("-")[2][:12]
+                name[-2] = "allmoms"
+                name_m1 = name[-1]
+                name_m1 = name_m1.replace('-hd5', '.hd5')
+                name_m1 = name_m1.split("-")
+                name_m1[1] = t_start + '-' + t_end
+                name[-1] = '-'.join(name_m1)
+                name_out = ("_".join(name))
+                file_out = '/'.join([path_out, name_out])
+                Path(path_out).mkdir(parents=True, exist_ok=True)
+                if not overwrite and os.path.exists(file_out):
+                    print(name_out + ' is already existing;'
+                                     ' so continue with the next file.')
+                    continue
+
+                ds = utils.load_dwd_raw(files)
+                dtree = dttree.DataTree(name="root")
+                if "longitude" in ds:
+                    # rename the variable
+                    ds = ds.rename({"longitude": "longitude_loc"})
+                if "latitude" in ds:
+                    # rename the variable
+                    ds = ds.rename({"latitude": "latitude_loc"})
+                if "fixed_angle" in ds:  # rename the variable
+                    ds = ds.rename({"fixed_angle": "sweep_fixed_angle"})
+
+                dttree.DataTree(ds, name=f"sweep_{int(sweep)}", parent=dtree)
+                print('saving ' + file_out + ' ...')
+                dtree.load().to_netcdf(file_out)
+
+# import os
+#
+# folder = "/automount/agradar/operation_hydrometeors/data/obs/"
+# files = sorted(glob.glob(folder + '*/*/*/*/*/*/*/*'))
+# for file in files:
+#     sweep_folder = file.split('/')[-2]
+#     sweep_file = file.split('/')[-1].split('_')[-1][:2]
+#     if 'allmoms' in file:
+#         print(file)
+#         file_new = '/'.join(file.split('/')[:-2]) + '/' + sweep_file + \
+#                    '/' + file.split('/')[-1]
+#         # print(file_new)
+#         # os.system('rm ' + file )
+
+import DWD_obs_to_MIUB_obs_calibration
