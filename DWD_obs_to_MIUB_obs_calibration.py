@@ -34,26 +34,28 @@ from radar_processing_scripts import utils
 
 
 DATES = ["20210604",  # case01
-         "20210620", "20210621",  # case02
-         "20210628", "20210629",  # case03
-         "20220519", "20220520",  # case04
-         "20220623", "20220624", "20220625",  # case05
-         "20220626", "20220627", "20220628",  # case06+07
-         "20220630", "20220701",  # case08
-         "20210714",  # case09
-         "20221222",  # case10
+         "20210620",  # "20210621",  # case02
+         # "20210628", "20210629",  # case03
+         # "20220519", "20220520",  # case04
+         # "20220623", "20220624", "20220625",  # case05
+         # "20220626", "20220627", "20220628",  # case06+07
+         # "20220630", "20220701",  # case08
+         # "20210714",  # case09
+         # "20221222",  # case10
          ]
-LOCATIONS = ['boo', 'eis', 'fld', 'mem', 'neu', 'ros', 'tur', 'umd',
+LOCATIONS = ['asb', 'boo', 'eis', 'fld', 'mem', 'neu', 'ros', 'tur', 'umd',
              'drs', 'ess', 'fbg', 'hnr', 'isn', 'nhb', 'oft', 'pro'
              ]
 ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
                            8.0, 12.0, 17.0, 25.0])
 ELEVATIONS = ELEVATIONS_ALL.copy()
-MODE = ['vol', 'pcp']
+MODE = ['pcp', 'vol']
+# overwrite = True
 overwrite = False
 
-import time
-time.sleep(60*60*24)
+# import time
+# time.sleep(60*60*24)
+
 # START: Loop over cases, dates, and radars:
 
 # # DATES = ['20210604']
@@ -70,16 +72,16 @@ time.sleep(60*60*24)
 
 for date in DATES:
     for location in LOCATIONS:
-        for elevation_deg in ELEVATIONS:
-            for mode in MODE:
+        for mode in MODE:
+            for elevation_deg in ELEVATIONS:
 
                 year = date[0:4]
                 mon = date[4:6]
                 day = date[6:8]
                 sweep = '0' + str(np.where(ELEVATIONS_ALL ==
                                            float(elevation_deg))[0][0])
-                if mode == 'pcp':
-                    sweep = '00'
+                if mode == 'pcp' and sweep != '00':
+                    continue
 
                 path_in = "/".join([header.dir_data_obs + '*' + date,
                                     year, year + '-' + mon,
@@ -101,7 +103,7 @@ for date in DATES:
                     path_in = files[0]
                     path_out = path_in.replace('_allmoms_', '_rhohv_nc_')
 
-                if overwrite or os.path.exists(path_out):
+                if not overwrite and os.path.exists(path_out):
                     print(path_out.split('/')[-1] + ' is already existing; so'
                                                     ' continue with the next'
                                                     ' file.')
@@ -110,7 +112,7 @@ for date in DATES:
                 dbzh_names = ["DBZH"]  # names to look for the DBZH variable
                 rhohv_names = ["RHOHV"]  # same but for RHOHV
                 data = dttree.open_datatree(path_in)[
-                    'sweep_' + str(int(sweep))].to_dataset()
+                    'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
                 # get RHOHV name
                 for X_RHO in rhohv_names:
                     if X_RHO in data.data_vars:
@@ -124,19 +126,22 @@ for date in DATES:
                 # check that the variables actually exist, otherwise continue
                 if X_DBZH not in data.data_vars:
                     print("DBZH not found in data")
+                    data.close()
                     coninue
                 if X_RHO not in data.data_vars:
                     print("RHOHV not found in data")
                     sys.exit("RHOHV not found in data.")
+                    data.close()
                     coninue
 
                 rho_nc = utils.calculate_noise_level(
                     data[X_DBZH], data[X_RHO], noise=(-45, -15, 1))
-
-                print('linear fit for nois levels for ' + path_out + ' ...')
+                # print('calc noise level' + l)
+                print('linear fit for noise levels for ' + path_out + ' ...')
                 # lets do a linear fit for every noise level
                 fits = []
                 for nn, rhon in enumerate(rho_nc[0]):
+                    # print(str(nn) + '_' + str(rhon))
                     merged = xr.merge(rhon)
                     rhonc_snrh = xr.DataArray(
                         merged.RHOHV_NC.values.flatten(),
@@ -178,4 +183,7 @@ for date in DATES:
                 rho_nc_out.to_netcdf(path_out)
                 rho_nc_out2.to_netcdf(path_out.replace(
                     'rhohv_nc', 'rhohv_nc_2percent'))
+                data.close()
+                rho_nc_out.close()
+                rho_nc_out2.close()
 

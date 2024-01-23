@@ -48,13 +48,14 @@ DATES = ["20210604",  # case01
          "20210714",  # case09
          "20221222",  # case10
          ]
-LOCATIONS = ['boo', 'eis', 'fld', 'mem', 'neu', 'ros', 'tur', 'umd',
+LOCATIONS = ['asb', 'boo', 'eis', 'fld', 'mem', 'neu', 'ros', 'tur', 'umd',
              'drs', 'ess', 'fbg', 'hnr', 'isn', 'nhb', 'oft', 'pro'
              ]
 ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
                            8.0, 12.0, 17.0, 25.0])
 ELEVATIONS = ELEVATIONS_ALL.copy()
-MODE = ['vol', 'pcp']
+MODE = ['pcp', 'vol']
+# overwrite = True
 overwrite = False
 
 # START: Loop over cases, dates, and radars:
@@ -81,10 +82,10 @@ for date in DATES:
                 day = date[6:8]
                 sweep = '0' + str(np.where(ELEVATIONS_ALL ==
                                            float(elevation_deg))[0][0])
-                if mode == 'pcp':
-                    sweep = '00'
+                if mode == 'pcp' and sweep != '00':
+                    continue
 
-                path_in = "/".join([header.dir_data_obs + '*' + date,
+                path_in = "/".join([header.dir_data_obs + '*',
                                     year, year + '-' + mon,
                                     year + '-' + mon + '-' + day,
                                     location, mode + '*', sweep, 'ras*'])
@@ -103,7 +104,8 @@ for date in DATES:
                 files_temp = []
                 for file in files:
                     if not 'allmoms' in file:
-                        files_temp.append(file)
+                        if not 'rhohv_nc' in file:
+                            files_temp.append(file)
                     # else:
                     #     print(file)
 
@@ -129,10 +131,20 @@ for date in DATES:
                 dtree = dttree.DataTree(name="root")
                 if "longitude" in ds:
                     # rename the variable
-                    ds = ds.rename({"longitude": "longitude_loc"})
+                    # ds = ds.rename({"longitude": "longitude_loc"})
+                    ds['longitude_loc'] = ([], ds['longitude'].data,
+                                           ds['longitude'].attrs)
+                    ds = ds.drop_vars({'longitude'})
                 if "latitude" in ds:
                     # rename the variable
-                    ds = ds.rename({"latitude": "latitude_loc"})
+                    ds['latitude_loc'] = ([], ds['latitude'].data,
+                                          ds['latitude'].attrs)
+                    ds = ds.drop_vars({'latitude'})
+                if "altitude" in ds:
+                    # rename the variable
+                    ds['altitude_loc'] = ([], ds['altitude'].data,
+                                          ds['altitude'].attrs)
+                    ds = ds.drop_vars({'altitude'})
                 if "fixed_angle" in ds:  # rename the variable
                     ds = ds.rename({"fixed_angle": "sweep_fixed_angle"})
 
@@ -154,4 +166,28 @@ for date in DATES:
 #         # print(file_new)
 #         # os.system('rm ' + file )
 
-import DWD_obs_to_MIUB_obs_calibration
+# import DWD_obs_to_MIUB_obs_calibration
+
+# sweep=4
+# path_in="/automount/agradar/operation_hydrometeors/data/obs/" \
+#         "OpHymet2-case10-20221222/2022/2022-12/2022-12-22/boo/" \
+#         "vol5minng10/04/" \
+#         "ras11-vol5minng10_sweeph5allm_allmoms_04-202212220002-202212221742-boo-10132.hd5"
+# ddata = dttree.open_datatree(path_in)[
+#                     'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+
+
+# sweep=4
+# path_in="/automount/agradar/operation_hydrometeors/data/obs/" \
+#         "OpHymet2-case10-20221222/2022/2022-12/2022-12-22/boo/" \
+#         "vol5minng10/04/" \
+#         "ras11-vol5minng10_sweeph5allm_allmoms_04-202212220002-202212221742-boo-10132.hd5"
+# ddata = dttree.open_datatree(path_in)[
+#                     'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+
+# folder = "/automount/agradar/operation_hydrometeors/data/obs/*"
+# files = sorted(glob.glob(folder + '*/*/*/*/*/*/*/*'))
+# for file in files:
+#     if 'rhohv_nc' in file:
+#         print(file)
+#         os.system('rm ' + file )
