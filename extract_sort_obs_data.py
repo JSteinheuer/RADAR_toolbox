@@ -110,8 +110,17 @@ if __name__ == "__main__":
     main()
 
 
-# /automount/agh/s6justei/mambaforge/envs/hydrometeors_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/OP_Hydrometeors/extract_sort_obs_data.py -i /automount/realpep/upload/RealPEP-SPP/newdata/s6justei_2023/2021-06-28 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case03-20210628 -d "%Y%m%d" -v
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /automount/realpep/upload/RealPEP-SPP/scripts/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20221222 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case10-20221222 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
-# /automount/agh/s6justei/mambaforge/envs/hydrometeors_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/OP_Hydrometeors/extract_sort_obs_data.py -i /automount/realpep/upload/RealPEP-SPP/newdata/s6justei_2023/2022-05-19 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case04-20220519 -d "%Y%m%d" -v
+# Run:
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20221222 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case10-20221222 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20210628 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case03-20210628 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20210604 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case01-20210604 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
-# /automount/agh/s6justei/mambaforge/envs/hydrometeors_agh/bin/python /automount/realpep/upload/RealPEP-SPP/scripts/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/OpHymet2_CASE06+07_2022-06-26/ -o /automount/agradar/operation_hydrometeors/data/obs -d "%Y%m%d" -v
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220519 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case04-20220519 -d "%Y/%Y-%m/%Y-%m-%d" -v
+
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220623 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case05-20220623 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220626 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case06+07-20220626 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220630 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case08-20220630 -d "%Y/%Y-%m/%Y-%m-%d" -v
+
+
