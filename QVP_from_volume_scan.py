@@ -13,23 +13,21 @@ import HEADER_RADAR_toolbox as header
 from QVP_FROM_VOLUME_SCAN import qvp_from_syn_vol
 
 # --------------------------------------------------------------------------- #
-
 # one day
 
-day = '20170725'
-da_run = 'ASS_2109'
-icon_run = 'MAIN_2109.0'
-emvorado_run = 'EMVO_00000000.2'
-qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
-                 icon_emvorado_run=icon_run + '/' + emvorado_run,
-                 dir_data_in=header.dir_data_vol,
-                 elevation_deg=12, radar_loc='ESS',
-                 dir_data_out=header.dir_data_qvp)
+# day = '20170725'
+# da_run = 'ASS_2109'
+# icon_run = 'MAIN_2109.0'
+# emvorado_run = 'EMVO_00000000.2'
+# qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+#                  icon_emvorado_run=icon_run + '/' + emvorado_run,
+#                  dir_data_in=header.dir_data_vol,
+#                  elevation_deg=12, radar_loc='ESS',
+#                  dir_data_out=header.dir_data_qvp)
 
 # --------------------------------------------------------------------------- #
+# one day
 
-# # one day
-#
 # day = '20170725'
 # da_run = 'ASS_2211'
 # icon_run = 'MAIN_2308.0'
@@ -47,7 +45,6 @@ qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                  dir_data_out=header.dir_data_qvp)
 
 # --------------------------------------------------------------------------- #
-
 # all days, all ass, all main, all emv, only PRO
 
 # for day in [
@@ -90,3 +87,34 @@ qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                                                    emvorado_run,
 #                                  dir_data_in=header.dir_data_vol,
 #                                  dir_data_out=header.dir_data_qvp)
+
+# --------------------------------------------------------------------------- #
+# processing: 31.1.24
+# icon + emvorado mixtures
+
+day = '20170725'
+da_run = 'ASS_2211'
+icon_run = 'MAIN_2308.0'
+icon_emvorado_run = 'MAIN_2401.3/EMVO_00500000.2'
+spin_up_mm = 60
+radar_loc = 'PRO'
+qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                 icon_emvorado_run=icon_emvorado_run, spin_up_mm=spin_up_mm,
+                 elevation_deg=12, radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
+# processing: 31.1.24
+# icon + emvorado
+
+day = '20170725'
+da_run = 'ASS_2211'
+emvorado_run = 'EMVO_00400000.2'
+icon_run = 'MAIN_2308.0'
+icon_emvorado_run = icon_run + '/' + emvorado_run
+spin_up_mm = 60
+radar_locs = 'PRO'
+qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                 icon_emvorado_run=icon_emvorado_run, spin_up_mm=spin_up_mm,
+                 elevation_deg=12, radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #

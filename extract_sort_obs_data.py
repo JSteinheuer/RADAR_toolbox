@@ -70,6 +70,7 @@ def unpack_sort_dwd_obs(inpath, outpath, date_struct, log):
                 th.extract(m, path=outp, **kwargs)
             th.close()
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Unpack and sort DWD obs data", add_help=True
@@ -123,4 +124,5 @@ if __name__ == "__main__":
 # /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220626 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case06+07-20220626 -d "%Y/%Y-%m/%Y-%m-%d" -v
 # /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220630 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case08-20220630 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/210604_BirdBaths.tgz -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case01 -d "%Y/%Y-%m/%Y-%m-%d" -v
 

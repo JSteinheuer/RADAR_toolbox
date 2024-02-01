@@ -50,28 +50,28 @@ dir_data_in = header.dir_data_mod
 # --------------------------------------------------------------------------- #
 # icon + emvorado mixtures
 
-day = '20170725'
-for emvorado_run in [
-    'EMVO_00000000.2',
-]:
-    da_run = 'ASS_2109'
-    icon_run = 'MAIN_2109.0'
-    icon_emvorado_run = icon_run + '/' + emvorado_run
-    spin_up_mm = 30
-    radar_locs = ['ESS']
-    create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
-                           icon_emvorado_run=icon_emvorado_run,
-                           spin_up_mm=spin_up_mm,
-                           radar_locs=radar_locs,
-                           dir_data_in=header.dir_data_mod,
-                           dir_data_out=header.dir_data_vol)
-    # create_8_vol_nc_of_day_paralell(day=day, da_run=da_run,
-    #                                 icon_run=icon_run,
-    #                                 icon_emvorado_run=icon_emvorado_run,
-    #                                 spin_up_mm=spin_up_mm,
-    #                                 radar_locs=radar_locs,
-    #                                 dir_data_in=header.dir_data_mod,
-    #                                 dir_data_out=header.dir_data_vol)
+# day = '20170725'
+# for emvorado_run in [
+#     'EMVO_00000000.2',
+# ]:
+#     da_run = 'ASS_2109'
+#     icon_run = 'MAIN_2109.0'
+#     icon_emvorado_run = icon_run + '/' + emvorado_run
+#     spin_up_mm = 30
+#     radar_locs = ['ESS']
+#     create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
+#                            icon_emvorado_run=icon_emvorado_run,
+#                            spin_up_mm=spin_up_mm,
+#                            radar_locs=radar_locs,
+#                            dir_data_in=header.dir_data_mod,
+#                            dir_data_out=header.dir_data_vol)
+#     # create_8_vol_nc_of_day_paralell(day=day, da_run=da_run,
+#     #                                 icon_run=icon_run,
+#     #                                 icon_emvorado_run=icon_emvorado_run,
+#     #                                 spin_up_mm=spin_up_mm,
+#     #                                 radar_locs=radar_locs,
+#     #                                 dir_data_in=header.dir_data_mod,
+#     #                                 dir_data_out=header.dir_data_vol)
 
 # --------------------------------------------------------------------------- #
 # all days, all ass, all main, all emv, only PRO
@@ -185,5 +185,41 @@ for emvorado_run in [
 #                                     radar_locs=radar_locs,
 #                                     dir_data_in=header.dir_data_mod,
 #                                     dir_data_out=header.dir_data_vol)
+
+# --------------------------------------------------------------------------- #
+# processing: 31.1.24
+# icon + emvorado mixtures
+
+# day = '20170725'
+# emvorado_run = 'EMVO_00500000.2'
+# da_run = 'ASS_2211'
+# icon_run = 'MAIN_2308.0'
+# icon_emvorado_run = 'MAIN_2401.3/' + emvorado_run
+# spin_up_mm = 60
+# radar_locs = ['PRO']
+# create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
+#                        icon_emvorado_run=icon_emvorado_run,
+#                        spin_up_mm=spin_up_mm,
+#                        radar_locs=radar_locs,
+#                        dir_data_in=header.dir_data_mod,
+#                        dir_data_out=header.dir_data_vol)
+
+# --------------------------------------------------------------------------- #
+# processing: 31.1.24
+# icon + emvorado mixtures
+
+day = '20170725'
+da_run = 'ASS_2211'
+emvorado_run = 'EMVO_00400000.2'
+icon_run = 'MAIN_2308.0'
+icon_emvorado_run = icon_run + '/' + emvorado_run
+spin_up_mm = 60
+radar_locs = ['PRO']
+create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
+                       icon_emvorado_run=icon_emvorado_run,
+                       spin_up_mm=spin_up_mm,
+                       radar_locs=radar_locs,
+                       dir_data_in=header.dir_data_mod,
+                       dir_data_out=header.dir_data_vol)
 
 # --------------------------------------------------------------------------- #
