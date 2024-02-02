@@ -37,6 +37,7 @@ if getpass.getuser() == 's6justei':  # Bonner tower/network
     dir_projects = '/automount/user/s6justei/PyCharm/PyCharmProjects/'
     dir_data_obs = '/automount/agradar/operation_hydrometeors/data/obs/'
     dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
+    folder_plot = '/automount/agradar/operation_hydrometeors/plots/'
     folder_qvp_plot = '/automount/agradar/operation_hydrometeors/plots/QVP/'
 
 
