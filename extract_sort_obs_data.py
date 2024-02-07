@@ -27,6 +27,7 @@ def extract_file_name(fname, plist):
 
 
 def extract_file_name2(fname):
+    fname=fname.split('/')[-1]  # TODO: new
     parts = fname.split("-")
     sweep = parts[1].split("_")
     nparts = [parts[0]] + sweep + parts[2:]
@@ -35,7 +36,6 @@ def extract_file_name2(fname):
 
 def unpack_sort_dwd_obs(inpath, outpath, date_struct, log):
     tar_files = sorted(glob.glob(os.path.join(inpath, "*.tar*")))
-
     for tfile in tar_files:
         if tarfile.is_tarfile(tfile):
             th = tarfile.open(tfile)
@@ -70,6 +70,50 @@ def unpack_sort_dwd_obs(inpath, outpath, date_struct, log):
                 th.extract(m, path=outp, **kwargs)
             th.close()
 
+    # TODO: alle below is new
+    tgz_files = sorted(glob.glob(os.path.join(inpath, "*.tgz*")))
+    for tfile in tgz_files:
+        th = tarfile.open(tfile, 'r:gz')
+        mem = th.getnames()
+        for m in mem:
+            if len(m.split('/')[-1].split('_'))  < 4: # TODO: new
+                continue
+
+            (
+                dwd_type,
+                sweep_name,
+                sweep_type,
+                sweep_moments,
+                sweep_number,
+                dtime,
+                radar,
+                wmo,
+                ftype,
+            ) = extract_file_name2(m)
+            dtime = dtime[::-1].zfill(16)[::-1]  # TODO: new!
+            dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S00")
+            date_path = dtime.strftime(date_struct)
+            outp = os.path.join(
+                f"{date_path}",
+                f"{radar}",
+                f"{sweep_name}",
+                f"{sweep_number}",
+            )
+            outp = os.path.join(outpath, outp)
+            if log:
+                print(m)
+            if sys.version_info[1] == 12:
+                kwargs = dict(filter="data")
+            else:
+                kwargs = {}
+
+            th.extract(m, path=outp, **kwargs)
+            if m.split('/')[-1] != m.split('/')[:-1]:
+                os.system('mv ' + outp + '/' + m + ' ' +
+                          outp + '/' + m.split('/')[-1])
+                os.system('rmdir ' + outp + '/' + m.split('/')[0])
+
+        th.close()
 
 def main():
     parser = argparse.ArgumentParser(
@@ -124,5 +168,5 @@ if __name__ == "__main__":
 # /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220626 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case06+07-20220626 -d "%Y/%Y-%m/%Y-%m-%d" -v
 # /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220630 -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case08-20220630 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
-# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/210604_BirdBaths.tgz -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case01 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case01-20210604 -d "%Y/%Y-%m/%Y-%m-%d" -v
 

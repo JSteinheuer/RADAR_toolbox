@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 01.10.23                                                 #
-# SYN_RADAR_VOLUME_SCAN.py                                                    #
+# SYN_RADAR_1_CREATE_VOLUME_SCAN.py                                           #
 #                                                                             #
 # Functions to calculate synthetic volume scans from EMVORADO and ICON.       #
 # --------------------------------------------------------------------------- #
@@ -205,7 +205,8 @@ def get_lon_lat_alt(r, az, el, sitecoords):
     return lon, lat, alt
 
 
-def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt):
+def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt,
+                       method='Nearest'):
     """
     Interpolate forecast grid to the radar grid.
 
@@ -259,7 +260,11 @@ def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt):
     trg = np.vstack((rad_x.ravel(),
                      rad_y.ravel(),
                      rad_alt.ravel() / 1e3)).T
-    func_ipol = wrl.ipol.Nearest(src, trg)
+    if method == 'Linear':
+        func_ipol = wrl.ipol.Linear(src, trg)
+    else:
+        func_ipol = wrl.ipol.Nearest(src, trg)
+
     return func_ipol, mask
 
 

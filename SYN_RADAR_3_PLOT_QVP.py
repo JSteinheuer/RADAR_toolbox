@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 01.11.23                                                 #
-# PLOT_QVP.py                                                                 #
+# SYN_RADAR_3_PLOT_QVP.py                                                     #
 #                                                                             #
 # Functions to plot QVPs from given synthetic (EMVORADO) QVP netcdf files.    #
 # --------------------------------------------------------------------------- #

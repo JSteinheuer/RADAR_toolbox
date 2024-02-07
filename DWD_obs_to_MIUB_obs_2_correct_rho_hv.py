@@ -116,7 +116,7 @@ def correct_rho_hv(date, location , elevation_deg=5.5, mode='vol',
     if mode == 'pcp' and sweep != '00':
         return
 
-    path_in = "/".join([dir_data_obs + '*' + date,
+    path_in = "/".join([dir_data_obs + '*',
                         year, year + '-' + mon,
                         year + '-' + mon + '-' + day,
                         location, mode + '*', sweep,

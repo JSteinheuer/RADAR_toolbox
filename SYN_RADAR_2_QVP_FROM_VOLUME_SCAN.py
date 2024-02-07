@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 01.11.23                                                 #
-# QVP_FROM_VOLUME_SCAN.py                                                     #
+# SYN_RADAR_2_QVP_FROM_VOLUME_SCAN.py                                         #
 #                                                                             #
 # Functions to calculate QVPs from given synthetic (EMVORADO) volume scans.   #
 # --------------------------------------------------------------------------- #

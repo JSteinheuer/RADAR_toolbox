@@ -3,14 +3,14 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 01.11.23                                                 #
-# QVP_from_volume_scan.py                                                     #
+# SYN_RADAR_2_QVP_from_volume_scan.py                                         #
 #                                                                             #
-# Run the functions from QVP_FROM_VOLUME_SCAN.py:                             #
+# Run the functions from SYN_RADAR_2_QVP_FROM_VOLUME_SCAN.py:                 #
 # calculate QVPs from given synthetic (EMVORADO) volume scans                 #
 # --------------------------------------------------------------------------- #
 
 import HEADER_RADAR_toolbox as header
-from QVP_FROM_VOLUME_SCAN import qvp_from_syn_vol
+from SYN_RADAR_2_QVP_FROM_VOLUME_SCAN import qvp_from_syn_vol
 
 # --------------------------------------------------------------------------- #
 # one day

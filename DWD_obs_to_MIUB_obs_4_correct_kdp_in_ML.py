@@ -3,11 +3,11 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 23.01.24                                                 #
-# DWD_obs_to_MIUB_obs_3_correct_KDP_in_ML.py                                  #
+# DWD_obs_to_MIUB_obs_4_correct_kdp_in_ML.py                                  #
 #                                                                             #
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
-# STEP 3: correct KDP in ML.                                                  #
+# STEP 4: correct KDP in ML.                                                  #
 #         Adapted from Julian Giles:                                          #
 #         radar_processing_scripts/build_radar_database/correct_rhohv.py      #
 # --------------------------------------------------------------------------- #

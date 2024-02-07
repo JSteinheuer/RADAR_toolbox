@@ -3,9 +3,10 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 01.11.23                                                 #
-# plot_QVP.py                                                                 #
+# SYN_RADAR_3_plot_QVP_for_JM_231101.py                                       #
 #                                                                             #
-# Run the functions in PLOT_QVP.py for generating specific QVP plot.          #
+# Run the functions in SYN_RADAR_3_PLOT_QVP.py for generating specific QVP    #
+# plot.                                                                       #
 # --------------------------------------------------------------------------- #
 
 import os
@@ -14,7 +15,7 @@ import HEADER_RADAR_toolbox as header
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from PLOT_QVP import plot_qvp_of_polarimetric_variable
+from SYN_RADAR_3_PLOT_QVP import plot_qvp_of_polarimetric_variable
 
 # --------------------------------------------------------------------------- #
 
@@ -163,8 +164,8 @@ obs_nc.close()
 # --------------------------------------------------------------------------- #
 folder_syn = header.dir_data_qvp
 da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2308.1/EMVO_00500000.2'
-spin_up_mm = '60'
+icon_emvorado_run = 'MAIN_2211.0/EMVO_00000000.2'
+spin_up_mm = '30'
 
 date_start = '-'.join([year, mon, day, hhmm_start])
 date_end = '-'.join([year, mon, day, hhmm_end])
@@ -297,8 +298,8 @@ syn_nc.close()
 # --------------------------------------------------------------------------- #
 folder_syn = header.dir_data_qvp
 da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2308.1/EMVO_00600000.2'
-spin_up_mm = '60'
+icon_emvorado_run = 'MAIN_2308.0/EMVO_00400000.2'
+spin_up_mm = '30'
 
 date_start = '-'.join([year, mon, day, hhmm_start])
 date_end = '-'.join([year, mon, day, hhmm_end])
@@ -425,13 +426,14 @@ plot_qvp_of_polarimetric_variable(
     mom_height_unit='km',
 )
 syn_nc.close()
+
 # --------------------------------------------------------------------------- #
 # CBAND SYN 3                                                                 #
 # --------------------------------------------------------------------------- #
 folder_syn = header.dir_data_qvp
-da_run = 'ASS_2109'
-icon_emvorado_run = 'MAIN_2109.0/EMVO_00000000.2'
-spin_up_mm = '60'
+da_run = 'ASS_2211'
+icon_emvorado_run = 'MAIN_2308.1/EMVO_00500000.2'
+spin_up_mm = '30'
 
 date_start = '-'.join([year, mon, day, hhmm_start])
 date_end = '-'.join([year, mon, day, hhmm_end])
@@ -558,6 +560,7 @@ plot_qvp_of_polarimetric_variable(
     mom_height_unit='km',
 )
 syn_nc.close()
+
 # --------------------------------------------------------------------------- #
 # SAVE                                                                        #
 # --------------------------------------------------------------------------- #

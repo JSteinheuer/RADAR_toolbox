@@ -12,6 +12,10 @@ import HEADER_RADAR_toolbox as header
 import cdsapi
 import os
 
+# --------------------------------------------------------------------------- #
+# from ECMWF: compute_ge
+# --------------------------------------------------------------------------- #
+
 DATES = ["20210604",  # case01
          "20210620", "20210621",  # case02
          "20210628", "20210629",  # case03
@@ -32,10 +36,11 @@ for date in DATES:
     day = date[6:8]
 
     c = cdsapi.Client()
-    file_out = dir_out + str(year) + str(mon) + str(day) + \
-               "-3D-T-Geopot-ml.grib"
-    if not overwrite and os.path.exists(file_out.replace('grib', 'nc')):
-        print('exists: ' + file_out + ' -> continue')
+    file_out1 = dir_out + str(year) + str(mon) + str(day) + "-3D-T-q-ml.grib"
+    if not overwrite and os.path.exists(file_out1):
+        print('exists: ' + file_out1 + ' -> continue')
+    elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
+        print('exists: ' + file_out1.replace('grib', 'nc' + ' -> continue'))
     else:
         c.retrieve("reanalysis-era5-complete", {
             "class": "ea",
@@ -51,7 +56,7 @@ for date in DATES:
                         "116/117/118/119/120/121/122/123/124/125/126/127/"
                         "128/129/130/131/132/133/134/135/136/137",
             "levtype": "ml",
-            "param": "129/130",
+            "param": "130/133",  # Temperature (t) and specific humidity (q)
             "stream": "oper",
             "time": "00:00:00/01:00:00/02:00:00/03:00:00/04:00:00/05:00:00/"
                     "06:00:00/07:00:00/08:00:00/09:00:00/10:00:00/11:00:00/"
@@ -60,27 +65,84 @@ for date in DATES:
             "type": "an",
             "grid": [0.25, 0.25],
             'area': [55, 2, 47, 17],
-        }, file_out)
-        os.system('cdo -f nc copy ' + file_out + ' ' +
-                  file_out.replace('grib', 'nc'))
-        os.system('rm ' + file_out)
-
-    # cdo sellonlatbox,2,17,47,55 20210620-3D-T-Geopot-ml.nc 20210620-3D-T-Geopot-ml_final.nc
-
-    file_out = dir_out + str(year) + str(mon) + str(day) + "-2D-SP-T2m.nc"
-    if not overwrite and os.path.exists(file_out):
-        print('exists: ' + file_out + ' -> continue')
+        }, file_out1)
+    file_out2 = dir_out + str(year) + str(mon) + str(day) + \
+                "-2D-z-lnsp-ml.grib"
+    if not overwrite and os.path.exists(file_out2):
+        print('exists: ' + file_out2 + ' -> continue')
+    elif not overwrite and os.path.exists(file_out2.replace('grib', 'nc')):
+        print('exists: ' + file_out2.replace('grib', 'nc' + ' -> continue'))
     else:
-        c.retrieve('reanalysis-era5-single-levels', {
-            'product_type': 'reanalysis',
-            'variable': ['2m_temperature', 'surface_pressure',],
-            'year': year,
-            'month': mon,
-            'day': day,
-            'time': ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00',
-                     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
-                     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
-                     '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', ],
+        c.retrieve("reanalysis-era5-complete", {
+            "class": "ea",
+            "date": "%s-%s-%s" % (year, mon, day),
+            "expver": "1",
+            "levelist": "1",
+            "levtype": "ml",
+            "param": "129/152",  # Geopotential (z) and ln of s. pres. (lnsp)
+            "stream": "oper",
+            "time": "00:00:00/01:00:00/02:00:00/03:00:00/04:00:00/05:00:00/"
+                    "06:00:00/07:00:00/08:00:00/09:00:00/10:00:00/11:00:00/"
+                    "12:00:00/13:00:00/14:00:00/15:00:00/16:00:00/17:00:00/"
+                    "18:00:00/19:00:00/20:00:00/21:00:00/22:00:00/23:00:00",
+            "type": "an",
+            "grid": [0.25, 0.25],
             'area': [55, 2, 47, 17],
-            'format': 'netcdf',
-        }, file_out)
+        }, file_out2)
+
+    file_out3 = file_out1.replace('T-q-ml', 'z')
+    if not overwrite and os.path.exists(file_out3):
+        print('exists: ' + file_out3 + ' -> continue')
+    elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
+        print('exists: ' + file_out3.replace('grib', 'nc' + ' -> continue'))
+    else:
+        os.system('python compute_geopotential_on_ml.py ' + file_out1 +
+                  ' ' + file_out2 + ' -o ' + file_out3)
+
+    if not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
+        print('exists: ' + file_out1.replace('grib', 'nc') + ' -> continue')
+    else:
+        os.system('cdo -f nc copy ' + file_out1 + ' ' +
+                  file_out1.replace('grib', 'nc'))
+        # os.system('rm ' + file_out1)
+
+    # if not overwrite and os.path.exists(file_out2.replace('grib', 'nc')):
+    #     print(
+    #         'exists: ' + file_out2.replace('grib', 'nc') + ' -> continue')
+    # else:
+    #     os.system('cdo -f nc copy ' + file_out2 + ' ' +
+    #               file_out2.replace('grib', 'nc'))
+    #     # os.system('rm ' + file_out2)
+
+    if not overwrite and os.path.exists(file_out3.replace('grib', 'nc')):
+        print(
+            'exists: ' + file_out3.replace('grib', 'nc') + ' -> continue')
+    else:
+        os.system('cdo -f nc copy ' + file_out3 + ' ' +
+                  file_out3.replace('grib', 'nc'))
+        # os.system('rm ' + file_out3)
+
+    # os.system('cdo -f nc copy ' + file_out + ' ' +
+    #           file_out.replace('grib', 'nc'))
+    # os.system('rm ' + file_out)
+
+    # file_out4 = dir_out + str(year) + str(mon) + str(day) + "-2D-SP-T2m.nc"
+    # if not overwrite and os.path.exists(file_out4):
+    #     print('exists: ' + file_out4 + ' -> continue')
+    # else:
+    #     c.retrieve('reanalysis-era5-single-levels', {
+    #         'product_type': 'reanalysis',
+    #         'variable': ['2m_temperature', 'surface_pressure',
+    #                      'geopotential'],  # TODO: new
+    #         # 'variable': ['2m_temperature', 'surface_pressure', ],  # old
+    #         'year': year,
+    #         'month': mon,
+    #         'day': day,
+    #         'time': ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00',
+    #                  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+    #                  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+    #                  '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', ],
+    #         'area': [55, 2, 47, 17],
+    #         'format': 'netcdf',
+    #     }, file_out4)
+

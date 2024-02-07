@@ -3,9 +3,10 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 31.01.24                                                 #
-# plot_QVP_for_JM_240131.py                                                   #
+# SYN_RADAR_3_plot_QVP_for_JM_240131.py                                       #
 #                                                                             #
-# Run the functions in PLOT_QVP.py for generating specific QVP plot.          #
+# Run the functions in SYN_RADAR_3_PLOT_QVP.py for generating specific QVP    #
+# plot.                                                                       #
 # --------------------------------------------------------------------------- #
 
 import os
@@ -14,7 +15,7 @@ import HEADER_RADAR_toolbox as header
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from PLOT_QVP import plot_qvp_of_polarimetric_variable
+from SYN_RADAR_3_PLOT_QVP import plot_qvp_of_polarimetric_variable
 
 # --------------------------------------------------------------------------- #
 

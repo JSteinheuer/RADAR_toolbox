@@ -278,11 +278,17 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
 
     files = files_temp
     if not files:
+        print_a = 'No input: ' + path_in
         path_in = "/".join([dir_data_obs_realpep + '' +
                             year, year + '-' + mon,
                             year + '-' + mon + '-' + day,
                             location, mode + '*', sweep, 'ras*'])
         files = sorted(glob.glob(path_in))
+        if not files:
+            print(print_a)
+            print(' ... nor: ' + path_in + ' -> continue')
+            return
+
         path_out = '/'.join((files[0].split('/'))[:-1])
         if date == '20210714':
             path_out = path_out.replace(dir_data_obs_realpep, dir_data_obs +
@@ -293,6 +299,7 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
 
     else:
         path_out = '/'.join((files[0].split('/'))[:-1])
+
     files_temp = []
     for file in files:
         if 'allmoms' not in file:
@@ -354,7 +361,7 @@ DATES = ["20210604",  # case01
 LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
 ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
-MODE = ['pcp', 'vol']
+MODE = ['pcp', 'vol']  # TODO: '90grad' Birth Bath ?!
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
 # moments = '*'
 overwrite = False

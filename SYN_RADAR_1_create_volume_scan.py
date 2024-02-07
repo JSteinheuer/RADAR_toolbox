@@ -3,15 +3,15 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 01.10.23                                                 #
-# syn_RADAR_volume_scan.py                                                    #
+# SYN_RADAR_1_create_volume_scan.py                                           #
 #                                                                             #
-# Run the functions from SYN_RADAR_VOLUME_SCAN.py:                            #
+# Run the functions from SYN_RADAR_1_CREATE_VOLUME_SCAN.py:                   #
 # to calculate synthetic volume scans from EMVORADO and ICON                  #
 # --------------------------------------------------------------------------- #
 
 import os
 import HEADER_RADAR_toolbox as header
-from SYN_RADAR_VOLUME_SCAN import \
+from SYN_RADAR_1_CREATE_VOLUME_SCAN import \
     create_8_vol_nc_of_day, \
     create_8_vol_nc_of_day_paralell, \
     create_vol_nc, \
@@ -187,25 +187,26 @@ dir_data_in = header.dir_data_mod
 #                                     dir_data_out=header.dir_data_vol)
 
 # --------------------------------------------------------------------------- #
-# processing: 31.1.24
+# processing: 31.1.24 # line 4
 # icon + emvorado mixtures
 
-# day = '20170725'
-# emvorado_run = 'EMVO_00500000.2'
-# da_run = 'ASS_2211'
-# icon_run = 'MAIN_2308.0'
-# icon_emvorado_run = 'MAIN_2401.3/' + emvorado_run
-# spin_up_mm = 60
+day = '20170725'
+emvorado_run = 'EMVO_00500000.2'
+da_run = 'ASS_2211'
+icon_run = 'MAIN_2308.0'
+icon_emvorado_run = 'MAIN_2401.3/' + emvorado_run
+spin_up_mm = 60
 # radar_locs = ['PRO']
-# create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
-#                        icon_emvorado_run=icon_emvorado_run,
-#                        spin_up_mm=spin_up_mm,
-#                        radar_locs=radar_locs,
-#                        dir_data_in=header.dir_data_mod,
-#                        dir_data_out=header.dir_data_vol)
+radar_locs = list(rad_dict().keys())
+create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
+                       icon_emvorado_run=icon_emvorado_run,
+                       spin_up_mm=spin_up_mm,
+                       radar_locs=radar_locs,
+                       dir_data_in=header.dir_data_mod,
+                       dir_data_out=header.dir_data_vol)
 
 # --------------------------------------------------------------------------- #
-# processing: 31.1.24
+# processing: 31.1.24 # line 2
 # icon + emvorado mixtures
 
 day = '20170725'
@@ -214,7 +215,46 @@ emvorado_run = 'EMVO_00400000.2'
 icon_run = 'MAIN_2308.0'
 icon_emvorado_run = icon_run + '/' + emvorado_run
 spin_up_mm = 60
-radar_locs = ['PRO']
+# radar_locs = ['PRO']
+radar_locs = list(rad_dict().keys())
+create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
+                       icon_emvorado_run=icon_emvorado_run,
+                       spin_up_mm=spin_up_mm,
+                       radar_locs=radar_locs,
+                       dir_data_in=header.dir_data_mod,
+                       dir_data_out=header.dir_data_vol)
+
+# --------------------------------------------------------------------------- #
+# processing: 7.2.24 # line 3
+# icon + emvorado mixtures
+
+day = '20170725'
+emvorado_run = 'EMVO_00500000.2'
+da_run = 'ASS_2211'
+icon_run = 'MAIN_2308.0'
+icon_emvorado_run = 'MAIN_2308.1/' + emvorado_run
+spin_up_mm = 60
+# radar_locs = ['PRO']
+radar_locs = list(rad_dict().keys())
+create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
+                       icon_emvorado_run=icon_emvorado_run,
+                       spin_up_mm=spin_up_mm,
+                       radar_locs=radar_locs,
+                       dir_data_in=header.dir_data_mod,
+                       dir_data_out=header.dir_data_vol)
+
+# --------------------------------------------------------------------------- #
+# processing: 7.2.24 # line new 2?!
+# icon + emvorado mixtures
+
+day = '20170725'
+emvorado_run = 'EMVO_00000000.2'
+da_run = 'ASS_2211'
+icon_run = 'MAIN_2211.0'
+icon_emvorado_run = 'MAIN_2211.0/' + emvorado_run
+spin_up_mm = 60
+# radar_locs = ['PRO']
+radar_locs = list(rad_dict().keys())
 create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
                        icon_emvorado_run=icon_emvorado_run,
                        spin_up_mm=spin_up_mm,
