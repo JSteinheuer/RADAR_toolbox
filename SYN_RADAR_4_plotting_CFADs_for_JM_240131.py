@@ -15,6 +15,7 @@ import warnings
 from pathlib import Path
 warnings.simplefilter('ignore')
 from SYN_RADAR_4_CFAD_AND_CFTD import plot_CFAD_or_CFTD_from_QVP
+from SYN_RADAR_1_CREATE_VOLUME_SCAN import rad_dict
 
 
 # --------------------------------------------------------------------------- #
@@ -31,6 +32,7 @@ mod_names = ''
 # All
 date = '20170725'
 hhmm_start = '00:00'
+# hhmm_end = '23:55'
 hhmm_end = '10:00'
 # vert_temp = False
 vert_temp = True
@@ -78,12 +80,12 @@ current_row = 1
 # Obs 1
 current_col = 1
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
-    path_in=path_in,
+    paths_in=path_in,
     title=title,
     moment=moment_1o,
     # moment=moment_1s,
@@ -103,12 +105,12 @@ plot_CFAD_or_CFTD_from_QVP(
 # Obs 2
 current_col = 2
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
-    path_in=path_in,
+    paths_in=path_in,
     title=title,
     moment=moment_2o,
     # moment=moment_2s,
@@ -128,12 +130,12 @@ plot_CFAD_or_CFTD_from_QVP(
 # Obs 3
 current_col = 3
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
-    path_in=path_in,
+    paths_in=path_in,
     title=title,
     moment=moment_3o,
     # moment=moment_3s,
@@ -153,12 +155,12 @@ plot_CFAD_or_CFTD_from_QVP(
 # Obs 4
 current_col = 4
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
-    path_in=path_in,
+    paths_in=path_in,
     title=title,
     moment=moment_4o,
     # moment=moment_4s,
@@ -191,16 +193,16 @@ mod_names = '-'.join([mod_names, model_name])
 # Syn 1
 current_col = 1
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_1o,
     moment=moment_1s,
@@ -220,16 +222,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 2
 current_col = 2
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_2o,
     moment=moment_2s,
@@ -249,16 +251,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 3
 current_col = 3
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_3o,
     moment=moment_3s,
@@ -278,16 +280,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 4
 current_col = 4
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_4o,
     moment=moment_4s,
@@ -321,16 +323,16 @@ mod_names = '-'.join([mod_names, model_name])
 # Syn 1
 current_col = 1
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_1o,
     moment=moment_1s,
@@ -350,16 +352,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 2
 current_col = 2
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_2o,
     moment=moment_2s,
@@ -379,16 +381,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 3
 current_col = 3
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_3o,
     moment=moment_3s,
@@ -408,16 +410,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 4
 current_col = 4
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_4o,
     moment=moment_4s,
@@ -451,16 +453,16 @@ mod_names = '-'.join([mod_names, model_name])
 # Syn 1
 current_col = 1
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_1o,
     moment=moment_1s,
@@ -480,16 +482,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 2
 current_col = 2
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_2o,
     moment=moment_2s,
@@ -509,16 +511,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 3
 current_col = 3
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_3o,
     moment=moment_3s,
@@ -538,16 +540,16 @@ plot_CFAD_or_CFTD_from_QVP(
 # Syn 4
 current_col = 4
 plot_CFAD_or_CFTD_from_QVP(
-    date=date,
+    dates=date,
     hhmm_start=hhmm_start,
     hhmm_end=hhmm_end,
-    location=location,
+    locations=location,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
     da_run=da_run,
     icon_emvorado_run=icon_emvorado_run,
     spin_up_mm=spin_up_mm,
-    # path_in=path_in,
+    # paths_in=path_in,
     # title=title,
     # moment=moment_4o,
     moment=moment_4s,
