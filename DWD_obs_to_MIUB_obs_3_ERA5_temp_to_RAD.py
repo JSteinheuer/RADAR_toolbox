@@ -150,8 +150,7 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     data['temp'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
                     dict(standard_name='air temperature', units='K'))
     shape_ra = (data.range.size, data.azimuth.size)
-    # for t_i in range(data['time'].size):
-    for t_i in [0]:
+    for t_i in range(data['time'].size):
         # grid for searching later the closest ERA5 cells
         rad_lon = data['lon'].data.flatten()
         rad_lat = data['lat'].data.flatten()
