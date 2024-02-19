@@ -41,8 +41,18 @@ DATES = ["20210604",  # case01
          "20210714",  # case09
          "20221222",  # case10
          ]
-LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
-             'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
+# LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
+#              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
+LOCATIONS = [# 'asb', 'boo',
+             'drs', 'eis', 'ess',
+             # 'fbg',
+             'fld', 'hnr',
+             # 'isn', 'mem',
+             'neu', 'nhb', 'oft', 'pro',
+             # 'ros','tur',
+             'umd',
+             ]
+
 ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
 MODE = ['pcp', 'vol']
 overwrite = False
@@ -60,7 +70,7 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
 
     Parameter
     ---------
-    date : 'yyyymmdd' datestring.
+    date : 'yyyymmdd' date string.
     location : 'rrr' 3-letter string for radar location.
     elevation_deg : elevation in degrees, set to 5.5 for precipitation scan
                     (as this is the sweep 0 for the volume).
@@ -140,7 +150,8 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     data['temp'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
                     dict(standard_name='air temperature', units='K'))
     shape_ra = (data.range.size, data.azimuth.size)
-    for t_i in range(data['time'].size):
+    # for t_i in range(data['time'].size):
+    for t_i in [0]:
         # grid for searching later the closest ERA5 cells
         rad_lon = data['lon'].data.flatten()
         rad_lat = data['lat'].data.flatten()

@@ -27,7 +27,7 @@ DATES = ["20210604",  # case01
          "20221222",  # case10
          ]
 dir_out = header.dir_data_era5
-overwrite = False
+overwrite = True
 # date = DATES[0]
 for date in DATES:
 
@@ -64,7 +64,7 @@ for date in DATES:
                     "18:00:00/19:00:00/20:00:00/21:00:00/22:00:00/23:00:00",
             "type": "an",
             "grid": [0.25, 0.25],
-            'area': [55, 2, 47, 17],
+            'area': [56, 2, 46.25, 17],
         }, file_out1)
     file_out2 = dir_out + str(year) + str(mon) + str(day) + \
                 "-2D-z-lnsp-ml.grib"
@@ -87,7 +87,7 @@ for date in DATES:
                     "18:00:00/19:00:00/20:00:00/21:00:00/22:00:00/23:00:00",
             "type": "an",
             "grid": [0.25, 0.25],
-            'area': [55, 2, 47, 17],
+            'area': [56, 2, 46.25, 17],
         }, file_out2)
 
     file_out3 = file_out1.replace('T-q-ml', 'z')
@@ -142,7 +142,7 @@ for date in DATES:
     #                  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     #                  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
     #                  '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', ],
-    #         'area': [55, 2, 47, 17],
+    #         'area': [56, 2, 46.25, 17],
     #         'format': 'netcdf',
     #     }, file_out4)
 
