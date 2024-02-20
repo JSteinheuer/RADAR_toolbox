@@ -27,7 +27,7 @@ DATES = ["20210604",  # case01
          "20221222",  # case10
          ]
 dir_out = header.dir_data_era5
-overwrite = True
+overwrite = False
 # date = DATES[0]
 for date in DATES:
 

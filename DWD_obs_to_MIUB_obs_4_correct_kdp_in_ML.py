@@ -34,7 +34,7 @@ from radar_processing_scripts import utils
 
 
 DATES = ["20210604",  # case01
-         "20210620",  "20210621",  # case02
+         "20210620", "20210621",  # case02
          "20210628", "20210629",  # case03
          "20220519", "20220520",  # case04
          "20220623", "20220624", "20220625",  # case05
@@ -66,7 +66,7 @@ overwrite = False
 
 date = '20210604'
 # date = '20210714'
-location = 'asb'
+location = 'pro'
 elevation_deg = 5.5
 mode = 'vol'
 

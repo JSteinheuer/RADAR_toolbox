@@ -19,6 +19,7 @@ import HEADER_RADAR_toolbox as header
 import os
 import xarray as xr
 from SYN_RADAR_1_CREATE_VOLUME_SCAN import get_lon_lat_alt, ipol_fc_to_radgrid
+import wradlib as wrl
 
 sys.path.insert(0, header.dir_projects +
                 'RADAR_toolbox/radar_processing_scripts/')
@@ -41,21 +42,21 @@ DATES = ["20210604",  # case01
          "20210714",  # case09
          "20221222",  # case10
          ]
-# LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
-#              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
-LOCATIONS = [# 'asb', 'boo',
-             'drs', 'eis', 'ess',
-             # 'fbg',
-             'fld', 'hnr',
-             # 'isn', 'mem',
-             'neu', 'nhb', 'oft', 'pro',
-             # 'ros','tur',
-             'umd',
-             ]
+LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
+             'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
+# LOCATIONS = [# 'asb', 'boo',    # TODO
+#              'drs', 'eis', 'ess',
+#              # 'fbg',
+#              'fld', 'hnr',
+#              # 'isn', 'mem',
+#              'neu', 'nhb', 'oft', 'pro',
+#              # 'ros','tur',
+#              'umd',
+#              ]
 
 ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
 MODE = ['pcp', 'vol']
-overwrite = False
+overwrite = True    # TODO
 
 # --------------------------------------------------------------------------- #
 
@@ -107,6 +108,27 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
         print('exists: ' + path_out + ' -> continue')
         return
 
+    path_in_any = '/'.join(path_in.split('/')[:-1]) + '/*any*'
+    files_any = sorted(glob.glob(path_in_any))
+    if not files_any:
+        path_in_any = "/".join([header.dir_data_obs_realpep + '' +
+                            year, year + '-' + mon,
+                            year + '-' + mon + '-' + day,
+                            location, mode + '*', sweep, 'ras*'])
+        files_any = sorted(glob.glob(path_in_any))
+        if not files_any:
+            print('nothing found -> bw=1')
+            bw = 1
+        else:
+            path_in_any = files_any[0]
+            bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+
+    else:
+        path_in_any = files_any[0]
+        bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+
+    bw = round(bw, 3)
+    print(date + ' ' + location + ' bw=' + str(bw))
     path_in_t = dir_data_era5 + date + '-3D-T-q-ml.nc'
     path_in_z = dir_data_era5 + date + '-3D-z.nc'
     if not os.path.exists(path_in_t):
@@ -149,6 +171,14 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     dummy_tra[:] = np.nan
     data['temp'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
                     dict(standard_name='air temperature', units='K'))
+    data['temp_beamtop'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
+                    dict(standard_name='air temperature', units='K',
+                         comment='beambroadening induced temperature of '
+                                 'bin volume top (approximated for pw=0)'))
+    data['temp_beambottom'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
+                    dict(standard_name='air temperature', units='K',
+                         comment='beambroadening induced temperature of '
+                                 'bin volume bottom (approximated for pw=0)'))
     shape_ra = (data.range.size, data.azimuth.size)
     for t_i in range(data['time'].size):
         # grid for searching later the closest ERA5 cells
@@ -163,7 +193,7 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
         era5_lat = era5_lat.flatten()
         era5_z = era5_alt.data.reshape(era5_alt.shape[0],
                                        era5_alt.shape[1] * era5_alt.shape[2])
-
+        # temp center
         func_ipol, mask = ipol_fc_to_radgrid(
             # lon with shape (137, 2013):
             np.repeat(era5_lon[np.newaxis, :], era5_z.shape[0], axis=0),
@@ -174,8 +204,44 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
             rad_lon, rad_lat, rad_alt,  # (259200,)
             method='Linear',
         )  # mask.shape (137, 2013)
-
         data['temp'][t_i, :, :] = func_ipol(
+            data_t_era5['t'].data[t_i, :, :, :].reshape(
+                era5_alt.shape[0], era5_alt.shape[1] * era5_alt.shape[2])
+            [mask]).reshape(shape_ra)
+
+        # temp top
+        beamradius = wrl.util.half_power_radius(data.range, bw)
+        rad_alt = np.repeat((data['alt']+beamradius).data[:, np.newaxis],
+                            data['azimuth'].shape, axis=1).flatten()
+        func_ipol, mask = ipol_fc_to_radgrid(
+            # lon with shape (137, 2013):
+            np.repeat(era5_lon[np.newaxis, :], era5_z.shape[0], axis=0),
+            # lon with shape (137, 2013):
+            np.repeat(era5_lat[np.newaxis, :], era5_z.shape[0], axis=0),
+            # alt with shape (137, 2013):
+            era5_z,
+            rad_lon, rad_lat, rad_alt,  # (259200,)
+            method='Linear',
+        )  # mask.shape (137, 2013)
+        data['temp_beamtop'][t_i, :, :] = func_ipol(
+            data_t_era5['t'].data[t_i, :, :, :].reshape(
+                era5_alt.shape[0], era5_alt.shape[1] * era5_alt.shape[2])
+            [mask]).reshape(shape_ra)
+
+        # temp bottom
+        rad_alt = np.repeat((data['alt']-beamradius).data[:, np.newaxis],
+                            data['azimuth'].shape, axis=1).flatten()
+        func_ipol, mask = ipol_fc_to_radgrid(
+            # lon with shape (137, 2013):
+            np.repeat(era5_lon[np.newaxis, :], era5_z.shape[0], axis=0),
+            # lon with shape (137, 2013):
+            np.repeat(era5_lat[np.newaxis, :], era5_z.shape[0], axis=0),
+            # alt with shape (137, 2013):
+            era5_z,
+            rad_lon, rad_lat, rad_alt,  # (259200,)
+            method='Linear',
+        )  # mask.shape (137, 2013)
+        data['temp_beambottom'][t_i, :, :] = func_ipol(
             data_t_era5['t'].data[t_i, :, :, :].reshape(
                 era5_alt.shape[0], era5_alt.shape[1] * era5_alt.shape[2])
             [mask]).reshape(shape_ra)
@@ -195,17 +261,17 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 
-# # DATES = ['20210604']
-# DATES = ['20210714']
-# LOCATIONS = ['pro']
-# ELEVATIONS = np.array([5.5])
+# DATES = ['20210604']
+# # DATES = ['20210714']
+# LOCATIONS = ['ess']
+# ELEVATIONS = np.array([12])
 # MODE = ['vol']
 # overwrite = True
 
-# date = '20210604'
-# # date = '20210714'
+# # date = '20210604'
+# date = '20210714'
 # location = 'pro'
-# elevation_deg = 5.5
+# elevation_deg = 0.5
 # mode = 'vol'
 # overwrite = True
 
