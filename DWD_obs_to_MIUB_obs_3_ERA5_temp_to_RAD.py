@@ -165,7 +165,7 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
                    dict(standard_name='altitude',
                         comments='height above mean sea level',
                         units='m'))
-    data['time'] = data_z_era5['time']
+    data['time'] = data_t_era5['time']
     dummy_tra = np.empty(shape=[data.time.size, data.range.size,
                                 data.azimuth.size, ])
     dummy_tra[:] = np.nan
@@ -261,12 +261,12 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 
-# DATES = ['20210604']
-# # DATES = ['20210714']
-# LOCATIONS = ['ess']
-# ELEVATIONS = np.array([12])
-# MODE = ['vol']
-# overwrite = True
+DATES = ['20210604']
+# DATES = ['20210714']
+LOCATIONS = ['ess']
+ELEVATIONS = np.array([12])
+MODE = ['vol']
+overwrite = True
 
 # # date = '20210604'
 # date = '20210714'
