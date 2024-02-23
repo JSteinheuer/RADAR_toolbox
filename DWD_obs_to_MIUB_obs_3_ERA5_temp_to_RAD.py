@@ -32,20 +32,26 @@ sys.path.insert(0, header.dir_projects +
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 
-DATES = [# "20210604",  # case01                                     # run a
-         # "20210620", "20210621",  # case02                         # run b
-         # "20210628", "20210629",  # case03                         # run c
-         # "20220519", "20220520",  # case04                         # run d
+DATES = ["20210604",  # case01
+         "20210620", "20210621",  # case02
+         "20210628", "20210629",  # case03
+         "20220519", "20220520",  # case04
          "20220623", "20220624", "20220625",  # case05
          "20220626", "20220627", "20220628",  # case06+07
          "20220630", "20220701",  # case08
-         # "20210714",  # case09                                     # run e
+         "20210714",  # case09
          "20221222",  # case10
          ]
-# /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_3_ERA5_temp_to_RAD.py
-
 LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
+
+DATES = [# "20210621", "20210629",                      # run a
+         # "20220520", "20220625",                      # run b
+         # "20220626", "20220627",                      # run c
+         # "20220628", "20220630",                      # run d
+         # "20220701", "20221222",                      # run e
+         ]
+# /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_3_ERA5_temp_to_RAD.py
 
 ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
 MODE = ['pcp', 'vol']

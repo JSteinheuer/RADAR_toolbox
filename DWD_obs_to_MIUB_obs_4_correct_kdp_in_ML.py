@@ -84,7 +84,7 @@ def xr_rolling(da, window, window2=None, method="mean",
 
 
 # Velibor Pejcic
-def phase_offset(phioff, rng=3000):#3000.0):
+def phase_offset(phioff, rng=3000):  # 3000.0):
     """Calculate Phase offset.
 
     Parameter
@@ -163,7 +163,8 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
 
     # Thresholding
     swp_mask = swp_cf.where((swp_cf.DBZH > uh_tresh) & (
-            swp_cf.RHOHV > rho_tresh) & np.isnan(swp_cf.CMAP))  # TODO: rho_nc !!!!
+            swp_cf.RHOHV > rho_tresh) & np.isnan(
+        swp_cf.CMAP))  # TODO: rho_nc !!!!
 
     # Median filtering 2d
     phimed = swp_mask.UPHIDP.copy()
@@ -181,7 +182,8 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
                                     method="median", skipna=True,
                                     min_periods=3)
 
-    phioff = swp_mask.UPHIDP.copy().where((swp_cf.RHOHV >= 0.9))  # & (swp.DBZH>=0))
+    phioff = swp_mask.UPHIDP.copy().where(
+        (swp_cf.RHOHV >= 0.9))  # & (swp.DBZH>=0))
     off = phase_offset(phioff, 1000.0)
     phi_offset = off.PHIDP_OFFSET.load().median(skipna=True)
 
@@ -245,96 +247,94 @@ mode = 'vol'
 #     for location in LOCATIONS:
 #         for mode in MODE:
 #             for elevation_deg in ELEVATIONS:
+for i_t_a, i_t_b in zip([0, 144], [143, 288]):
 
-year = date[0:4]
-mon = date[4:6]
-day = date[6:8]
-sweep = '0' + str(np.where(ELEVATIONS_ALL ==
-                           float(elevation_deg))[0][0])
-if mode == 'pcp' and sweep != '00':
-    print('pcp only 00')
-    # continue
+    year = date[0:4]
+    mon = date[4:6]
+    day = date[6:8]
+    sweep = '0' + str(np.where(ELEVATIONS_ALL ==
+                               float(elevation_deg))[0][0])
+    if mode == 'pcp' and sweep != '00':
+        print('pcp only 00')
+        # continue
 
-path_in = "/".join([header.dir_data_obs + '*' + date,
-                    year, year + '-' + mon,
-                    year + '-' + mon + '-' + day,
-                    location, mode + '*', sweep,
-                    'ras*_allmoms_*'])
-files = sorted(glob.glob(path_in))
-if not files:
-    path_in = "/".join([header.dir_data_obs +
+    path_in = "/".join([header.dir_data_obs + '*' + date,
                         year, year + '-' + mon,
                         year + '-' + mon + '-' + day,
                         location, mode + '*', sweep,
                         'ras*_allmoms_*'])
     files = sorted(glob.glob(path_in))
-if not files:
-    print('no input data *_allmoms_*')
-    # continue
-else:
-    path_in = files[0]
-    path_out = path_in.replace('_allmoms_', '_kdp_nc_')
+    if not files:
+        path_in = "/".join([header.dir_data_obs +
+                            year, year + '-' + mon,
+                            year + '-' + mon + '-' + day,
+                            location, mode + '*', sweep,
+                            'ras*_allmoms_*'])
+        files = sorted(glob.glob(path_in))
+    if not files:
+        print('no input data *_allmoms_*')
+        # continue
+    else:
+        path_in = files[0]
+        path_out = path_in.replace('_allmoms_', '_kdp_nc_'+ str(i_t_a))
 
-data = dttree.open_datatree(path_in)[
-    # 'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
-    'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
-rem_var = list(data.data_vars.keys())
-rem_var.remove('CMAP')
-rem_var.remove('UPHIDP')
-# data = data.drop_vars(rem_var)
-# dummy_tra = np.empty(shape=[data.time.size, data.range.size,
-#                                 data.azimuth.size, ])
-data = data.transpose('time', 'azimuth', 'range')
-# dummy_tra[:] = np.nan
-data=data.isel(time=slice(0,144))
-kdp_new = kdp_from_phidp(data['UPHIDP'].values,
-                         winlen=winlen,  # cband
-                         # winlen=31, # xband ?!
-                         min_periods=3)
-# data['KDP_NC'] = (['time', 'range', 'azimuth'], kdp_new,
-data['KDP_NC'] = (['time', 'azimuth', 'range'], kdp_new,
-                  dict(standard_name='specific differential phase',
-                       comments='KDP noise corrected with winlen=' +
-                                str(winlen),
-                       units='deg/km'))
+    data = dttree.open_datatree(path_in)[
+        # 'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+        'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
+    rem_var = list(data.data_vars.keys())
+    rem_var.remove('CMAP')
+    rem_var.remove('UPHIDP')
+    # data = data.drop_vars(rem_var)
+    # dummy_tra = np.empty(shape=[data.time.size, data.range.size,
+    #                                 data.azimuth.size, ])
+    data = data.transpose('time', 'azimuth', 'range')
+    # dummy_tra[:] = np.nan
+    data = data.isel(time=slice(i_t_a, i_t_b))
+    kdp_new = kdp_from_phidp(data['UPHIDP'].values,
+                             winlen=winlen,  # cband
+                             # winlen=31, # xband ?!
+                             min_periods=3)
+    # data['KDP_NC'] = (['time', 'range', 'azimuth'], kdp_new,
+    data['KDP_NC'] = (['time', 'azimuth', 'range'], kdp_new,
+                      dict(standard_name='specific differential phase',
+                           comments='KDP noise corrected with winlen=' +
+                                    str(winlen),
+                           units='deg/km'))
 
+    # swp_cf = dttree.open_datatree(path_in)
+    # swp_cf = dttree.open_datatree(path_in)[
+    #     'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
 
-# swp_cf = dttree.open_datatree(path_in)
-# swp_cf = dttree.open_datatree(path_in)[
-#     'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+    # data_new=proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
+    #                         win_azi=None, wkdp_light=9, wkdp_heavy=25)
 
-# data_new=proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
-#                         win_azi=None, wkdp_light=9, wkdp_heavy=25)
+    data = proc_phidp_kdp(data, uh_tresh=0, rho_tresh=0.9, win_r=25,
+                          win_azi=None, wkdp_light=9, wkdp_heavy=25)
 
-data=proc_phidp_kdp(data, uh_tresh=0, rho_tresh=0.9, win_r=25,
-                    win_azi=None, wkdp_light=9, wkdp_heavy=25)
+    mom_use = [x for x in list(data.keys())]
+    for mom in mom_use:
+        # data[mom].encoding["coordinates"] = "time range azimuth"
+        data[mom].encoding["coordinates"] = "time azimuth range"
 
-mom_use = [x for x in list(data.keys())]
-for mom in mom_use:
-    # data[mom].encoding["coordinates"] = "time range azimuth"
-    data[mom].encoding["coordinates"] = "time azimuth range"
+    data = data.drop_vars(rem_var)
+    dtree = dttree.DataTree(name="root")
+    dttree.DataTree(data, name=f"sweep_{int(sweep)}", parent=dtree)
+    print('saving: ... ' + path_out + ' ...')
+    dtree.load().to_netcdf(path_out)
+    data.close()
+    print('saved:  ' + path_out + ' !')
 
-data = data.drop_vars(rem_var)
-dtree = dttree.DataTree(name="root")
-dttree.DataTree(data, name=f"sweep_{int(sweep)}", parent=dtree)
-# data=data.isel(time=1) # even that does not work :(
-# data = data.drop_vars(['CMAP'])  # TODO: exclude!
-print('saving: ... ' + path_out + ' ...')
-dtree.load().to_netcdf(path_out)  # fails :(
-data.close()
-print('saved:  ' + path_out + ' !')
+    # mom_use = [x for x in list(data_new.keys())]
+    # for mom in mom_use:
+    #     data_new[mom].encoding["coordinates"] = "time range azimuth"
 
-# mom_use = [x for x in list(data_new.keys())]
-# for mom in mom_use:
-#     data_new[mom].encoding["coordinates"] = "time range azimuth"
+    # dtree2 = dttree.DataTree(name="root")
+    # dttree.DataTree(data_new, name=f"sweep_{int(sweep)}", parent=dtree2)
+    # print('saving: ... ' + path_out.replace('_kdp_nc_', '_kdp_nc_new_') + ' ...')
+    # dtree2.load().to_netcdf(path_out.replace('_kdp_nc_', '_kdp_nc_new_'))
+    # print('saved:  ' + path_out.replace('_kdp_nc_', '_kdp_nc_new_') + ' !')
 
-# dtree2 = dttree.DataTree(name="root")
-# dttree.DataTree(data_new, name=f"sweep_{int(sweep)}", parent=dtree2)
-# print('saving: ... ' + path_out.replace('_kdp_nc_', '_kdp_nc_new_') + ' ...')
-# dtree2.load().to_netcdf(path_out.replace('_kdp_nc_', '_kdp_nc_new_'))
-# print('saved:  ' + path_out.replace('_kdp_nc_', '_kdp_nc_new_') + ' !')
-
-# neu=data_new.isel(time=1)
-# dtree3 = dttree.DataTree(name="root")
-# dttree.DataTree(neu, name=f"sweep_{int(sweep)}", parent=dtree3)
-# dtree3.load().to_netcdf(path_out.replace('_kdp_nc_', '_kdp_nc_neu3_'))
+    # neu=data_new.isel(time=1)
+    # dtree3 = dttree.DataTree(name="root")
+    # dttree.DataTree(neu, name=f"sweep_{int(sweep)}", parent=dtree3)
+    # dtree3.load().to_netcdf(path_out.replace('_kdp_nc_', '_kdp_nc_neu3_'))
