@@ -11,13 +11,10 @@
 #         Adapted from Julian Giles:                                          #
 #         radar_processing_scripts/build_radar_database/correct_rhohv.py      #
 # --------------------------------------------------------------------------- #
-"""
-@author: jgiles
-Script for noise-correcting RHOHV.
-# """
 
 import datatree as dttree
 import numpy as np
+import pandas as pd
 import sys
 import glob
 import HEADER_RADAR_toolbox as header
@@ -33,6 +30,8 @@ sys.path.insert(0, header.dir_projects +
 # sys.path variable (i.e. the project folder).
 from radar_processing_scripts import utils
 
+
+# --------------------------------------------------------------------------- #
 
 # Function from radarmet by Kai
 def xr_rolling(da, window, window2=None, method="mean",
@@ -65,10 +64,8 @@ def xr_rolling(da, window, window2=None, method="mean",
     prng = window // 2
     srng = slice(prng, -prng)
     da_new = da.pad(range=prng, mode="reflect", reflect_type="odd")
-
     dim = dict(range=window)
     isel = dict(range=srng)
-
     if window2 is not None:
         paz = window2 // 2
         saz = slice(paz, -paz)
@@ -77,14 +74,13 @@ def xr_rolling(da, window, window2=None, method="mean",
         isel.update(dict(azimuth=saz))
 
     rolling = da_new.rolling(dim=dim, center=True, min_periods=min_periods)
-
     da_new = getattr(rolling, method)(**kwargs)
     da_new = da_new.isel(**isel)
     return da_new
 
 
 # Velibor Pejcic
-def phase_offset(phioff, rng=3000):  # 3000.0):
+def phase_offset(phioff, rng=1000):  # 3000.0):
     """Calculate Phase offset.
 
     Parameter
@@ -135,8 +131,8 @@ def phase_offset(phioff, rng=3000):  # 3000.0):
 
 
 # Velibor Pejcic
-def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
-                   win_azi=None, wkdp_light=9, wkdp_heavy=25):
+def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, snr_tresh=10,
+                   win_r=25, win_azi=None, wkdp_light=9, wkdp_heavy=25):
     """
     Processing Phidp and KDP
 
@@ -145,7 +141,8 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
     swp_cf ::: Quality controlled sweep
 
     uh_tresh ::: ZH Threshold
-    rho_trsh ::: RHOHV Threshold
+    rho_tresh ::: RHOHV Threshold
+    snr_tresh ::: SNR Threshold
 
     win_r ::: Window size for 2d Medianfilter in range
     win_azi ::: Window size for 2d Medianfilter in azimuth
@@ -162,18 +159,13 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
     """
 
     # Thresholding
-    swp_mask = swp_cf.where((swp_cf.DBZH > uh_tresh) & (
-            swp_cf.RHOHV > rho_tresh) & np.isnan(
-        swp_cf.CMAP))  # TODO: rho_nc !!!!
+    swp_mask = swp_cf.where((swp_cf.DBZH > uh_tresh) &
+                            (swp_cf.RHOHV > rho_tresh) &
+                            (swp_cf.DBSNRH > snr_tresh) &
+                            np.isnan(swp_cf.CMAP))
 
     # Median filtering 2d
     phimed = swp_mask.UPHIDP.copy()
-    # phimed = phimed.pipe(rm.filter_data, medwin)
-
-    # Smoothing
-    # gaussian convolution 1d - smoothing
-    # gkern = rm.gauss_kernel(kwidth, sigma)
-    # phiclean = phimed.pipe(rm.smooth_data, gkern)
 
     # Median 2D
     window = win_r
@@ -184,28 +176,37 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
 
     phioff = swp_mask.UPHIDP.copy().where(
         (swp_cf.RHOHV >= 0.9))  # & (swp.DBZH>=0))
-    off = phase_offset(phioff, 1000.0)
-    phi_offset = off.PHIDP_OFFSET.load().median(skipna=True)
-
+    off = phase_offset(phioff, 3000.0)  # TODO: nochmal Wellen fragen
+    phi_offset = off.PHIDP_OFFSET.load().median("azimuth",skipna=True) # neu
     phi_corr = phi_median - phi_offset
+
     # phidp/kdp
     kdp_light = phi_corr.wrl.dp.kdp_from_phidp(winlen=wkdp_light)
     kdp_heavy = phi_corr.wrl.dp.kdp_from_phidp(winlen=wkdp_heavy)
-
-    # phisp1 = kdp1.pipe(rm.phidp_from_kdp)
-    # phisp2, kdp2 = (phi_median -
-    #                 phi_offset).wrl.dp.phidp_kdp_vulpiani(winlen=23)
-
     kdp_comb = kdp_heavy.where(swp_cf.DBZH < 40, kdp_light)
 
-    swp_cf = swp_cf.assign(kdp_corr=kdp_comb)
-    swp_cf = swp_cf.assign(phi_corr=phi_corr)
+    # attributes
+    kdp_comb.attrs["comments"] = 'KDP noise corrected with winlen=' + \
+                                 str(wkdp_heavy) + ' (DBZH<40) and ' + \
+                                 'winlen=' + str(wkdp_light) + ' (DBZH>=40)'
+    phi_corr.attrs["long_name"] = \
+        'Differential phase shift'
+    phi_corr.attrs["short_name"] = \
+        'PHI_DP'
+    phi_corr.attrs["units"] = \
+        'degrees'
+    phi_corr.attrs["comments"] = 'PHI_DP smoothing with win_r=' + \
+                                 str(win_r) + ' and win_azi=' + str(win_azi)
+    swp_cf = swp_cf.assign(KDP_NC=kdp_comb)
+    swp_cf = swp_cf.assign(PHI_NC=phi_corr)
 
     return swp_cf
 
 
 # --------------------------------------------------------------------------- #
-
+ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
+                           8.0, 12.0, 17.0, 25.0])
+# --------------------------------------------------------------------------- #
 DATES = ["20210604",  # case01
          "20210620", "20210621",  # case02
          "20210628", "20210629",  # case03
@@ -219,15 +220,22 @@ DATES = ["20210604",  # case01
 LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
              ]
-ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-                           8.0, 12.0, 17.0, 25.0])
 ELEVATIONS = ELEVATIONS_ALL.copy()
 MODE = ['pcp', 'vol']
-# overwrite = True
-overwrite = False
-winlen = 13
-# import time
-# time.sleep(60*60*24)
+
+merge = True
+remove_parts = False
+overwrite = True
+
+win_r = 25
+win_azi = 1
+wkdp_light = 9
+wkdp_heavy = 25
+
+snr_tresh = 15
+win_rs = [25, 9, 15]
+wkdp_light = 9
+wkdp_heavy = 25
 
 # START: Loop over cases, dates, and radars:
 
@@ -247,94 +255,120 @@ mode = 'vol'
 #     for location in LOCATIONS:
 #         for mode in MODE:
 #             for elevation_deg in ELEVATIONS:
-for i_t_a, i_t_b in zip([0, 144], [143, 288]):
 
-    year = date[0:4]
-    mon = date[4:6]
-    day = date[6:8]
-    sweep = '0' + str(np.where(ELEVATIONS_ALL ==
-                               float(elevation_deg))[0][0])
-    if mode == 'pcp' and sweep != '00':
-        print('pcp only 00')
-        # continue
+# i_t_a = 0
+# i_t_b = 143
+# part = 'a'
+for win_r in win_rs:
+    merge_files = []
+    for i_t_a, i_t_b, part in \
+            zip([0, 144], [144, 288], ['a', 'b']):
 
-    path_in = "/".join([header.dir_data_obs + '*' + date,
-                        year, year + '-' + mon,
-                        year + '-' + mon + '-' + day,
-                        location, mode + '*', sweep,
-                        'ras*_allmoms_*'])
-    files = sorted(glob.glob(path_in))
-    if not files:
-        path_in = "/".join([header.dir_data_obs +
+        year = date[0:4]
+        mon = date[4:6]
+        day = date[6:8]
+        sweep = '0' + str(np.where(ELEVATIONS_ALL ==
+                                   float(elevation_deg))[0][0])
+        if mode == 'pcp' and sweep != '00':
+            print('pcp only 00')
+            continue
+
+        path_in = "/".join([header.dir_data_obs + '*' + date,
                             year, year + '-' + mon,
                             year + '-' + mon + '-' + day,
                             location, mode + '*', sweep,
                             'ras*_allmoms_*'])
         files = sorted(glob.glob(path_in))
-    if not files:
-        print('no input data *_allmoms_*')
-        # continue
-    else:
-        path_in = files[0]
-        path_out = path_in.replace('_allmoms_', '_kdp_nc_'+ str(i_t_a))
+        if not files:
+            path_in = "/".join([header.dir_data_obs +
+                                year, year + '-' + mon,
+                                year + '-' + mon + '-' + day,
+                                location, mode + '*', sweep,
+                                'ras*_allmoms_*'])
+            files = sorted(glob.glob(path_in))
+        if not files:
+            print('no input data *_allmoms_*')
+            continue
+        else:
+            path_in = files[0]
+            path_out = path_in.replace('_allmoms_', '_kdp_nc_' +
+                                       part + '_' # )
+                                       + str(win_r))  # TODO: remove
 
-    data = dttree.open_datatree(path_in)[
-        # 'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
-        'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
-    rem_var = list(data.data_vars.keys())
-    rem_var.remove('CMAP')
-    rem_var.remove('UPHIDP')
-    # data = data.drop_vars(rem_var)
-    # dummy_tra = np.empty(shape=[data.time.size, data.range.size,
-    #                                 data.azimuth.size, ])
-    data = data.transpose('time', 'azimuth', 'range')
-    # dummy_tra[:] = np.nan
-    data = data.isel(time=slice(i_t_a, i_t_b))
-    kdp_new = kdp_from_phidp(data['UPHIDP'].values,
-                             winlen=winlen,  # cband
-                             # winlen=31, # xband ?!
-                             min_periods=3)
-    # data['KDP_NC'] = (['time', 'range', 'azimuth'], kdp_new,
-    data['KDP_NC'] = (['time', 'azimuth', 'range'], kdp_new,
-                      dict(standard_name='specific differential phase',
-                           comments='KDP noise corrected with winlen=' +
-                                    str(winlen),
-                           units='deg/km'))
+        merge_files.append(path_out)
+        if (os.path.isfile(path_out) and not overwrite) or \
+                (os.path.isfile(path_out.replace(
+                    'kdp_nc_' + str(part), 'kdp_nc'))
+                 and not overwrite):
+            print(path_out + ' exists;\n' + ' ... set: > ' +
+                  'overwrite = True < for recalculation')
+            continue
 
-    # swp_cf = dttree.open_datatree(path_in)
-    # swp_cf = dttree.open_datatree(path_in)[
-    #     'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+        path_rho_nc = path_in.replace('_allmoms_', '_rhohv_nc_')
+        data = dttree.open_datatree(path_in)[
+            'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+        # 'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
 
-    # data_new=proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.9, win_r=25,
-    #                         win_azi=None, wkdp_light=9, wkdp_heavy=25)
+        data_rho = dttree.open_datatree(path_rho_nc)[
+            'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+        # 'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
 
-    data = proc_phidp_kdp(data, uh_tresh=0, rho_tresh=0.9, win_r=25,
-                          win_azi=None, wkdp_light=9, wkdp_heavy=25)
+        data.RHOHV.values = data_rho.RHOHV_NC2P.values
+        rem_var = list(data.data_vars.keys())
+        rem_var.remove('CMAP')
+        rem_var.remove('UPHIDP')
+        data = data.transpose('time', 'azimuth', 'range')
+        data = data.isel(time=slice(i_t_a, i_t_b))
+        data = proc_phidp_kdp(data, uh_tresh=0, rho_tresh=0.9,
+                              snr_tresh=snr_tresh,
+                              win_r=win_r, win_azi=win_azi,
+                              wkdp_light=wkdp_light,
+                              wkdp_heavy=wkdp_heavy)
+        mom_use = [x for x in list(data.keys())]
+        for mom in mom_use:
+            # data[mom].encoding["coordinates"] = "time range azimuth"
+            data[mom].encoding["coordinates"] = \
+                "time azimuth range"
 
-    mom_use = [x for x in list(data.keys())]
-    for mom in mom_use:
-        # data[mom].encoding["coordinates"] = "time range azimuth"
-        data[mom].encoding["coordinates"] = "time azimuth range"
+        data = data.drop_vars(rem_var)
+        dtree = dttree.DataTree(name="root")
+        dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                        parent=dtree)
+        print('saving: ... ' + path_out + ' ...')
+        dtree.load().to_netcdf(path_out)
+        data.close()
+        print('saved:  ' + path_out + ' !')
 
-    data = data.drop_vars(rem_var)
-    dtree = dttree.DataTree(name="root")
-    dttree.DataTree(data, name=f"sweep_{int(sweep)}", parent=dtree)
-    print('saving: ... ' + path_out + ' ...')
-    dtree.load().to_netcdf(path_out)
-    data.close()
-    print('saved:  ' + path_out + ' !')
-
-    # mom_use = [x for x in list(data_new.keys())]
-    # for mom in mom_use:
-    #     data_new[mom].encoding["coordinates"] = "time range azimuth"
-
-    # dtree2 = dttree.DataTree(name="root")
-    # dttree.DataTree(data_new, name=f"sweep_{int(sweep)}", parent=dtree2)
-    # print('saving: ... ' + path_out.replace('_kdp_nc_', '_kdp_nc_new_') + ' ...')
-    # dtree2.load().to_netcdf(path_out.replace('_kdp_nc_', '_kdp_nc_new_'))
-    # print('saved:  ' + path_out.replace('_kdp_nc_', '_kdp_nc_new_') + ' !')
-
-    # neu=data_new.isel(time=1)
-    # dtree3 = dttree.DataTree(name="root")
-    # dttree.DataTree(neu, name=f"sweep_{int(sweep)}", parent=dtree3)
-    # dtree3.load().to_netcdf(path_out.replace('_kdp_nc_', '_kdp_nc_neu3_'))
+    if merge:
+        path_out_new = merge_files[0].replace(
+            'kdp_nc_a_', 'kdp_nc_')
+        if os.path.isfile(path_out_new) and not overwrite:
+            print(path_out_new + ' exists;\n' + ' ... set: ' +
+                  '> overwrite = True < for recalculation')
+        else:
+            data_merged = xr.merge([
+                dttree.open_datatree(merge_files[0])[
+                    'sweep_' + str(int(sweep))].to_dataset(
+                ).chunk(-1),
+                dttree.open_datatree(merge_files[1])[
+                    'sweep_' + str(int(sweep))].to_dataset(
+                ).chunk(-1),
+            ])
+            mom_use = [x for x in list(data_merged.keys())]
+            for mom in mom_use:
+                # data[mom].encoding["coordinates"] = "time range azimuth"
+                data_merged[mom].encoding["coordinates"] = \
+                    "time azimuth range"
+            data_merged.attrs['processing_date'] = str(
+                pd.Timestamp.today())[:16]
+            print('saving: ... ' + path_out_new + ' ...')
+            dtree = dttree.DataTree(name="root")
+            dttree.DataTree(data_merged,
+                            name=f"sweep_{int(sweep)}",
+                            parent=dtree)
+            dtree.load().to_netcdf(path_out_new)
+            data_merged.close()
+            print('saved:  ' + path_out_new + ' !')
+            if remove_parts:
+                for file_part in merge_files:
+                    os.remove(file_part)
