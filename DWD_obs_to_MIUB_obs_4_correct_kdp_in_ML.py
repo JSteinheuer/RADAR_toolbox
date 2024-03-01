@@ -258,8 +258,8 @@ MODE = ['pcp', 'vol']
 
 merge = True
 remove_parts = True
-# overwrite = False
-overwrite = True
+overwrite = False
+# overwrite = True
 
 snr_tresh = 15
 win_r = 25
@@ -372,7 +372,7 @@ for location in LOCATIONS:
                     data.close()
                     print('saved:  ' + path_out + ' !')
 
-                if merge:
+                if merge and merge_files != []:
                     path_out_new = merge_files[0].replace(
                         'kdp_nc_a_', 'kdp_nc_')
                     if os.path.isfile(path_out_new) and not overwrite:
