@@ -22,6 +22,7 @@ import os
 import xarray as xr
 from wradlib.dp import kdp_from_phidp
 from xhistogram.xarray import histogram
+from scipy.ndimage.filters import uniform_filter1d
 
 sys.path.insert(0, header.dir_projects +
                 'RADAR_toolbox/radar_processing_scripts/')
@@ -174,12 +175,12 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=10,
     # sweep most phi lays around 0 (phi_centered
     phi_hist = histogram(swp_mask.UPHIDP.copy(),
                          bins=np.linspace(-180, 180, 360),
-                         dim=['azimuth', 'range'])
-    # get modus(time) of phi (minus 180 gives then degree instead of index)
-    phi_modus = np.argmax(phi_hist.values, axis=1) - 180
+                         dim=['azimuth', 'range', 'time'])
+    # get modus of phi (minus 180 gives then degree instead of index)
+    phi_modus = np.argmax(phi_hist.values) - 180
     # phi in [-180-modus, 180-modus]  ->  [0,360] -> [180, 540] ->
     # [180,360,0,180] -> [-180,new modus=0, 180]
-    phi_c = ((swp_mask.UPHIDP.copy() - xr.DataArray(phi_modus, dims='time'))
+    phi_c = ((swp_mask.UPHIDP.copy() - xr.DataArray(phi_modus))#new, dims='time'))
              % 360 + 180) % 360 - 180
 
     # Median 2D
@@ -204,9 +205,16 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=10,
     # mean or median?!
     phi_offset_mn = phi_off_2d_c.mean("azimuth", skipna=True)  # this=!
     phi_offset_md = phi_off_2d_c.median("azimuth", skipna=True)
-    phi_corr_mn = phi_smoothed - phi_offset_mn  # this=!
-    phi_corr_md = phi_smoothed - phi_offset_md
-    phi_corr = phi_corr_mn
+    # phi_corr_mn = phi_smoothed - phi_offset_mn  # this=!
+    # phi_corr_md = phi_smoothed - phi_offset_md
+    # phi_corr = phi_corr_mn
+
+    # new smoth:
+    phi_offset_md_s = xr.DataArray(uniform_filter1d(phi_offset_md,
+                                                    size=13, mode='mirror'),
+                                   dims='time')
+    phi_corr_md_s = phi_smoothed - phi_offset_md_s
+    phi_corr = phi_corr_md_s
 
     # phidp/kdp
     kdp_light = phi_corr.wrl.dp.kdp_from_phidp(winlen=wkdp_light)
@@ -226,6 +234,8 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=10,
     swp_cf = swp_cf.assign(PHI_NC=phi_corr)
     swp_cf = swp_cf.assign(PHI_off_md=phi_offset_md)
     swp_cf = swp_cf.assign(PHI_off_mn=phi_offset_mn)
+    swp_cf = swp_cf.assign(PHI_off_mn_s=phi_offset_mn_s)  # new smoth
+    swp_cf = swp_cf.assign(PHI_off_md_s=phi_offset_md_s)  # new smoth
     swp_cf = swp_cf.assign(start_range=phi_off_2d.start_range)
     swp_cf = swp_cf.assign(stop_range=phi_off_2d.stop_range)
     swp_cf = swp_cf.assign(PHI_off_2d=phi_off_2d.PHIDP_OFFSET)
@@ -258,8 +268,9 @@ MODE = ['pcp', 'vol']
 
 merge = True
 remove_parts = True
-overwrite = False
-# overwrite = True
+# remove_parts = False
+# overwrite = False
+overwrite = True
 
 snr_tresh = 15
 win_r = 25
@@ -272,29 +283,27 @@ rng = 3000
 
 # # DATES = ['20210604']
 # DATES = ['20210714']
-# LOCATIONS = ['pro']
+# # LOCATIONS = ['pro']
+# LOCATIONS = ['ess']
 # ELEVATIONS = np.array([5.5])
 # MODE = ['vol']
 
-date = '20210604'
-# date = '20210714'
-location = 'pro'
-# location = 'ess'
-elevation_deg = 5.5
-mode = 'vol'
+# date = '20210604'
+# # date = '20210714'
+# location = 'pro'
+# # location = 'ess'
+# elevation_deg = 5.5
+# mode = 'vol'
 
 for location in LOCATIONS:
     for date in DATES:
         for mode in MODE:
             for elevation_deg in ELEVATIONS:
-
-                # i_t_a = 0
-                # i_t_b = 143
-                # part = 'a'
+                parts = 4
                 merge_files = []
-                for i_t_a, i_t_b, part in \
-                        zip([0, 144], [144, 288], ['a', 'b']):
-
+                for p in range(parts):
+                    i_t_a = int(288 / parts * p)
+                    i_t_b = int(288 / parts * (p + 1))
                     year = date[0:4]
                     mon = date[4:6]
                     day = date[6:8]
@@ -302,9 +311,9 @@ for location in LOCATIONS:
                                                float(elevation_deg))[0][0])
                     if mode == 'pcp' and sweep != '00':
                         print('pcp only 00')
-                        continue
+                        break
 
-                    path_in = "/".join([header.dir_data_obs + '*' + date,
+                    path_in = "/".join([header.dir_data_obs + '*',
                                         year, year + '-' + mon,
                                         year + '-' + mon + '-' + day,
                                         location, mode + '*', sweep,
@@ -319,16 +328,15 @@ for location in LOCATIONS:
                         files = sorted(glob.glob(path_in))
                     if not files:
                         print('no input data *_allmoms_*')
-                        continue
+                        break
                     else:
                         path_in = files[0]
                         path_out = path_in.replace('_allmoms_', '_kdp_nc_' +
-                                                   part + '_')
+                                                   str(p) + '_')
 
-                    merge_files.append(path_out)
                     if (os.path.isfile(path_out) and not overwrite) or \
                             (os.path.isfile(path_out.replace(
-                                'kdp_nc_' + str(part), 'kdp_nc'))
+                                'kdp_nc_' + str(p), 'kdp_nc'))
                              and not overwrite):
                         print(path_out + ' exists;\n' + ' ... set: > ' +
                               'overwrite = True < for recalculation')
@@ -337,12 +345,8 @@ for location in LOCATIONS:
                     path_rho_nc = path_in.replace('_allmoms_', '_rhohv_nc_')
                     data = dttree.open_datatree(path_in)[
                         'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
-                    # 'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
-
                     data_rho = dttree.open_datatree(path_rho_nc)[
                         'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
-                    # 'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
-
                     data.RHOHV.values = data_rho.RHOHV_NC2P.values
                     data = data.assign({'SNRH': data_rho.SNRH})
                     remo_var = list(data.data_vars.keys())
@@ -350,6 +354,11 @@ for location in LOCATIONS:
                     remo_var.remove('UPHIDP')
                     data = data.transpose('time', 'azimuth', 'range')
                     data = data.isel(time=slice(i_t_a, i_t_b))
+                    if data.time.size == 0:
+                        parts = p
+                        break
+
+                    merge_files.append(path_out)
                     data = proc_phidp_kdp(data, uh_tresh=0, rho_tresh=0.9,
                                           snr_tresh=snr_tresh,
                                           win_r=win_r, win_azi=win_azi,
@@ -358,8 +367,6 @@ for location in LOCATIONS:
                                           rng=rng)
                     mom_use = [x for x in list(data.keys())]
                     for mom in mom_use:
-                        # data[mom].encoding["coordinates"] = \
-                        #     "time range azimuth"
                         data[mom].encoding["coordinates"] = \
                             "time azimuth range"
 
@@ -374,25 +381,20 @@ for location in LOCATIONS:
 
                 if merge and merge_files != []:
                     path_out_new = merge_files[0].replace(
-                        'kdp_nc_a_', 'kdp_nc_')
+                        'kdp_nc_0_', 'kdp_nc_')
                     if os.path.isfile(path_out_new) and not overwrite:
                         print(path_out_new + ' exists;\n' + ' ... set: ' +
                               '> overwrite = True < for recalculation')
                     else:
                         data_merged = xr.merge([
-                            dttree.open_datatree(merge_files[0])[
+                            dttree.open_datatree(merge_files[p])[
                                 'sweep_' + str(int(sweep))].to_dataset(
-                            ).chunk(-1),
-                            dttree.open_datatree(merge_files[1])[
-                                'sweep_' + str(int(sweep))].to_dataset(
-                            ).chunk(-1),
-                        ])
+                            ).chunk(-1) for p in range(parts)])
                         mom_use = [x for x in list(data_merged.keys())]
                         for mom in mom_use:
-                            # data[mom].encoding["coordinates"] = \
-                            #     "time range azimuth"
                             data_merged[mom].encoding["coordinates"] = \
                                 "time azimuth range"
+
                         data_merged.attrs['processing_date'] = str(
                             pd.Timestamp.today())[:16]
                         print('saving: ... ' + path_out_new + ' ...')
