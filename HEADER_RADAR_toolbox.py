@@ -38,7 +38,8 @@ if getpass.getuser() == 's6justei':  # Bonner tower/network
     dir_data_obs = '/automount/agradar/operation_hydrometeors/data/obs/'
     dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
     folder_plot = '/automount/agradar/operation_hydrometeors/plots/'
-    folder_qvp_plot = '/automount/agradar/operation_hydrometeors/plots/QVP/'
+    folder_qvp_plot = '/automount/agradar/operation_hydrometeors/plots/QVPs/'
+    folder_ppi_plot = '/automount/agradar/operation_hydrometeors/plots/PPIs/'
 
 
 # elif getpass.getuser() == 'julian':  # personal notebook
@@ -78,6 +79,11 @@ norm_rhohv = mpl.colors.BoundaryNorm(levels_rhohv, len(levels_rhohv) - 1)
 # D0
 levels_d0 = np.arange(0.2, 2.8, .2)
 norm_d0 = mpl.colors.BoundaryNorm(levels_d0, len(levels_d0) - 1)
+
+# --------------------------------------------------------------------------- #
+ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
+                           8.0, 12.0, 17.0, 25.0])
+# --------------------------------------------------------------------------- #
 
 
 
