@@ -28,8 +28,6 @@ from scipy.ndimage import uniform_filter, gaussian_filter
 
 # from scipy.signal import savgol_filter
 # import scipy as sp
-import warnings
-warnings.filterwarnings("ignore")
 
 sys.path.insert(0, header.dir_projects +
                 'RADAR_toolbox/radar_processing_scripts/')
@@ -76,10 +74,11 @@ def xr_rolling(da, window, window2=None, method="median",
     dim = dict(range=window)
     isel = dict(range=srng)
 
-    # new: throw out values that are too noisy
+    # TODO: new: throw out if too noisy
     rolling = da_new.rolling(dim=dim, center=True, min_periods=min_periods)
     da_md = getattr(rolling, 'median')(**kwargs)
     da_new = da_new.where((abs(da_md - da_new) < 5))
+    # TODO: new: throw out if too noisy
 
     if window2 is not None:
         paz = window2 // 2
@@ -95,7 +94,7 @@ def xr_rolling(da, window, window2=None, method="median",
 
 
 # Velibor Pejcic
-def phase_offset(phioff, rng=1000):
+def phase_offset(phioff, rng=3000):
     """Calculate Phase offset.
 
     Parameter
@@ -147,9 +146,9 @@ def phase_offset(phioff, rng=1000):
 
 
 # Velibor Pejcic
-def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
+def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=10,
                    win_r=25, win_azi=None, wkdp_light=9, wkdp_heavy=25,
-                   rng=1000):
+                   rng=3000):
     """
     Processing Phidp and KDP
 
@@ -194,7 +193,7 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     # 2: smoothing PHI along range (reduced by 100):
     phi_s = phi_c.copy().pipe(
         xr_rolling, window=win_r, window2=win_azi, method="median",
-        skipna=True, min_periods=max(3, int((win_r - 1) / 4))
+        skipna=True, min_periods=max(3, int((win_r - 1) / 4))  # TODO: 3 o 1/6?
     )
 
     # 3: offset Part 1 of 7: calculate offset 2d (reduced by 100):
@@ -231,13 +230,13 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     # 3: offset Part 7 of 7:  noise corrected phi (NOT red. by 100 anymore!)
     phi_nc = phi_s - phi_off_2d_f_i_f_s
 
-    # # 3b: check if phi needs to be reverted (only if more than 500 non nans):
+    # # 3b: check if phi needs to be reverted:
     phi_diffs = phi_nc.copy().diff('range', 1)
     phi_diffs = xr.where(abs(phi_diffs) > 1, np.nan, phi_diffs)
     phi_trues = phi_diffs.notnull().sum(["range", "azimuth"])
     phi_factor = phi_diffs.median(["range", "azimuth"], skipna=True)
     phi_factor = xr.where(phi_factor < 0, -1, 1)
-    phi_factor = xr.where(phi_trues < 500, 1, phi_factor)
+    phi_factor = xr.where(phi_trues < 500, 1, phi_factor)  # TODO: 500???
     if sum(phi_factor.values) < phi_factor.size:
         print('REVERING PHI!')
         print(phi_trues.values)
@@ -261,67 +260,125 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
                                  str(wkdp_heavy) + ' (DBZH<40) and ' + \
                                  'winlen=' + str(wkdp_light) + ' (DBZH>=40)'
 
-    # assign variables
+    # assign!
     swp_cf = swp_cf.assign(KDP_NC=kdp_comb)
     swp_cf = swp_cf.assign(PHI_NC=phi_nc)
+
+    # assign (maybe leave out)?
     swp_cf = swp_cf.assign(phi_c=phi_c + 100)
-    swp_cf = swp_cf.assign(PHI_off_2d_raw=phi_off_2d + 100)
-    swp_cf = swp_cf.assign(phi_off_2d_smooth=phi_off_2d_f_i_f_s + 100)
+    swp_cf = swp_cf.assign(phi_s=phi_s + 100)
+
+    swp_cf = swp_cf.assign(PHI_off_2d=phi_off_2d + 100)
+    swp_cf = swp_cf.assign(phi_off_2d_f=phi_off_2d_f + 100)
+    swp_cf = swp_cf.assign(phi_off_2d_f_i=phi_off_2d_f_i + 100)
+    swp_cf = swp_cf.assign(phi_off_2d_f_i_f=phi_off_2d_f_i_f + 100)
+    swp_cf = swp_cf.assign(phi_off_2d_f_i_f_s=phi_off_2d_f_i_f_s + 100)
+
+    swp_cf = swp_cf.assign(phi_diffs=phi_diffs)
 
     return swp_cf
 
 
-# --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
                            8.0, 12.0, 17.0, 25.0])
 # --------------------------------------------------------------------------- #
 DATES = ["20210604",  # case01
          "20210714",  # case09
-         "20210620", "20210621",  # case02
-         "20210628", "20210629",  # case03
-         "20220519", "20220520",  # case04
-         "20220623", "20220624", "20220625",  # case05
-         "20220626", "20220627", "20220628",  # case06+07
-         "20220630", "20220701",  # case08
-         "20221222",  # case10
+         # "20210620", "20210621",  # case02
+         # "20210628", "20210629",  # case03
+         # "20220519", "20220520",  # case04
+         # "20220623", "20220624", "20220625",  # case05
+         # "20220626", "20220627", "20220628",  # case06+07
+         # "20220630", "20220701",  # case08
+         # "20221222",  # case10
          ]
-LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
-             'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+# LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
+#              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+#              ]
+LOCATIONS = ['ess', 'pro', 'umd', 'tur', 'asb', 'boo', 'drs', 'eis', 'fbg',
+             # 'fld', 'hnr', 'isn',
+             # 'mem', 'neu', 'nhb', 'oft', 'ros',
              ]
 ELEVATIONS = ELEVATIONS_ALL.copy()
 MODE = ['pcp', 'vol']
-# --------------------------------------------------------------------------- #
+
 merge = True
 remove_parts = True
-remove_parts = False
 # overwrite = False
 overwrite = True
-# --------------------------------------------------------------------------- #
-uh_tresh = 0
-rho_tresh = 0.8
-snr_tresh = 15
-win_r = 25  # TODO: VP or PARK?!
-win_azi = None
-rng = 1000
-wkdp_light = 9  # PARK: light filtering
-wkdp_heavy = 25  # PARK: heavy filtering
 
-# --------------------------------------------------------------------------- #
+snr_tresh = 15  # TODO: VP threshold
+win_r = 25  # TODO: VP or PARK?!
+# win_r = 31  # TODO: new
+win_azi = None  # TODO: None, instead Gaussian filter for azimuth and time
+# win_azi = 3  # TODO: None, instead Gaussian filter for azimuth and time
+wkdp_light = 9  # TODO: PARK: light filtering
+wkdp_heavy = 25  # TODO: PARK: heavy filtering
+rng = 3000  # TODO: VP
+rng = 1000  # TODO:  # next ckeck (together with range>1000) # before was good!!!!!!!!
+
 # START: Loop over cases, dates, and radars:
+
+# # DATES = ['20210604']
+# # DATES = ['20210714']
+DATES = ['20210604', '20210714', ]
+# # LOCATIONS = ['pro']
+# # LOCATIONS = ['ess']
+# # LOCATIONS = ['umd']
+LOCATIONS = ['ess', 'tur', ]
+# # LOCATIONS = ['tur']
+# ELEVATIONS = np.array([12])
+# MODE = ['vol']
+
+# # TODO: 18.3.24 10:35
+# DATES = ['20210604', ]
+# ELEVATIONS = np.array([4.5, 12, 0.5, ])
+# LOCATIONS = ['ess', ]
+# MODE = ['vol', ]
+
+# # # TODO: 21.3.24 15:40
+# DATES = ['20210714', '20210604',]
+DATES = ['20210604', ]
+LOCATIONS = ['ess', ]
+MODE = ['vol', ]
+ELEVATIONS = np.array([12, 0.5])
+
+# date = '20210604'
+# # date = '20210714'
+# location = 'pro'
+# # location = 'ess'
+# elevation_deg = 5.5
+# mode = 'vol'
+
+# # # TODO: 27.3.24 17:00
+DATES = ['20210714', '20210604', ]
+LOCATIONS = ['ess', 'tur', 'pro', ]
+MODE = ['vol', ]
+ELEVATIONS = np.array([12, 0.5])
+
+# # # # TODO: 28.3.24 9:00
+DATES = ['20210714', '20210604', ]
+LOCATIONS = ['pro', 'ess', 'tur',]
+MODE = ['vol', ]
+ELEVATIONS = np.array([0.5, 12])
+
 for date in DATES:
     for location in LOCATIONS:
+        # if date == '20210604' and not location == 'ess':  #TODO: remove
+        #     print(date + '_' + location)
+        #     continue
+
         for mode in MODE:
             for elevation_deg in ELEVATIONS:
-                if mode == 'pcp':
-                    print('start: ' + date + ' ' + location + ' pcp')
-                else:
-                    print('start: ' + date + ' ' + location + ' ' +
-                          str(elevation_deg))
-
-                parts = 6
+                print('start: ' + date + ' ' + location + ' ' +
+                      str(elevation_deg))
+                # parts = 288
+                parts = 4
                 merge_files = []
                 for p in range(parts):
+                # for p in [169,170,171]:
+                # for p in [212,221]:
                     i_t_a = int(288 / parts * p)
                     i_t_b = int(288 / parts * (p + 1))
                     year = date[0:4]
@@ -330,6 +387,7 @@ for date in DATES:
                     sweep = '0' + str(np.where(ELEVATIONS_ALL ==
                                                float(elevation_deg))[0][0])
                     if mode == 'pcp' and sweep != '00':
+                        print('pcp only 00')
                         break
 
                     path_in = "/".join([header.dir_data_obs + '*',
@@ -351,11 +409,13 @@ for date in DATES:
                     else:
                         path_in = files[0]
                         path_out = path_in.replace(
-                            '_allmoms_', '_kdp_nc_' + str(p) + '_')
+                            '_allmoms_', '_' +
+                                         str(pd.Timestamp.today())[11:16] +
+                                         '_kdp_nc_d_' + str(p) + '_')
 
                     if (os.path.isfile(path_out) and not overwrite) or \
                             (os.path.isfile(path_out.replace(
-                                '_kdp_nc_' + str(p), '_kdp_nc'))
+                                'kdp_nc_d_' + str(p), 'kdp_nc'))
                              and not overwrite):
                         print(path_out + ' exists;\n' + ' ... set: > ' +
                               'overwrite = True < for recalculation')
@@ -375,16 +435,13 @@ for date in DATES:
                     data = data.isel(time=slice(i_t_a, i_t_b))
                     if data.time.size == 0:
                         parts = p
-                        print('no more time steps')
                         break
 
                     merge_files.append(path_out)
-                    data = proc_phidp_kdp(data,
-                                          uh_tresh=uh_tresh,
-                                          rho_tresh=rho_tresh,
+                    data = proc_phidp_kdp(data, uh_tresh=0, rho_tresh=0.8,
+                                          # TODO 0.9 is fine as well
                                           snr_tresh=snr_tresh,
-                                          win_r=win_r,
-                                          win_azi=win_azi,
+                                          win_r=win_r, win_azi=win_azi,
                                           wkdp_light=wkdp_light,
                                           wkdp_heavy=wkdp_heavy,
                                           rng=rng)
@@ -404,7 +461,12 @@ for date in DATES:
 
                 if merge and merge_files != []:
                     path_out_new = merge_files[0].replace(
-                        'kdp_nc_d_0_', 'kdp_nc_')
+                        'kdp_nc_d_0_', 'kdp_nc_'
+                    ).replace('ras', str(pd.Timestamp.today())[
+                                     5:10] + '-' +  # TODO: testing!
+                              str(pd.Timestamp.today())[11:16] + '_ras'
+                              # TODO: testing!
+                              )
                     if os.path.isfile(path_out_new) and not overwrite:
                         print(path_out_new + ' exists;\n' + ' ... set: ' +
                               '> overwrite = True < for recalculation')
