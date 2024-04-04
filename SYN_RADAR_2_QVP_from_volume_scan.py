@@ -158,12 +158,33 @@ from SYN_RADAR_1_CREATE_VOLUME_SCAN import rad_dict
 #                      elevation_deg=12, radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
-# processing: 26.2.24
+# # processing: 26.2.24
+# # icon + emvorado mixtures
+#
+# day = '20170725'
+# da_run = 'ASS_2211'
+# emvorado_runs = ['EMVO_00500002.2',
+#                  'EMVO_00500004.2',
+#                  'EMVO_00500005.2',
+#                  'EMVO_00500006.2']
+# for emvorado_run in emvorado_runs:
+#     icon_emvorado_run = 'MAIN_2401.3/' + emvorado_run
+#     icon_run = 'MAIN_2308.0'
+#     spin_up_mm = 60
+#     radar_loc = 'PRO'
+#     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+#                      icon_emvorado_run=icon_emvorado_run,
+#                      spin_up_mm=spin_up_mm,
+#                      elevation_deg=12, radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
+# processing: 21.3.24 - 1 of 3
 # icon + emvorado mixtures
 
 day = '20170725'
 da_run = 'ASS_2211'
 emvorado_runs = ['EMVO_00500002.2',
+                 'EMVO_00500000.2',
                  'EMVO_00500004.2',
                  'EMVO_00500005.2',
                  'EMVO_00500006.2']
@@ -171,10 +192,54 @@ for emvorado_run in emvorado_runs:
     icon_emvorado_run = 'MAIN_2401.3/' + emvorado_run
     icon_run = 'MAIN_2308.0'
     spin_up_mm = 60
-    radar_loc = 'PRO'
-    qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
-                     icon_emvorado_run=icon_emvorado_run,
-                     spin_up_mm=spin_up_mm,
-                     elevation_deg=12, radar_loc=radar_loc)
+    radar_locs = list(rad_dict().keys())
+    # radar_locs = ['PRO']
+    for radar_loc in radar_locs:
+        qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                         icon_emvorado_run=icon_emvorado_run,
+                         spin_up_mm=spin_up_mm,
+                         elevation_deg=12, radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
+# processing: 21.3.24 - 2 of 3
+# icon + emvorado mixtures
+
+day = '20170725'
+da_run = 'ASS_2211'
+emvorado_runs = ['EMVO_00500002.2',
+                 'EMVO_00500005.2',
+                 'EMVO_00500000.2']
+for emvorado_run in emvorado_runs:
+    icon_emvorado_run = 'MAIN_2401.4/' + emvorado_run
+    icon_run = 'MAIN_2308.0'
+    spin_up_mm = 60
+    radar_locs = list(rad_dict().keys())
+    # radar_locs = ['PRO']
+    for radar_loc in radar_locs:
+        qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                         icon_emvorado_run=icon_emvorado_run,
+                         spin_up_mm=spin_up_mm,
+                         elevation_deg=12, radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
+# processing: 21.3.24 - 3 of 3
+# icon + emvorado mixtures
+
+day = '20170725'
+da_run = 'ASS_2211'
+emvorado_runs = ['EMVO_00500002.2',
+                 'EMVO_00500005.2',
+                 'EMVO_00500000.2']
+for emvorado_run in emvorado_runs:
+    icon_emvorado_run = 'MAIN_2401.5/' + emvorado_run
+    icon_run = 'MAIN_2308.0'
+    spin_up_mm = 60
+    radar_locs = list(rad_dict().keys())
+    # radar_locs = ['PRO']
+    for radar_loc in radar_locs:
+        qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                         icon_emvorado_run=icon_emvorado_run,
+                         spin_up_mm=spin_up_mm,
+                         elevation_deg=12, radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
