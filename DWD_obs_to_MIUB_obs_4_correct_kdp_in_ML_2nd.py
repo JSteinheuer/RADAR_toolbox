@@ -281,9 +281,9 @@ DATES = ["20210604",  # case01
 # LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
 #              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
 #              ]
-LOCATIONS = ['ess', 'pro', 'tur', 'umd',
-             # 'asb', 'boo', 'drs', 'eis', 'fbg',
-             # 'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb', 'oft', 'ros',
+LOCATIONS = [#'ess', 'pro', 'tur', 'umd',
+             'asb', 'boo', 'drs', 'eis', 'fbg',
+             'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb', 'oft', 'ros',
              ]
 ELEVATIONS = ELEVATIONS_ALL.copy()
 MODE = ['pcp', 'vol']
@@ -453,5 +453,3 @@ for date in DATES:
                         if remove_parts:
                             for file_part in merge_files:
                                 os.remove(file_part)
-
-import DWD_obs_to_MIUB_obs_4_correct_kdp_in_ML_2nd
