@@ -196,7 +196,7 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     # 3: offset Part 2 of 7: filter outl. (>10 in neighbourhood; red. by 100):
     phi_off_2d_f = xr.where(np.isnan(phi_off_2d), -100, phi_off_2d)
     phi_off_2d_f = xr.DataArray(uniform_filter(
-        phi_off_2d_f, size=5, mode='mirror'), dims=['time', 'azimuth'])
+        phi_off_2d_f, size=[0, 5], mode='mirror'), dims=['time', 'azimuth'])
     phi_off_2d_f = phi_off_2d.where((abs(phi_off_2d - phi_off_2d_f)) < 10)
 
     # 3: offset Part 3 of 7:  interpolate na's (red. by 100):
@@ -217,7 +217,7 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
 
     # 3: offset Part 6 of 7:  smoothing
     phi_off_2d_f_i_f_s = xr.DataArray(
-        gaussian_filter(phi_off_2d_f_i_f, 3, mode='wrap'),
+        gaussian_filter(phi_off_2d_f_i_f, sigma=[0, 3], mode='wrap'),
         dims=['time', 'azimuth'])
 
     # 3: offset Part 7 of 7:  noise corrected phi (NOT red. by 100 anymore!)
@@ -329,7 +329,16 @@ for date in DATES:
                         (date == '20210604' and location == 'fld' and
                          mode == 'vol' and elevation_deg == 3.5) or \
                         (date == '20210604' and location == 'fld' and
-                         mode == 'vol' and elevation_deg == 2.5):
+                         mode == 'vol' and elevation_deg == 2.5) or \
+                        (date == '20210714' and location == 'tur' and
+                         mode == 'vol' and elevation_deg == 5.5) or \
+                        (date == '20210714' and location == 'tur' and
+                         mode == 'vol' and elevation_deg == 4.5) or \
+                        (date == '20210714' and location == 'tur' and
+                         mode == 'pcp' and elevation_deg == 5.5) or \
+                        (date == '20210604' and
+                         location in ['ess', 'pro', 'tur', 'umd']) or \
+                        (date == '20210714' and location in ['ess', 'pro']):
                     print('\nskip: ' + date + ' ' + location + ' ' +
                           mode + ' ' + str(elevation_deg))
                     continue
