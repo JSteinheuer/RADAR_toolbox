@@ -87,7 +87,7 @@ def xr_rolling(da, window, window2=None, method="median",
 
 
 # Velibor Pejcic
-def phase_offset(phioff, rng=1000):
+def phase_offset(phioff, rng=3000):
     """Calculate Phase offset.
 
     Parameter
@@ -141,7 +141,7 @@ def phase_offset(phioff, rng=1000):
 # Velibor Pejcic
 def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
                    win_r=25, win_azi=None, wkdp_light=9, wkdp_heavy=25,
-                   rng=1000):
+                   rng=3000):
     """
     Processing Phidp and KDP
 
@@ -189,61 +189,57 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
         skipna=True, min_periods=max(3, int((win_r - 1) / 4))
     )
 
-    # 3: offset Part 1 of 7: calculate offset 2d (reduced by 100):
+    # 3: check if phi needs to be reverted:
+    phi_diffs = phi_s.copy().diff('range', 1)
+    phi_diffs = xr.where(abs(phi_diffs) > 2, np.nan, phi_diffs)
+    phi_factor = phi_diffs.mean(["range", "azimuth"], skipna=True)
+    # print(phi_factor.values)
+    phi_factor = xr.where(phi_factor < 0, -1, 1)
+    if sum(phi_factor.values) < phi_factor.size:
+        print('REVERING PHI!')
+        print(phi_factor.values)
+        phi_s = phi_s * phi_factor
+
+    # 4: offset Part 1 of 7: calculate offset 2d (reduced by 100):
     phi_off_2d = phase_offset(phi_s.copy().where(swp_cf.range > 1000),
                               rng).PHIDP_OFFSET.load()
 
-    # 3: offset Part 2 of 7: filter outl. (>10 in neighbourhood; red. by 100):
+    # 4: offset Part 2 of 7: filter outl. (>10 in neighbourhood; red. by 100):
     phi_off_2d_f = xr.where(np.isnan(phi_off_2d), -100, phi_off_2d)
     phi_off_2d_f = xr.DataArray(uniform_filter(
         phi_off_2d_f, size=[0, 5], mode='mirror'), dims=['time', 'azimuth'])
     phi_off_2d_f = phi_off_2d.where((abs(phi_off_2d - phi_off_2d_f)) < 10)
 
-    # 3: offset Part 3 of 7:  interpolate na's (red. by 100):
+    # 4: offset Part 3 of 7:  interpolate na's (red. by 100):
     phi_off_2d_f_i = phi_off_2d_f.interpolate_na(dim='azimuth', limit=5)
     phi_off_2d_f_i = xr.where(np.isnan(phi_off_2d_f),
                               phi_off_2d_f_i, phi_off_2d_f)
 
-    # 3: offset Part 4 of 7:  median offsets per time (red. by 100):
+    # 4: offset Part 4 of 7:  median offsets per time (red. by 100):
     phi_off_1d = phi_off_2d_f_i.median("azimuth", skipna=True)
     phi_off_0d = phi_off_1d.median("time", skipna=True)
     phi_off_1d = xr.where(np.isnan(phi_off_1d), phi_off_0d, phi_off_1d)
 
-    # 3: offset Part 5 of 7:  filling gaps with 0 (red. by 100)
+    # 4: offset Part 5 of 7:  filling gaps with 0 (red. by 100)
     phi_off_2d_f_i_f = phi_off_2d_f_i - phi_off_1d
     phi_off_2d_f_i_f = xr.where(np.isnan(phi_off_2d_f_i_f), 0,
                                 phi_off_2d_f_i_f)
     phi_off_2d_f_i_f = phi_off_2d_f_i_f + phi_off_1d
 
-    # 3: offset Part 6 of 7:  smoothing
+    # 4: offset Part 6 of 7:  smoothing
     phi_off_2d_f_i_f_s = xr.DataArray(
         gaussian_filter(phi_off_2d_f_i_f, sigma=[0, 3], mode='wrap'),
         dims=['time', 'azimuth'])
 
-    # 3: offset Part 7 of 7:  noise corrected phi (NOT red. by 100 anymore!)
+    # 4: offset Part 7 of 7:  noise corrected phi (NOT red. by 100 anymore!)
     phi_nc = phi_s - phi_off_2d_f_i_f_s
 
-    # # 3b: check if phi needs to be reverted (only if more than 500 non nans):
-    phi_diffs = phi_nc.copy().diff('range', 1)
-    phi_diffs = xr.where(abs(phi_diffs) > 1, np.nan, phi_diffs)
-    phi_trues = phi_diffs.notnull().sum(["range", "azimuth"])
-    phi_factor = phi_diffs.median(["range", "azimuth"], skipna=True)
-    phi_factor = xr.where(phi_factor < 0, -1, 1)
-    phi_factor = xr.where(phi_trues < 500, 1, phi_factor)
-    if sum(phi_factor.values) < phi_factor.size:
-        print('REVERING PHI!')
-        print(phi_trues.values)
-        print(phi_factor.values)
-        swp_cf["UPHIDP"] = swp_cf.UPHIDP * phi_factor
-        return proc_phidp_kdp(swp_cf, uh_tresh, rho_tresh, snr_tresh,
-                              win_r, win_azi, wkdp_light, wkdp_heavy, rng)
-
-    # 4: KDP
+    # 5: KDP
     kdp_light = phi_nc.wrl.dp.kdp_from_phidp(winlen=wkdp_light)
     kdp_heavy = phi_nc.wrl.dp.kdp_from_phidp(winlen=wkdp_heavy)
     kdp_comb = kdp_heavy.where(swp_cf.DBZH < 40, kdp_light)
 
-    # phi/kdp attributes
+    # 6: assign: phi/kdp attributes
     phi_nc.attrs["long_name"] = 'Differential phase shift'
     phi_nc.attrs["short_name"] = 'PHI_DP'
     phi_nc.attrs["units"] = 'degrees'
@@ -253,12 +249,13 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
                                  str(wkdp_heavy) + ' (DBZH<40) and ' + \
                                  'winlen=' + str(wkdp_light) + ' (DBZH>=40)'
 
-    # assign variables
+    # 6: assign: variables
     swp_cf = swp_cf.assign(KDP_NC=kdp_comb)
     swp_cf = swp_cf.assign(PHI_NC=phi_nc)
     swp_cf = swp_cf.assign(phi_c=phi_c + 100)
     swp_cf = swp_cf.assign(PHI_off_2d_raw=phi_off_2d + 100)
     swp_cf = swp_cf.assign(phi_off_2d_smooth=phi_off_2d_f_i_f_s + 100)
+    swp_cf = swp_cf.assign(reverting_factor=phi_factor)
 
     return swp_cf
 
@@ -300,7 +297,7 @@ rho_tresh = 0.8
 snr_tresh = 15
 win_r = 25  # TODO: VP or PARK?!
 win_azi = None
-rng = 1000
+rng = 3000
 wkdp_light = 9  # PARK: light filtering
 wkdp_heavy = 25  # PARK: heavy filtering
 # --------------------------------------------------------------------------- #
@@ -309,40 +306,36 @@ for date in DATES:
     for location in LOCATIONS:
         for mode in MODE:
             for elevation_deg in ELEVATIONS:
-                if (date == '20210604' and location == 'ess') or \
-                        (date == '20210604' and location == 'pro' and
-                         mode == 'pcp' and elevation_deg == 5.5) or \
-                        (date == '20210604' and location == 'pro' and
-                         mode == 'vol' and elevation_deg == 5.5) or \
-                        (date == '20210604' and location == 'pro' and
-                         mode == 'vol' and elevation_deg == 4.5) or \
-                        (date == '20210604' and location == 'asb' and
-                         mode == 'pcp' and elevation_deg == 5.5) or \
-                        (date == '20210604' and location == 'asb' and
-                         mode == 'vol' and elevation_deg == 5.5) or \
-                        (date == '20210604' and location == 'fld' and
-                         mode == 'pcp' and elevation_deg == 5.5) or \
-                        (date == '20210604' and location == 'fld' and
-                         mode == 'vol' and elevation_deg == 5.5) or \
-                        (date == '20210604' and location == 'fld' and
-                         mode == 'vol' and elevation_deg == 4.5) or \
-                        (date == '20210604' and location == 'fld' and
-                         mode == 'vol' and elevation_deg == 3.5) or \
-                        (date == '20210604' and location == 'fld' and
-                         mode == 'vol' and elevation_deg == 2.5) or \
-                        (date == '20210714' and location == 'tur' and
-                         mode == 'vol' and elevation_deg == 5.5) or \
-                        (date == '20210714' and location == 'tur' and
-                         mode == 'vol' and elevation_deg == 4.5) or \
-                        (date == '20210714' and location == 'tur' and
-                         mode == 'pcp' and elevation_deg == 5.5) or \
-                        (date == '20210604' and
-                         location in ['ess', 'pro', 'tur', 'umd']) or \
-                        (date == '20210714' and location in ['ess', 'pro']):
-                    print('\nskip: ' + date + ' ' + location + ' ' +
-                          mode + ' ' + str(elevation_deg))
-                    continue
-
+                # if (date == '20210604' and location == 'asb' and
+                #          mode == 'pcp' and elevation_deg == 5.5) or \
+                #         (date == '20210604' and location == 'asb' and
+                #          mode == 'vol' and elevation_deg == 5.5) or \
+                #         (date == '20210604' and location == 'fld' and
+                #          mode == 'pcp' and elevation_deg == 5.5) or \
+                #         (date == '20210604' and location == 'fld' and
+                #          mode == 'vol' and elevation_deg == 5.5) or \
+                #         (date == '20210604' and location == 'fld' and
+                #          mode == 'vol' and elevation_deg == 4.5) or \
+                #         (date == '20210604' and location == 'fld' and
+                #          mode == 'vol' and elevation_deg == 3.5) or \
+                #         (date == '20210604' and location == 'fld' and
+                #          mode == 'vol' and elevation_deg == 2.5) or \
+                #         (date == '20210604' and
+                #          location in ['ess', 'pro', 'tur', 'umd']) or \
+                #         (date == '20210714' and
+                #          location in ['ess', 'pro', 'tur', 'umd']) or \
+                #         (date == '20210620' and
+                #          location in ['ess']) or \
+                #         (date == '20210620' and location == 'pro' and
+                #          mode == 'pcp' and elevation_deg == 5.5) or \
+                #         (date == '20210620' and location == 'tur' and
+                #          mode == 'vol' and elevation_deg == 5.5) or \
+                #         (date == '20210620' and location == 'tur' and
+                #          mode == 'vol' and elevation_deg == 4.5):
+                #     print('\nskip: ' + date + ' ' + location + ' ' +
+                #           mode + ' ' + str(elevation_deg))
+                #     continue
+                #
                 year = date[0:4]
                 mon = date[4:6]
                 day = date[6:8]
