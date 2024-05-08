@@ -41,6 +41,9 @@ sys.path.insert(0, header.dir_projects +
 
 # from radar_processing_scripts import utils
 
+ags=True
+import HEADER_RADAR_toolbox as header
+
 
 # --------------------------------------------------------------------------- #
 # FUNCTIONS: J. Steinheuer modified functions from J. Gilles
@@ -274,7 +277,9 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
     for file in files:
         if 'allmoms' not in file:
             if 'rhohv_nc' not in file:
-                files_temp.append(file)
+                if 'ERA5' not in file:
+                    if 'kdp_nc' not in file:
+                        files_temp.append(file)
 
     files = files_temp
     if not files:
@@ -295,7 +300,7 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
                                         'OpHymet2-case09-20210714/')
         else:
             path_out = path_out.replace(dir_data_obs_realpep, dir_data_obs +
-                                        'OpHymet2-caseX' + date +'/')
+                                        'OpHymet2-caseX-' + date +'/')
 
     else:
         path_out = '/'.join((files[0].split('/'))[:-1])
@@ -365,8 +370,6 @@ MODE = ['pcp', 'vol']  # TODO: '90grad' Birth Bath ?!
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
 # moments = '*'
 overwrite = False
-# overwrite = True
-
 
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
@@ -378,12 +381,46 @@ overwrite = False
 # MODE = ['pcp']
 # overwrite = True
 
-# # date = '20210604'
-# date = '20210714'
-# location = 'pro'
-# elevation_deg = 5.5
-# mode = 'pcp'
-# overwrite = True
+for date in DATES:
+    for location in LOCATIONS:
+        for elevation_deg in ELEVATIONS:
+            for mode in MODE:
+                extract_all_moms(date, location, elevation_deg,
+                                 mode, moments, overwrite)
+
+
+# --------------------------------------------------------------------------- #
+# OLD CASES                                                                   #
+# --------------------------------------------------------------------------- #
+# go to ags!
+# header.dir_data_vol = '/automount/ags/operation_hydrometeors/data/Syn_vol/'
+# header.dir_data_qvp = '/automount/ags/operation_hydrometeors/data/QVP/'
+# header.dir_data_mod = '/automount/ags/operation_hydrometeors/data/mod/'
+# header.dir_data_era5 = '/automount/ags/operation_hydrometeors/data/ERA5/'
+# header.dir_projects = '/automount/user/s6justei/PyCharm/PyCharmProjects/'
+# header.dir_data_obs = '/automount/ags/operation_hydrometeors/data/obs/'
+# header.dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
+# header.folder_plot = '/automount/ags/operation_hydrometeors/plots/'
+# header.folder_qvp_plot = '/automount/ags/operation_hydrometeors/plots/QVPs/'
+# header.folder_ppi_plot = '/automount/ags/operation_hydrometeors/plots/PPIs/'
+
+# --------------------------------------------------------------------------- #
+# SET PARAMS:
+
+DATES = ["20170719",
+         ]
+LOCATIONS = ['pro', 'umd', 'nhb', 'fld',
+             # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
+             # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+             ]
+# ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
+ELEVATIONS = np.array([5.5, 12.0, ])
+MODE = ['pcp', 'vol']  # TODO: '90grad' Birth Bath ?!
+moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
+overwrite = False
+
+# --------------------------------------------------------------------------- #
+# START: Loop over cases, dates, and radars:
 
 for date in DATES:
     for location in LOCATIONS:
@@ -392,3 +429,4 @@ for date in DATES:
                 extract_all_moms(date, location, elevation_deg,
                                  mode, moments, overwrite)
 
+# import DWD_obs_to_MIUB_obs_2_correct_rho_hv

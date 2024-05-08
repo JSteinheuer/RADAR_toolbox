@@ -21,15 +21,10 @@ import HEADER_RADAR_toolbox as header
 import os
 import xarray as xr
 from scipy.ndimage import uniform_filter, gaussian_filter
+import time
 import warnings
+
 warnings.filterwarnings("ignore")
-sys.path.insert(0, header.dir_projects +
-                'RADAR_toolbox/radar_processing_scripts/')
-# maybe awkward because >import utils< would work now, but the following
-# additionally enables  pycharm to word-completing (i.e., functions) since
-# the folder containing /radar_processing_scripts/ was already in the (global)
-# sys.path variable (i.e. the project folder).
-from radar_processing_scripts import utils
 
 
 # --------------------------------------------------------------------------- #
@@ -81,6 +76,7 @@ def xr_rolling(da, window, window2=None, method="median",
         isel.update(dict(azimuth=saz))
 
     rolling = da_new.rolling(dim=dim, center=True, min_periods=min_periods)
+
     da_new = getattr(rolling, method)(**kwargs)
     da_new = da_new.isel(**isel)
     return da_new
@@ -107,7 +103,9 @@ def phase_offset(phioff, rng=3000):
     off : xarray.DataArray
         DataArray with phase offset values
     """
-    range_step = np.diff(phioff.range)[0]
+
+    range_step = abs(np.diff(phioff.range)[0])
+
     nprec = int(rng / range_step)
     if nprec % 2:
         nprec += 1
@@ -128,20 +126,26 @@ def phase_offset(phioff, rng=3000):
     # get phase values in specified range
     off = phioff.where(
         (phioff.range >= start_range) & (phioff.range <= stop_range),
-        drop=True
+        drop=False
     )
 
     # calculate nan median over range
-    off = off.median(dim="range", skipna=True)
+    # off = off.median(dim="range", skipna=True)
+    # better: 1.Quartile
+    off = off.chunk(dict(range=-1))
+    off = off.quantile(q=0.25, dim="range", skipna=True)
+
     return xr.Dataset(
-        dict(PHIDP_OFFSET=off, start_range=start_range, stop_range=stop_range)
+        dict(PHIDP_OFFSET=off,
+             start_range=start_range,
+             stop_range=stop_range)
     )
 
 
 # Velibor Pejcic
 def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
                    win_r=25, win_azi=None, wkdp_light=9, wkdp_heavy=25,
-                   rng=3000):
+                   rng=3000, flip_default=1):
     """
     Processing Phidp and KDP
 
@@ -170,92 +174,134 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
 
     """
 
-    # 0: thresholding
+    # 1: thresholding
     swp_mask = swp_cf.where((swp_cf.DBZH > uh_tresh) &
                             (swp_cf.RHOHV > rho_tresh) &
                             (swp_cf.SNRH > snr_tresh) &
                             np.isnan(swp_cf.CMAP))
 
-    # 1: centering PHI first guess (around modus; reduced by 100):
-    phi_hist = np.histogram(swp_mask.UPHIDP.copy(),
-                            bins=np.linspace(-180, 180, 361))
+    # 2: check if phi needs to be flipped:
+    phi_c0 = swp_mask.UPHIDP.where(swp_cf.RHOHV > 0.95)
+    phi_diffs = ((phi_c0.where((swp_cf.range > 3000) &
+                               (swp_cf.RHOHV > 0.95) &
+                               (swp_cf.DBZH > 20)).diff('range', 1) +
+                  180) % 360) - 180
+    phi_diffs = xr.where(abs(phi_diffs) > 10, np.nan, phi_diffs)
+    phi_flip = phi_diffs.sum(["range", "azimuth"], skipna=True)
+    # phi_flip_0 = phi_diffs.sum(["time", "range", "azimuth"], skipna=True)
+    # if abs(phi_flip_0) < 1000:
+    #     phi_flip_0 = flip_default
+
+    # 3: flipper
+    phi_flip_i = phi_flip.copy()
+    phi_flip = xr.where(abs(phi_flip) < 1000, flip_default, phi_flip)
+    phi_flip = xr.where(phi_flip < 0, -1, phi_flip)
+    phi_flip = xr.where(phi_flip > 0, 1, phi_flip)
+    # phi_flip_0 = xr.where(phi_flip_0 < 0, -1, 1)
+    phi_flip = xr.where(np.isnan(phi_flip), flip_default, phi_flip)
+    phi_c0 = phi_c0 * phi_flip
+    phi_c1 = swp_mask.UPHIDP * phi_flip
+
+    # 4: centering PHI first guess (around modus; reduced by 100):
+    phi_hist = np.histogram(phi_c0, bins=np.linspace(-180, 180, 361))
     phi_modus = np.argmax(phi_hist[0]) - 180
-    phi_c = ((swp_mask.UPHIDP.copy() - xr.DataArray(
+    phi_c0 = ((phi_c0 - xr.DataArray(
+        phi_modus) - 100) % 360 + 180) % 360 - 180
+    phi_c1 = ((phi_c1 - xr.DataArray(
         phi_modus) - 100) % 360 + 180) % 360 - 180
 
-    # 2: smoothing PHI along range (reduced by 100):
-    phi_s = phi_c.copy().pipe(
+    # 5: smoothing PHI along range (reduced by 100):
+    phi_s = phi_c1.pipe(
         xr_rolling, window=win_r, window2=win_azi, method="median",
         skipna=True, min_periods=max(3, int((win_r - 1) / 4))
     )
 
-    # 3: check if phi needs to be reverted:
-    phi_diffs = phi_s.copy().diff('range', 1)
-    phi_diffs = xr.where(abs(phi_diffs) > 2, np.nan, phi_diffs)
-    phi_factor = phi_diffs.mean(["range", "azimuth"], skipna=True)
-    # print(phi_factor.values)
-    phi_factor = xr.where(phi_factor < 0, -1, 1)
-    if sum(phi_factor.values) < phi_factor.size:
-        print('REVERING PHI!')
-        print(phi_factor.values)
-        phi_s = phi_s * phi_factor
-
-    # 4: offset Part 1 of 7: calculate offset 2d (reduced by 100):
-    phi_off_2d = phase_offset(phi_s.copy().where(swp_cf.range > 1000),
+    # 6: offset Part 1 of 6: calculate offset 2d (reduced by 100):
+    phi_off_2d = phase_offset(phi_c0.where(swp_cf.range > 1000),
                               rng).PHIDP_OFFSET.load()
 
-    # 4: offset Part 2 of 7: filter outl. (>10 in neighbourhood; red. by 100):
+    # 6: offset Part 2 of 6: first filter (>5 in neighbourhood; red. by 100):
     phi_off_2d_f = xr.where(np.isnan(phi_off_2d), -100, phi_off_2d)
     phi_off_2d_f = xr.DataArray(uniform_filter(
-        phi_off_2d_f, size=[0, 5], mode='mirror'), dims=['time', 'azimuth'])
-    phi_off_2d_f = phi_off_2d.where((abs(phi_off_2d - phi_off_2d_f)) < 10)
+        phi_off_2d_f, size=[0, 3], mode='mirror'), dims=['time', 'azimuth'])
+    phi_off_2d_f = phi_off_2d.where((abs(phi_off_2d - phi_off_2d_f)) < 5)
 
-    # 4: offset Part 3 of 7:  interpolate na's (red. by 100):
-    phi_off_2d_f_i = phi_off_2d_f.interpolate_na(dim='azimuth', limit=5)
-    phi_off_2d_f_i = xr.where(np.isnan(phi_off_2d_f),
-                              phi_off_2d_f_i, phi_off_2d_f)
-
-    # 4: offset Part 4 of 7:  median offsets per time (red. by 100):
-    phi_off_1d = phi_off_2d_f_i.median("azimuth", skipna=True)
+    # 6: offset Part 3 of 6: median offsets per time (red. by 100):
+    phi_off_1d = phi_off_2d_f.median("azimuth", skipna=True)
     phi_off_0d = phi_off_1d.median("time", skipna=True)
+    phi_off_1d = xr.where(abs(phi_off_1d - phi_off_0d) > 10, np.nan,
+                          phi_off_1d)
+    phi_off_0d = phi_off_1d.median("time", skipna=True)
+    phi_off_1d = xr.where(abs(phi_off_1d - phi_off_0d) > 10,
+                          phi_off_0d, phi_off_1d)
     phi_off_1d = xr.where(np.isnan(phi_off_1d), phi_off_0d, phi_off_1d)
 
-    # 4: offset Part 5 of 7:  filling gaps with 0 (red. by 100)
-    phi_off_2d_f_i_f = phi_off_2d_f_i - phi_off_1d
-    phi_off_2d_f_i_f = xr.where(np.isnan(phi_off_2d_f_i_f), 0,
-                                phi_off_2d_f_i_f)
-    phi_off_2d_f_i_f = phi_off_2d_f_i_f + phi_off_1d
+    # 6: offset Part 4 of 6: snd. filter (>10 to 1d median; red. by 100):
+    phi_off_2d_f_f = phi_off_2d_f.where((abs(phi_off_2d_f - phi_off_1d)) < 10)
+    phi_off_2d_f_f = xr.where(np.isnan(phi_off_2d_f_f), phi_off_1d,
+                              phi_off_2d_f_f)
 
-    # 4: offset Part 6 of 7:  smoothing
-    phi_off_2d_f_i_f_s = xr.DataArray(
-        gaussian_filter(phi_off_2d_f_i_f, sigma=[0, 3], mode='wrap'),
+    # 6: offset Part 5 of 6:  smoothing
+    phi_off_2d_f_f_s = xr.DataArray(
+        gaussian_filter(phi_off_2d_f_f, sigma=[0, 5], mode='wrap'),
         dims=['time', 'azimuth'])
 
-    # 4: offset Part 7 of 7:  noise corrected phi (NOT red. by 100 anymore!)
-    phi_nc = phi_s - phi_off_2d_f_i_f_s
+    # 6: offset Part 6 of 6:  noise corrected phi (NOT red. by 100 anymore!)
+    phi_nc = phi_s - phi_off_2d_f_f_s
 
-    # 5: KDP
+    # 7: KDP
     kdp_light = phi_nc.wrl.dp.kdp_from_phidp(winlen=wkdp_light)
     kdp_heavy = phi_nc.wrl.dp.kdp_from_phidp(winlen=wkdp_heavy)
     kdp_comb = kdp_heavy.where(swp_cf.DBZH < 40, kdp_light)
 
-    # 6: assign: phi/kdp attributes
+    # 8: assign: variables and attributes
     phi_nc.attrs["long_name"] = 'Differential phase shift'
     phi_nc.attrs["short_name"] = 'PHI_DP'
     phi_nc.attrs["units"] = 'degrees'
     phi_nc.attrs["comments"] = 'PHI_DP smoothing with win_r=' + \
                                str(win_r) + ' and win_azi=' + str(win_azi)
+    swp_cf = swp_cf.assign(PHI_NC=phi_nc)
+
     kdp_comb.attrs["comments"] = 'KDP noise corrected with winlen=' + \
                                  str(wkdp_heavy) + ' (DBZH<40) and ' + \
                                  'winlen=' + str(wkdp_light) + ' (DBZH>=40)'
-
-    # 6: assign: variables
     swp_cf = swp_cf.assign(KDP_NC=kdp_comb)
-    swp_cf = swp_cf.assign(PHI_NC=phi_nc)
-    swp_cf = swp_cf.assign(phi_c=phi_c + 100)
-    swp_cf = swp_cf.assign(PHI_off_2d_raw=phi_off_2d + 100)
-    swp_cf = swp_cf.assign(phi_off_2d_smooth=phi_off_2d_f_i_f_s + 100)
-    swp_cf = swp_cf.assign(reverting_factor=phi_factor)
+
+    phi_c1 = phi_c1 + 100
+    phi_c1.attrs[
+        "long_name"] = 'raw differential phase shift centered at median'
+    phi_c1.attrs["short_name"] = 'PHI_C'
+    phi_c1.attrs["units"] = 'degrees'
+    swp_cf = swp_cf.assign(PHI_C=phi_c1)  # + 100)
+
+    phi_off_2d = phi_off_2d + 100
+    phi_off_2d.attrs["long_name"] = 'instrument phase offset raw'
+    phi_off_2d.attrs["short_name"] = 'PHI_DP offset raw'
+    phi_off_2d.attrs["units"] = 'degrees'
+    swp_cf = swp_cf.assign(PHI_OFFSET_raw=phi_off_2d)  # + 100)
+
+    phi_off_2d_f_f_s = phi_off_2d_f_f_s + 100
+    phi_off_2d_f_f_s.attrs[
+        "long_name"] = 'instrument phase offset centered at 0'
+    phi_off_2d_f_f_s.attrs["short_name"] = 'PHI_DP offset centered'
+    phi_off_2d_f_f_s.attrs["units"] = 'degrees'
+    swp_cf = swp_cf.assign(PHI_OFFSET_centered=phi_off_2d_f_f_s)  # + 100)
+
+    phi_off_2d_f_f_s = phi_off_2d_f_f_s + phi_modus
+    phi_off_2d_f_f_s.attrs["long_name"] = 'instrument phase offset'
+    phi_off_2d_f_f_s.attrs["short_name"] = 'PHI_DP offset'
+    phi_off_2d_f_f_s.attrs["units"] = 'degrees'
+    swp_cf = swp_cf.assign(PHI_OFFSET=phi_off_2d_f_f_s)  # + 100 + phi_modus)
+
+    phi_flip.attrs["long_name"] = 'PHI_DP flipped'
+    phi_flip.attrs["short_name"] = 'PHI_DP flipped'
+    phi_flip.attrs["units"] = '0,1'
+    swp_cf = swp_cf.assign(PHI_FLIPPED=phi_flip)
+
+    phi_flip_i.attrs["long_name"] = 'PHI_DP flipping index'
+    phi_flip_i.attrs["short_name"] = 'PHI_DP flipping index'
+    phi_flip_i.attrs["units"] = '°'
+    swp_cf = swp_cf.assign(PHI_FLIPPED_INDEX=phi_flip_i)
 
     return swp_cf
 
@@ -265,32 +311,42 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
 ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
                            8.0, 12.0, 17.0, 25.0])
 # --------------------------------------------------------------------------- #
-DATES = ["20210604",  # case01
-         "20210714",  # case09
-         "20210620", "20210621",  # case02
-         "20210628", "20210629",  # case03
-         "20220519", "20220520",  # case04
-         "20220623", "20220624", "20220625",  # case05
-         "20220626", "20220627", "20220628",  # case06+07
-         "20220630", "20220701",  # case08
-         "20221222",  # case10
-         ]
-# LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
-#              'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
-#              ]
-LOCATIONS = ['ess', 'pro', 'tur', 'umd',
-             # 'asb', 'boo', 'drs', 'eis', 'fbg',
-             # 'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb', 'oft', 'ros',
-             ]
+DATES = [
+    "20221222",  # case10"
+    "20210604",  # case01
+    "20210714",  # case09
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
+    "20220630", "20220701",  # case08
+    "20170719",  # case_MA
+]
+LOCATIONS = [
+    'oft',
+    'umd',
+    'ess',
+    'pro',
+    'tur',
+    'asb', 'boo', 'drs', 'eis', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu',
+    'nhb',
+    'ros',
+]
 ELEVATIONS = ELEVATIONS_ALL.copy()
-MODE = ['pcp', 'vol']
+# ELEVATIONS = [12]
+MODE = [
+        'pcp',
+        'vol'
+        ]
 # --------------------------------------------------------------------------- #
 merge = True
 remove_parts = True
-# overwrite = False  # TODO
-overwrite = True  # TODO
-parts = 4
-print(str(parts))
+overwrite = False
+# overwrite = True
+parts = 6
+print('Departing into: ' + str(parts))
 # --------------------------------------------------------------------------- #
 uh_tresh = 0
 rho_tresh = 0.8
@@ -306,36 +362,8 @@ for date in DATES:
     for location in LOCATIONS:
         for mode in MODE:
             for elevation_deg in ELEVATIONS:
-                # if (date == '20210604' and location == 'asb' and
-                #          mode == 'pcp' and elevation_deg == 5.5) or \
-                #         (date == '20210604' and location == 'asb' and
-                #          mode == 'vol' and elevation_deg == 5.5) or \
-                #         (date == '20210604' and location == 'fld' and
-                #          mode == 'pcp' and elevation_deg == 5.5) or \
-                #         (date == '20210604' and location == 'fld' and
-                #          mode == 'vol' and elevation_deg == 5.5) or \
-                #         (date == '20210604' and location == 'fld' and
-                #          mode == 'vol' and elevation_deg == 4.5) or \
-                #         (date == '20210604' and location == 'fld' and
-                #          mode == 'vol' and elevation_deg == 3.5) or \
-                #         (date == '20210604' and location == 'fld' and
-                #          mode == 'vol' and elevation_deg == 2.5) or \
-                #         (date == '20210604' and
-                #          location in ['ess', 'pro', 'tur', 'umd']) or \
-                #         (date == '20210714' and
-                #          location in ['ess', 'pro', 'tur', 'umd']) or \
-                #         (date == '20210620' and
-                #          location in ['ess']) or \
-                #         (date == '20210620' and location == 'pro' and
-                #          mode == 'pcp' and elevation_deg == 5.5) or \
-                #         (date == '20210620' and location == 'tur' and
-                #          mode == 'vol' and elevation_deg == 5.5) or \
-                #         (date == '20210620' and location == 'tur' and
-                #          mode == 'vol' and elevation_deg == 4.5):
-                #     print('\nskip: ' + date + ' ' + location + ' ' +
-                #           mode + ' ' + str(elevation_deg))
-                #     continue
-                #
+                parts_current = parts
+                time_a = time.time()
                 year = date[0:4]
                 mon = date[4:6]
                 day = date[6:8]
@@ -352,6 +380,8 @@ for date in DATES:
 
                 merge_files = []
                 for p in range(parts):
+                    time_f = time.time()
+                    time_l = time.time()
                     i_t_a = int(288 / parts * p)
                     i_t_b = int(288 / parts * (p + 1))
                     path_in = "/".join([header.dir_data_obs + '*',
@@ -381,6 +411,7 @@ for date in DATES:
                              and not overwrite):
                         print(path_out + ' exists;\n' + ' ... set: > ' +
                               'overwrite = True < for recalculation')
+                        merge_files.append(path_out)
                         continue
 
                     path_rho_nc = path_in.replace('_allmoms_', '_rhohv_nc_')
@@ -391,16 +422,28 @@ for date in DATES:
                     data.RHOHV.values = data_rho.RHOHV_NC2P.values
                     data = data.assign({'SNRH': data_rho.SNRH})
                     remo_var = list(data.data_vars.keys())
-                    remo_var.remove('CMAP')
-                    remo_var.remove('UPHIDP')
+                    # remo_var.remove('CMAP')
+                    # remo_var.remove('UPHIDP')
                     data = data.transpose('time', 'azimuth', 'range')
                     data = data.isel(time=slice(i_t_a, i_t_b))
                     if data.time.size == 0:
-                        parts = p
+                        parts_current = p
                         print('no more time steps')
                         break
 
                     merge_files.append(path_out)
+                    if location == 'umd':
+                        flip_default = -1
+                    else:
+                        flip_default = 1
+
+                    if data.time.size == 0:
+                        parts_current = p
+                        print('no more time steps')
+                        break
+
+                    time_l = time.time() - time_l
+                    time_p = time.time()
                     data = proc_phidp_kdp(data,
                                           uh_tresh=uh_tresh,
                                           rho_tresh=rho_tresh,
@@ -409,12 +452,14 @@ for date in DATES:
                                           win_azi=win_azi,
                                           wkdp_light=wkdp_light,
                                           wkdp_heavy=wkdp_heavy,
-                                          rng=rng)
+                                          rng=rng,
+                                          flip_default=flip_default)
+                    time_p = time.time() - time_p
+                    time_s = time.time()
                     mom_use = [x for x in list(data.keys())]
                     for mom in mom_use:
                         data[mom].encoding["coordinates"] = \
                             "time azimuth range"
-
                     data = data.drop_vars(remo_var)
                     dtree = dttree.DataTree(name="root")
                     dttree.DataTree(data, name=f"sweep_{int(sweep)}",
@@ -422,8 +467,15 @@ for date in DATES:
                     print('saving: ... ' + path_out.split('/')[-1] + ' ...')
                     dtree.load().to_netcdf(path_out)
                     data.close()
-                    print('saved (' + str(p + 1) + '/' + str(parts) + '): ' +
-                          path_out + ' !')
+                    print('saved (' + str(p + 1) + '/' + str(parts_current) +
+                          '): ' + path_out + ' !')
+                    time_s = time.time() - time_s
+                    time_f = time.time() - time_f
+                    print('full time: ' + str(round(time_f, 1)) +
+                          's: 1/3: loading time: ' + str(round(time_l, 1)) +
+                          's; 2/3: processing time: ' + str(round(time_p, 1)) +
+                          's; 3/3: saving time: ' + str(round(time_s, 1)) +
+                          's')
 
                 if merge and merge_files != []:
                     path_out_new = merge_files[0].replace(
@@ -435,7 +487,7 @@ for date in DATES:
                         data_merged = xr.merge([
                             dttree.open_datatree(merge_files[p])[
                                 'sweep_' + str(int(sweep))].to_dataset(
-                            ).chunk(-1) for p in range(parts)])
+                            ).chunk(-1) for p in range(parts_current)])
                         mom_use = [x for x in list(data_merged.keys())]
                         for mom in mom_use:
                             data_merged[mom].encoding["coordinates"] = \
@@ -452,8 +504,11 @@ for date in DATES:
                         dtree.load().to_netcdf(path_out_new)
                         data_merged.close()
                         print('combined:  ' + path_out_new + ' !')
+                        time_a = time.time() - time_a
+                        print(' -> full case: ' +
+                              str(round(time_a, 1)) + 's\n')
                         if remove_parts:
                             for file_part in merge_files:
                                 os.remove(file_part)
 
-import DWD_obs_to_MIUB_obs_4_correct_kdp_in_ML_2nd
+# import DWD_obs_to_MIUB_obs_4_correct_kdp_in_ML_2nd

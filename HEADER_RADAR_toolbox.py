@@ -13,6 +13,7 @@ import os
 import sys
 import matplotlib as mpl
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 
 # --------------------------------------------------------------------------- #
 # preamble necessary for wrl.georef.reproject: Tell the shell where to find   #
@@ -30,16 +31,27 @@ os.environ["PROJ_NETWORK"] = 'ON'
 # --------------------------------------------------------------------------- #
 
 if getpass.getuser() == 's6justei':  # Bonner tower/network
-    dir_data_vol = '/automount/agradar/operation_hydrometeors/data/Syn_vol/'
-    dir_data_qvp = '/automount/agradar/operation_hydrometeors/data/QVP/'
-    dir_data_mod = '/automount/agradar/operation_hydrometeors/data/mod/'
-    dir_data_era5 = '/automount/agradar/operation_hydrometeors/data/ERA5/'
+    # dir_data_vol = '/automount/agradar/operation_hydrometeors/data/Syn_vol/'
+    # dir_data_qvp = '/automount/agradar/operation_hydrometeors/data/QVP/'
+    # dir_data_mod = '/automount/agradar/operation_hydrometeors/data/mod/'
+    # dir_data_era5 = '/automount/agradar/operation_hydrometeors/data/ERA5/'
+    # dir_projects = '/automount/user/s6justei/PyCharm/PyCharmProjects/'
+    # dir_data_obs = '/automount/agradar/operation_hydrometeors/data/obs/'
+    # dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
+    # folder_plot = '/automount/agradar/operation_hydrometeors/plots/'
+    # folder_qvp_plot = '/automount/agradar/operation_hydrometeors/plots/QVPs/'
+    # folder_ppi_plot = '/automount/agradar/operation_hydrometeors/plots/PPIs/'
+
+    dir_data_vol = '/automount/data02/agradar/operation_hydrometeors/data/Syn_vol/'
+    dir_data_qvp = '/automount/data02/agradar/operation_hydrometeors/data/QVP/'
+    dir_data_mod = '/automount/data02/agradar/operation_hydrometeors/data/mod/'
+    dir_data_era5 = '/automount/data02/agradar/operation_hydrometeors/data/ERA5/'
     dir_projects = '/automount/user/s6justei/PyCharm/PyCharmProjects/'
-    dir_data_obs = '/automount/agradar/operation_hydrometeors/data/obs/'
+    dir_data_obs = '/automount/data02/agradar/operation_hydrometeors/data/obs/'
     dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
-    folder_plot = '/automount/agradar/operation_hydrometeors/plots/'
-    folder_qvp_plot = '/automount/agradar/operation_hydrometeors/plots/QVPs/'
-    folder_ppi_plot = '/automount/agradar/operation_hydrometeors/plots/PPIs/'
+    folder_plot = '/automount/data02/agradar/operation_hydrometeors/plots/'
+    folder_qvp_plot = '/automount/data02/agradar/operation_hydrometeors/plots/QVPs/'
+    folder_ppi_plot = '/automount/data02/agradar/operation_hydrometeors/plots/PPIs/'
 
 
 # elif getpass.getuser() == 'julian':  # personal notebook
@@ -67,6 +79,22 @@ levels_zdr = [-1, -.1, 0, .1, .2, .3, .4, .5, .6, .8, 1, 2, 3]
 norm_zdr = mpl.colors.BoundaryNorm(levels_zdr, len(levels_zdr) - 1)
 
 # KDP
+# levels_kdp = [-2, -1, 0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9,
+#               1., 1.2, 1.4, 1.7]
+levels_kdp = [-.5, -.1, 0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 2, 3]
+norm_kdp = mpl.colors.BoundaryNorm(levels_kdp, len(levels_kdp) - 1)
+
+# PHI
+n_color = 14
+step = .25
+step = 1
+levels_phi = np.arange(-7, 30, step)
+# levels_phi = np.arange(-4, 20, step)
+# step=2
+# levels_phi = np.arange(-step * 2, (n_color - 4) * step + 1, step)
+cmap_radar_smooth = LinearSegmentedColormap.from_list('my_list', colors_radar, N=levels_phi.size)
+norm_phi = mpl.colors.BoundaryNorm(levels_phi, len(levels_phi) - 1)
+
 # levels_kdp = [-2, -1, 0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9,
 #               1., 1.2, 1.4, 1.7]
 levels_kdp = [-.5, -.1, 0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 2, 3]

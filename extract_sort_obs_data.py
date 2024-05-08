@@ -52,7 +52,8 @@ def unpack_sort_dwd_obs(inpath, outpath, date_struct, log):
                     wmo,
                     ftype,
                 ) = extract_file_name2(m)
-                dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S00")
+                dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S00") # TODO: works for vol, pcp
+                # dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S")  # TODO: for birdbath 240503
                 date_path = dtime.strftime(date_struct)
                 outp = os.path.join(
                     f"{date_path}",
@@ -170,3 +171,14 @@ if __name__ == "__main__":
 
 # /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS -o /automount/agradar/operation_hydrometeors/data/obs/OpHymet2-case01-20210604 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
+# 250503
+# DONE: /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20221222_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case10-20221222 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# DONE: /home/s6justei/mambaforge/envs/RADAR_toolbox/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20210604_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case01-20210604 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20210620_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case02-20210620 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20210628_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case03-20210628 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220519_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case04-20220519 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220623_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case05-20220623 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220626_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case06+07-20220626 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20220630_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case08-20220630 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20210714_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case09-20210714 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# RUN: /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/20170725_raw_birdbath -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20170725 -d "%Y/%Y-%m/%Y-%m-%d" -v
