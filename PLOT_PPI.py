@@ -99,10 +99,15 @@ def plot_PPI(nc_file,
         if cmap is None:
             cmap = 'jet'
 
+    theta = ppi.elevation.values
+    if theta.size == 1:
+        theta = theta.item()
+
     img = wrl.georef.create_xarray_dataarray(data=ppi[moment],
                                              r=ppi.range.values / 1000,
                                              phi=ppi.azimuth.values,
-                                             theta=ppi.elevation.values.item(),
+                                             theta=theta,
+                                             # theta=ppi.elevation.values.flatten(),#[:],#.item(),
                                              site=[ppi.longitude.values,
                                                    ppi.latitude.values,
                                                    ppi.altitude.values]
@@ -143,10 +148,15 @@ def plot_PPI_temp_ring(nc_file,
     ppi = vol.isel(time=time_i)
     ppi = ppi.transpose('azimuth', 'range')
     ppi_ring = ppi.where(abs(ppi[moment] - temp) < temp_thickness / 2)
+    theta = ppi.elevation.values
+    if theta.size == 1:
+        theta = theta.item()
+
     img = wrl.georef.create_xarray_dataarray(data=ppi_ring[moment],
                                              r=ppi.range.values / 1000,
                                              phi=ppi.azimuth.values,
-                                             theta=ppi.elevation.values.item(),
+                                             theta=theta,
+                                             # theta=ppi.elevation.values.flatten(),#.item(),
                                              site=[ppi.longitude.values,
                                                    ppi.latitude.values,
                                                    ppi.altitude.values]

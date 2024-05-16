@@ -41,7 +41,7 @@ sys.path.insert(0, header.dir_projects +
 
 # from radar_processing_scripts import utils
 
-ags=True
+ags = True
 import HEADER_RADAR_toolbox as header
 
 
@@ -61,6 +61,27 @@ def align(ds):
     ds["time"] = ds["time"].load().min()
     # remove elevation in time
     ds["elevation"] = ds["elevation"].load().median()
+    ds["azimuth"] = ds["azimuth"].load().round(1)
+    # in case there are duplicate rays, remove them
+    ds = xd.util.remove_duplicate_rays(ds)
+    # in case there are duplicate times
+    ds["time"] = np.unique(ds["time"])
+    return ds.set_coords(["sweep_mode", "sweep_number", "prt_mode",
+                          "follow_mode", "sweep_fixed_angle"])
+
+
+def align_pcp(ds):
+    """
+    Reduce and align dataset coordinates
+
+    Parameter
+    ---------
+    ds : xarray.DataArray or xarray.Dataset
+    """
+    # reduce time in the azimuth
+    ds["time"] = ds["time"].load().min()
+    # remove elevation in time
+    # ds["elevation"] = ds["elevation"].load().median('time')
     ds["azimuth"] = ds["azimuth"].load().round(1)
     # in case there are duplicate rays, remove them
     ds = xd.util.remove_duplicate_rays(ds)
@@ -178,7 +199,7 @@ def fix_time_in_coords(ds):
     return ds
 
 
-def load_dwd_raw(filepath, moments):
+def load_dwd_raw(filepath, moments, pcp=False):
     """
     Load DWD raw data.
 
@@ -215,13 +236,20 @@ def load_dwd_raw(filepath, moments):
             # open the odim files (single moment and elevation,
             # several timesteps)
             llmom = sorted([ff for ff in files if "_" + mom + "_" in ff])
-            vardict[mom] = xr.open_mfdataset(llmom, engine="odim",
-                                             combine="nested",
-                                             concat_dim="time",
-                                             preprocess=align)
+            if pcp:
+                vardict[mom] = xr.open_mfdataset(llmom, engine="odim",
+                                                 combine="nested",
+                                                 concat_dim="time",
+                                                 preprocess=align_pcp)
+            else:
+                vardict[mom] = xr.open_mfdataset(llmom, engine="odim",
+                                                 combine="nested",
+                                                 concat_dim="time",
+                                                 preprocess=align)
+
             vardict[mom] = fix_time_in_coords(vardict[mom])
     except OSError:
-        pathparts = [xx if len(xx) == 8 and "20" in xx else None for xx in
+        pathparts = [xx if len(xx) == 10 and "20" in xx else None for xx in
                      llmom[0].split("/")]
         pathparts.sort(key=lambda e: (e is None, e))
         date = pathparts[0]
@@ -235,7 +263,7 @@ def load_dwd_raw(filepath, moments):
 
 
 # J. Steinheuer
-def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
+def extract_all_moms(date, location, elevation_deg=5.5, mode='vol',
                      moments=['CMAP', 'DBSNRH', 'DBZH',
                               'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC'],
                      overwrite=False,
@@ -279,7 +307,8 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
             if 'rhohv_nc' not in file:
                 if 'ERA5' not in file:
                     if 'kdp_nc' not in file:
-                        files_temp.append(file)
+                        if 'zdr_c' not in file:
+                            files_temp.append(file)
 
     files = files_temp
     if not files:
@@ -300,7 +329,7 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
                                         'OpHymet2-case09-20210714/')
         else:
             path_out = path_out.replace(dir_data_obs_realpep, dir_data_obs +
-                                        'OpHymet2-caseX-' + date +'/')
+                                        'OpHymet2-caseX-' + date + '/')
 
     else:
         path_out = '/'.join((files[0].split('/'))[:-1])
@@ -318,6 +347,7 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
     name[-2] = "allmoms"
     name_m1 = name[-1]
     name_m1 = name_m1.replace('-hd5', '.hd5')
+    name_m1 = name_m1.replace('-h5', '.hd5')
     name_m1 = name_m1.split("-")
     name_m1[1] = t_start + '-' + t_end
     name[-1] = '-'.join(name_m1)
@@ -328,7 +358,7 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
         print('exists: ' + file_out + ' -> continue')
         return
 
-    ds = load_dwd_raw(files, moments)
+    ds = load_dwd_raw(files, moments, pcp=(mode == 'pcp'))
     if moments != '*' or moments != 'any':
         mom_remove = [x for x in list(ds.keys()) if x not in moments]
         ds = ds.drop_vars(mom_remove)
@@ -351,77 +381,80 @@ def extract_all_moms(date, location , elevation_deg=5.5, mode='vol',
 
 
 # --------------------------------------------------------------------------- #
+# NEW CASES                                                                   #
+# --------------------------------------------------------------------------- #
 # SET PARAMS:
-
-DATES = ["20210604",  # case01
-         "20210620", "20210621",  # case02
-         "20210628", "20210629",  # case03
-         "20220519", "20220520",  # case04
-         "20220623", "20220624", "20220625",  # case05
-         "20220626", "20220627", "20220628",  # case06+07
-         "20220630", "20220701",  # case08
-         "20210714",  # case09
-         "20221222",  # case10
-         ]
-LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
-             'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
-ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
-MODE = ['pcp', 'vol']  # TODO: '90grad' Birth Bath ?!
+DATES = [
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
+    "20220630", "20220701",  # case08
+    "20210714",  # case09
+    "20221222",  # case10
+]
+LOCATIONS = [
+    'asb',
+    'boo', 'drs', 'eis',
+    'ess',
+    'fbg', 'fld', 'hnr', 'isn',
+    'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+]
+ELEVATIONS = np.array([
+    5.5,
+    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
+])
+MODE = [
+    'pcp',
+    # 'vol',
+    # '90grad'  # TODO: '90grad' Birth Bath ?!
+]
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
+# moments = ['DFTV', 'DFTV']
 # moments = '*'
-overwrite = False
-
+# overwrite = False
+overwrite = True  # TODO
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
-
-# # DATES = ['20210604']
-# DATES = ['20210714']
-# LOCATIONS = ['pro']
-# ELEVATIONS = np.array([5.5])
-# MODE = ['pcp']
-# overwrite = True
-
 for date in DATES:
     for location in LOCATIONS:
         for elevation_deg in ELEVATIONS:
             for mode in MODE:
                 extract_all_moms(date, location, elevation_deg,
                                  mode, moments, overwrite)
-
 
 # --------------------------------------------------------------------------- #
 # OLD CASES                                                                   #
 # --------------------------------------------------------------------------- #
-# go to ags!
-# header.dir_data_vol = '/automount/ags/operation_hydrometeors/data/Syn_vol/'
-# header.dir_data_qvp = '/automount/ags/operation_hydrometeors/data/QVP/'
-# header.dir_data_mod = '/automount/ags/operation_hydrometeors/data/mod/'
-# header.dir_data_era5 = '/automount/ags/operation_hydrometeors/data/ERA5/'
-# header.dir_projects = '/automount/user/s6justei/PyCharm/PyCharmProjects/'
-# header.dir_data_obs = '/automount/ags/operation_hydrometeors/data/obs/'
-# header.dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
-# header.folder_plot = '/automount/ags/operation_hydrometeors/plots/'
-# header.folder_qvp_plot = '/automount/ags/operation_hydrometeors/plots/QVPs/'
-# header.folder_ppi_plot = '/automount/ags/operation_hydrometeors/plots/PPIs/'
-
-# --------------------------------------------------------------------------- #
 # SET PARAMS:
-
-DATES = ["20170719",
-         ]
-LOCATIONS = ['pro', 'umd', 'nhb', 'fld',
-             # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
-             # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
-             ]
-# ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
-ELEVATIONS = np.array([5.5, 12.0, ])
-MODE = ['pcp', 'vol']  # TODO: '90grad' Birth Bath ?!
+DATES = [
+    "20170719",
+]
+LOCATIONS = [
+    'pro', 'umd', 'nhb', 'fld',
+    # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
+    # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+]
+ELEVATIONS = np.array([
+    5.5,
+    # # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0,
+    # 12.0,
+    # # 17.0, 25.0
+])
+MODE = [
+    'pcp',
+    # 'vol',
+    # '90grad'  # TODO: '90grad' Birth Bath ?!
+]
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
-overwrite = False
-
+# moments = ['DFTV', 'DFTV']
+# moments = '*'
+# overwrite = False
+overwrite = True  # TODO
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
-
 for date in DATES:
     for location in LOCATIONS:
         for elevation_deg in ELEVATIONS:
@@ -429,4 +462,6 @@ for date in DATES:
                 extract_all_moms(date, location, elevation_deg,
                                  mode, moments, overwrite)
 
-# import DWD_obs_to_MIUB_obs_2_correct_rho_hv
+# --------------------------------------------------------------------------- #
+# CONTINUE?
+import DWD_obs_to_MIUB_obs_2_correct_rho_hv

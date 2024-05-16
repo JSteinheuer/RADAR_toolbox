@@ -232,83 +232,40 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
 
 
 # --------------------------------------------------------------------------- #
-# SET PARAMS:
-
-DATES = ["20210604",  # case01
-         "20210620", "20210621",  # case02
-         "20210628", "20210629",  # case03
-         "20220519", "20220520",  # case04
-         "20220623", "20220624", "20220625",  # case05
-         "20220626", "20220627", "20220628",  # case06+07
-         "20220630", "20220701",  # case08
-         "20210714",  # case09
-         "20221222",  # case10
-         ]
-LOCATIONS = ['asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld', 'hnr', 'isn',
-             'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd', ]
-
-ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
-MODE = ['pcp', 'vol']
-overwrite = False
-
-# --------------------------------------------------------------------------- #
-# START: Loop over cases, dates, and radars:
-
-# # DATES = ['20210604']
-# DATES = ['20210714']
-# LOCATIONS = ['ess']
-# ELEVATIONS = np.array([12])
-# MODE = ['vol']
-# overwrite = True
-
-# # date = '20210604'
-# date = '20210714'
-# location = 'pro'
-# elevation_deg = 0.5
-# mode = 'vol'
-# overwrite = True
-
-# for date in DATES:
-#     for location in LOCATIONS:
-#         for elevation_deg in ELEVATIONS:
-#             for mode in MODE:
-#                 era5_temp(date=date, location=location,
-#                           elevation_deg=elevation_deg,
-#                           mode=mode, overwrite=overwrite)
-
-
-# --------------------------------------------------------------------------- #
-# OLD CASES                                                                   #
-# --------------------------------------------------------------------------- #
-# go to ags!
-# header.dir_data_vol = '/automount/ags/operation_hydrometeors/data/Syn_vol/'
-# header.dir_data_qvp = '/automount/ags/operation_hydrometeors/data/QVP/'
-# header.dir_data_mod = '/automount/ags/operation_hydrometeors/data/mod/'
-# header.dir_data_era5 = '/automount/ags/operation_hydrometeors/data/ERA5/'
-# header.dir_projects = '/automount/user/s6justei/PyCharm/PyCharmProjects/'
-# header.dir_data_obs = '/automount/ags/operation_hydrometeors/data/obs/'
-# header.dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
-# header.folder_plot = '/automount/ags/operation_hydrometeors/plots/'
-# header.folder_qvp_plot = '/automount/ags/operation_hydrometeors/plots/QVPs/'
-# header.folder_ppi_plot = '/automount/ags/operation_hydrometeors/plots/PPIs/'
-
+# NEW CASES                                                                   #
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
-
-DATES = ["20170719",
-         ]
-LOCATIONS = ['pro', 'umd', 'nhb', 'fld',
-             # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
-             # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
-             ]
-# ELEVATIONS = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0])
-ELEVATIONS = np.array([5.5, 12.0, ])
-MODE = ['pcp', 'vol']  # TODO: '90grad' Birth Bath ?!
-overwrite = False
-
+DATES = [
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
+    "20220630", "20220701",  # case08
+    "20210714",  # case09
+    "20221222",  # case10
+]
+LOCATIONS = [
+    'asb',
+    'boo', 'drs', 'eis',
+    'ess',
+    'fbg', 'fld', 'hnr', 'isn',
+    'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+]
+ELEVATIONS = np.array([
+    5.5,
+    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
+])
+MODE = [
+    'pcp',
+    # 'vol',
+    # '90grad'  # TODO: '90grad' Birth Bath ?!
+]
+# overwrite = False
+overwrite = True  # TODO
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
-
 for date in DATES:
     for location in LOCATIONS:
         for elevation_deg in ELEVATIONS:
@@ -316,4 +273,44 @@ for date in DATES:
                 era5_temp(date=date, location=location,
                           elevation_deg=elevation_deg,
                           mode=mode, overwrite=overwrite)
+
+# --------------------------------------------------------------------------- #
+# OLD CASES                                                                   #
+# --------------------------------------------------------------------------- #
+# SET PARAMS:
+DATES = [
+    "20170719",
+]
+LOCATIONS = [
+    'pro', 'umd', 'nhb', 'fld',
+    # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
+    # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+]
+ELEVATIONS = np.array([
+    5.5,
+    # # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0,
+    # 12.0,
+    # # 17.0, 25.0
+])
+MODE = [
+    'pcp',
+    # 'vol',
+    # '90grad'  # TODO: '90grad' Birth Bath ?!
+]
+# overwrite = False
+overwrite = True  # TODO
+# --------------------------------------------------------------------------- #
+# START: Loop over cases, dates, and radars:
+for date in DATES:
+    for location in LOCATIONS:
+        for elevation_deg in ELEVATIONS:
+            for mode in MODE:
+                era5_temp(date=date, location=location,
+                          elevation_deg=elevation_deg,
+                          mode=mode, overwrite=overwrite)
+
+# --------------------------------------------------------------------------- #
+# CONTINUE?
+import DWD_obs_to_MIUB_obs_4_correct_kdp_in_ML
+
 
