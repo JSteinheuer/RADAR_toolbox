@@ -30,6 +30,7 @@ warnings.filterwarnings("ignore")
 
 # --------------------------------------------------------------------------- #
 
+# V. Pejcic
 def my_cmap(colmap='jet', csteps=10, setunder=False, ucolor='magenta'):
     """
     Get a colormap with discrete steps
@@ -44,6 +45,7 @@ def my_cmap(colmap='jet', csteps=10, setunder=False, ucolor='magenta'):
     return my_cmap
 
 
+# V. Pejcic
 def hist_2d(A,B, bins1=35, bins2=35, mini=1, maxi=None,
             cmap='jet', colsteps=30, alpha=1, fsize=15, colbar=True):
     """
@@ -82,6 +84,7 @@ def hist_2d(A,B, bins1=35, bins2=35, mini=1, maxi=None,
     plt.yticks(fontsize=fsize)
 
 
+# V. Pejcic
 def cal_zhzdr_lightrain(ZH, ZDR, plot=True):
     """
     ZH-ZDR Consistency in light rain
@@ -98,8 +101,11 @@ def cal_zhzdr_lightrain(ZH, ZDR, plot=True):
     nm = (ZH >= 19) & (ZH < 31) & (~np.isnan(ZH))
     if plot:
         plt.figure(figsize=(8, 3))
+
         plt.subplot(1, 2, 1)
-        hist_2d(ZH, ZDR, bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
+        hist_2d(ZH, ZDR,
+                bins1=np.arange(0, 40, 1),
+                bins2=np.arange(-1, 3, .1))
         plt.plot([20, 22, 24, 26, 28, 30],
                  [.23, .27, .33, .40, .48, .56], color='black')
         plt.title('Non-calibrated $Z_{DR}$')
@@ -107,23 +113,25 @@ def cal_zhzdr_lightrain(ZH, ZDR, plot=True):
         plt.ylabel(r'$Z_{DR}$', fontsize=15)
         plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
 
-    plt.subplot(1, 2, 2)
-    hist_2d(ZH, ZDR-zdroffset,
-            bins1=np.arange(0, 40, 1),
-            bins2=np.arange(-1, 3, .1))
-    plt.plot([20, 22, 24, 26, 28, 30],
-             [.23, .27, .33, .40, .48, .56], color='black')
-    plt.title('Calibrated $Z_{DR}$')
-    plt.xlabel(r'$Z_H$', fontsize=15)
-    plt.ylabel(r'$Z_{DR}$', fontsize=15)
-    plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
-    plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                     'dB\n' + r'$N$: '+str(np.sum(nm)))
-    plt.tight_layout()
-    plt.show()
+        plt.subplot(1, 2, 2)
+        hist_2d(ZH, ZDR-zdroffset,
+                bins1=np.arange(0, 40, 1),
+                bins2=np.arange(-1, 3, .1))
+        plt.plot([20, 22, 24, 26, 28, 30],
+                 [.23, .27, .33, .40, .48, .56], color='black')
+        plt.title('Calibrated $Z_{DR}$')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+        plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
+                         'dB\n' + r'$N$: '+str(np.sum(nm)))
+        plt.tight_layout()
+        plt.show()
+
     return zdroffset, np.sum(nm)
 
 
+# V. Pejcic
 def cal_zhzdr_smalldrops(ZH, ZDR, band='S', plot=True):
     """
     Daniel zhzdr_for_small_drops ...
@@ -153,68 +161,186 @@ def cal_zhzdr_smalldrops(ZH, ZDR, band='S', plot=True):
     if plot:
         plt.figure(figsize=(8, 3))
 
-    plt.subplot(1, 2, 1)
-    hist_2d(ZH.flatten(), ZDR.flatten(),
-            bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-    plt.axhline(0.16, color='black')
-    plt.title('Non-calibrated $Z_{DR}$')
-    plt.xlabel(r'$Z_H$', fontsize=15)
-    plt.ylabel(r'$Z_{DR}$', fontsize=15)
-    plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+        plt.subplot(1, 2, 1)
+        hist_2d(ZH.flatten(), ZDR.flatten(),
+                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
+        plt.axhline(zdr_bar[band], color='black')
+        plt.title('Non-calibrated $Z_{DR}$')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
 
-    plt.subplot(1, 2, 2)
-    hist_2d(ZH.flatten(), (ZDR-zdroffset).flatten(),
-            bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-    plt.axhline(zdr_bar[band], color='black')
-    plt.title('Calibrated $Z_{DR}$')
-    plt.xlabel(r'$Z_H$', fontsize=15)
-    plt.ylabel(r'$Z_{DR}$', fontsize=15)
-    plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
-    plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset,3)) +
-                     'dB\n' + r'$N$: '+str(np.sum(nm)))
-    plt.tight_layout()
-    plt.show()
+        plt.subplot(1, 2, 2)
+        hist_2d(ZH.flatten(), (ZDR-zdroffset).flatten(),
+                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
+        plt.axhline(zdr_bar[band], color='black')
+        plt.title('Calibrated $Z_{DR}$')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+        plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset,3)) +
+                         'dB\n' + r'$N$: '+str(np.sum(nm)))
+        plt.tight_layout()
+        plt.show()
+
     return zdroffset, np.sum(nm)
 
 
-def cal_zhzdr_smalldrops2(swp_cf, ZH, ZDR, RHO, T_b,CMAP=False, band='C', plot=True):
+# V. Pejcic -> T. Scharbach
+def cal_zhzdr_smalldrops2(ZH, ZDR, band='S', plot=True):
+    """
+    Daniel zhzdr_for_small_drops ...
+    """
+    zdr_bar = {'X': 0.165, 'C': 0.183, 'S': 0.176}
+    zdr_zh_1 = np.nanmedian(ZDR[(ZH >= 0) & (ZH < 20)])
+    zdroffset = np.nansum(zdr_zh_1-zdr_bar[band])
+    nm = (ZH >= 0) & (ZH < 20) & (~np.isnan(ZH))
+    if plot:
+        plt.figure(figsize=(8, 3))
+
+        plt.subplot(1, 2, 1)
+        hist_2d(ZH.flatten(), ZDR.flatten(),
+                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
+        plt.axhline(zdr_bar[band], color='black')
+        plt.title('Non-calibrated $Z_{DR}$')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+
+        plt.subplot(1, 2, 2)
+        hist_2d(ZH.flatten(), (ZDR-zdroffset).flatten(),
+                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
+        plt.axhline(zdr_bar[band], color='black')
+        plt.title('Calibrated $Z_{DR}$')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+        plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
+                         'dB\n' + r'$N$: '+str(np.sum(nm)))
+        plt.tight_layout()
+        plt.show()
+    return zdroffset, np.sum(nm)
+
+
+# J. Steinheuer
+def cal_zdr_lightrain(swp_cf, band='C', plot=True):
+    """
+    ZH-ZDR Consistency in light rain
+    AR p.155-156
+    """
+    zdr_bar = {'S': [0.23, 0.27, 0.32, 0.38, 0.46, 0.55],
+               'C': [0.23, 0.27, 0.33, 0.40, 0.48, 0.56],
+               'X': [0.23, 0.28, 0.33, 0.41, 0.49, 0.58]}
+    swp_mask = swp_cf.where((swp_cf.temp_beamtop > 4 + 273.15) &
+                            (swp_cf.RHOHV > 0.98) &
+                            np.isnan(swp_cf.CMAP))
+    zdr_zh_20 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 19) &
+                                            (swp_mask.DBZH < 21)).ZDR)
+    zdr_zh_22 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 21) &
+                                          (swp_mask.DBZH < 23)).ZDR)
+    zdr_zh_24 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 23) &
+                                          (swp_mask.DBZH < 25)).ZDR)
+    zdr_zh_26 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 25) &
+                                          (swp_mask.DBZH < 27)).ZDR)
+    zdr_zh_28 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 27) &
+                                          (swp_mask.DBZH < 29)).ZDR)
+    zdr_zh_30 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 29) &
+                                          (swp_mask.DBZH < 31)).ZDR)
+    zdroffset = np.nansum(
+        [zdr_zh_20 - zdr_bar[band][0], zdr_zh_22 - zdr_bar[band][1],
+         zdr_zh_24 - zdr_bar[band][2], zdr_zh_26 - zdr_bar[band][3],
+         zdr_zh_28 - zdr_bar[band][4], zdr_zh_30 - zdr_bar[band][5]]) / 6.
+    nm = np.sum(((swp_mask.DBZH >= 19) & (swp_mask.DBZH < 31) &
+                 (~np.isnan(swp_mask.DBZH)))).values.item()
+    if plot:
+        plt.figure(figsize=(8, 3))
+
+        plt.subplot(1, 2, 1)
+        hist_2d(swp_mask.where((swp_mask.DBZH >= 19) & (swp_mask.DBZH < 31)
+                               ).DBZH.values.flatten(),
+                swp_mask.where((swp_mask.DBZH >= 19) & (swp_mask.DBZH < 31)
+                               ).ZDR.values.flatten(),
+                bins1=np.arange(0, 40, 1),
+                bins2=np.arange(-1, 3, .1))
+        plt.plot([20, 22, 24, 26, 28, 30], zdr_bar[band], color='black')
+        plt.title('Non-calibrated $Z_{DR}$ (used)')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+
+        plt.subplot(1, 2, 2)
+        hist_2d(swp_cf.DBZH.values.flatten(),
+                swp_cf.ZDR.values.flatten() - zdroffset,
+                bins1=np.arange(0, 40, 1),
+                bins2=np.arange(-1, 3, .1))
+        plt.plot([20, 22, 24, 26, 28, 30], zdr_bar[band], color='black')
+        plt.title('Calibrated $Z_{DR}$')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+        plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
+                         'dB\n' + r'$N$: ' + str(nm))
+        plt.tight_layout()
+        plt.show()
+
+    return zdroffset, nm
+
+
+# J. Steinheuer
+def cal_zdr_smalldrops(swp_cf, band='C', plot=True):
     """
     Daniel zhzdr_for_small_drops ...
     """
     zdr_bar = {'X': 0.165, 'C': 0.183, 'S': 0.176}
     swp_mask = swp_cf.where((swp_cf.DBZH > 0) &
                             (swp_cf.DBZH < 20) &
-                            (swp_cf.temp_beamtop > 4) &
+                            (swp_cf.RHOHV > 0.98) &
+                            (swp_cf.temp_beamtop > 4 + 273.15) &
                             np.isnan(swp_cf.CMAP))
-
-    zdr_zh_1 = np.nanmedian(ZDR[(ZH >= 0) & (ZH < 20)])
+    zdr_zh_1 = np.nanmedian(swp_mask.ZDR)
     zdroffset = np.nansum(zdr_zh_1-zdr_bar[band])
-    nm = (ZH >= 0) & (ZH < 20)&(~np.isnan(ZH))
+    nm = np.sum(~np.isnan(swp_mask.ZDR.values))
     if plot:
         plt.figure(figsize=(8, 3))
 
-    plt.subplot(1, 2, 1)
-    hist_2d(ZH.flatten(), ZDR.flatten(),
-            bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-    plt.axhline(0.16, color='black')
-    plt.title('Non-calibrated $Z_{DR}$')
-    plt.xlabel(r'$Z_H$', fontsize=15)
-    plt.ylabel(r'$Z_{DR}$', fontsize=15)
-    plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+        plt.subplot(1, 2, 1)
+        hist_2d(swp_mask.DBZH.values.flatten(), swp_mask.ZDR.values.flatten(),
+                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
+        plt.axhline(zdr_bar[band], color='black')
+        plt.title('Non-calibrated $Z_{DR}$ (used)')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
 
-    plt.subplot(1, 2, 2)
-    hist_2d(ZH.flatten(), (ZDR-zdroffset).flatten(),
-            bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-    plt.axhline(zdr_bar[band], color='black')
-    plt.title('Calibrated $Z_{DR}$')
-    plt.xlabel(r'$Z_H$', fontsize=15)
-    plt.ylabel(r'$Z_{DR}$', fontsize=15)
-    plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
-    plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset,3)) +
-                     'dB\n' + r'$N$: '+str(np.sum(nm)))
-    plt.tight_layout()
-    plt.show()
-    return zdroffset, np.sum(nm)
+        plt.subplot(1, 2, 2)
+        hist_2d(swp_cf.DBZH.values.flatten(),
+                swp_cf.ZDR.values.flatten()-zdroffset,
+                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
+        plt.axhline(zdr_bar[band], color='black')
+        plt.title('Calibrated $Z_{DR}$')
+        plt.xlabel(r'$Z_H$', fontsize=15)
+        plt.ylabel(r'$Z_{DR}$', fontsize=15)
+        plt.grid(which='both', color='black', linestyle=':', alpha=0.5)
+        plt.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
+                         'dB\n' + r'$N$: '+str(nm))
+
+        plt.tight_layout()
+        plt.show()
+
+        return zdroffset, nm
+
+
+# swp_cf=data.copy()
+# # J. Steinheuer
+# def zdr_at_zero_elev(swp_cf):
+zdr = swp_cf.ZDR
+el = swp_cf.elevation
+if np.unique(el.values).size == 1:
+    el = np.unique(el.values)
+else:
+    el = el  # TODO
+
+
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -333,40 +459,49 @@ time_end = date + nc_file_mom.split('-')[-3][-4:]
 dti_start = pd.to_datetime(time_start, format="%Y%m%d%H%M")
 dti_end = pd.to_datetime(time_end, format="%Y%m%d%H%M")
 # ----------------------------------------------------------------------- #
-def preprocessed(dataset):
-    dataset=dataset.mean('azimuth')
-    return dataset
 
-from functools import partial
-data = xr.open_mfdataset(nc_file_mom)
 
 data = dttree.open_datatree(nc_file_mom)[
-    'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+    'sweep_' + str(int(sweep))].to_dataset()#.chunk('auto')
 data_rho = dttree.open_datatree(nc_file_rho)[
-    'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+    'sweep_' + str(int(sweep))].to_dataset()#.chunk('auto')
+data_temp = dttree.open_datatree(nc_file_temp)[
+    'sweep_' + str(int(sweep))].to_dataset()#.chunk('auto')
+#
+data_temp2 = data_temp.interp(
+    coords=data.drop(['longitude','latitude',
+                      'altitude','elevation']).coords, method='nearest')
+#
 data.RHOHV.values = data_rho.RHOHV_NC2P.values
 data = data.assign({'SNRH': data_rho.SNRH})
+data = data.assign({'temp_beamtop': data_temp2.temp_beamtop})
 remo_var = list(data.data_vars.keys())
 data = data.transpose('time', 'azimuth', 'range')
 # data = data.sel(time=slice(dti_start, dti_end))
 
 #TODO
 
-cal_zhzdr_lightrain(data.DBZH.values[0, :, :], data.ZDR.values[0, :, :],
-                    plot=True)
-cal_zhzdr_lightrain(data.DBZH.values[:, :, :], data.ZDR.values[:, :, :],
-                    plot=True)
+# cal_zhzdr_lightrain(data.DBZH.values[0, :, :], data.ZDR.values[0, :, :],
+#                     plot=True)
+# cal_zhzdr_lightrain(data.DBZH.values[:, :, :], data.ZDR.values[:, :, :],
+#                     plot=True)
+#
+#
+# cal_zhzdr_smalldrops(data.DBZH.values[0, :, :], data.ZDR.values[0, :, :],
+#                      band='C', plot=True)
+# cal_zhzdr_smalldrops(data.DBZH.values[:, :, :], data.ZDR.values[:, :, :],
+#                      band='C', plot=True)
+#
+# cal_zhzdr_smalldrops2(data.DBZH.values[0, :, :], data.ZDR.values[0, :, :],
+#                      band='C', plot=True)
+# cal_zhzdr_smalldrops2(data.DBZH.values[:, :, :], data.ZDR.values[:, :, :],
+#                      band='C', plot=True)
+#
+cal_zdr_smalldrops(data, band='C', plot=True)
+# cal_zhzdr_lightrain(data.DBZH.values[:, :, :], data.ZDR.values[:, :, :],
+#                     plot=True)
+cal_zdr_lightrain(data, band='C', plot=True)
 
-
-cal_zhzdr_smalldrops(data.DBZH.values[0, :, :], data.ZDR.values[0, :, :],
-                     band='C', plot=True)
-cal_zhzdr_smalldrops(data.DBZH.values[:, :, :], data.ZDR.values[:, :, :],
-                     band='C', plot=True)
-
-cal_zhzdr_smalldrops2(data.DBZH.values[0, :, :], data.ZDR.values[0, :, :],
-                     band='C', plot=True)
-cal_zhzdr_smalldrops2(data.DBZH.values[:, :, :], data.ZDR.values[:, :, :],
-                     band='C', plot=True)
 
 # path_out = nc_file_mom.replace('_allmoms_', '_zdr_c_')
 # mom_use = [x for x in list(data.keys())]

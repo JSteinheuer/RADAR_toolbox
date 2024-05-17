@@ -414,8 +414,7 @@ MODE = [
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
 # moments = ['DFTV', 'DFTV']
 # moments = '*'
-# overwrite = False
-overwrite = True  # TODO
+overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -451,8 +450,7 @@ MODE = [
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
 # moments = ['DFTV', 'DFTV']
 # moments = '*'
-# overwrite = False
-overwrite = True  # TODO
+overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -464,4 +462,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-import DWD_obs_to_MIUB_obs_2_correct_rho_hv
+# import DWD_obs_to_MIUB_obs_2_correct_rho_hv
