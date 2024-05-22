@@ -481,22 +481,27 @@ def smooth_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20210604",  # case01
-    "20210620", "20210621",  # case02
-    "20210628", "20210629",  # case03
-    "20220519", "20220520",  # case04
-    "20220623", "20220624", "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
-    "20210714",  # case09
-    "20221222",  # case10
+    # "20210604",  # case01
+    # "20210620", "20210621",  # case02
+    # "20210628", "20210629",  # case03
+    # "20220519","20220520",  # case04
+    # "20220623", "20220624", "20220625",  # case05
+    # "20220626",
+    "20220627",
+    "20220628",  # case06+07  # TODO: include all loc
+    "20220630", "20220701",  # case08  # TODO: include all loc
+    "20210714",  # case09  # TODO: include all loc
+    "20221222",  # case10  # TODO: include all loc
 ]
 LOCATIONS = [
     'asb',
     'boo', 'drs', 'eis',
     'ess',
-    'fbg', 'fld', 'hnr', 'isn',
-    'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+    'fbg', 'fld',
+    'hnr', 'isn',
+    'mem', 'neu', 'nhb', 'oft',
+    'pro', 'ros',
+    'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
@@ -507,8 +512,8 @@ MODE = [
     # 'vol',
     # '90grad'  # TODO: '90grad' Birth Bath ?!
 ]
-# overwrite = False
 overwrite = True  # TODO
+# overwrite = False
 # --------------------------------------------------------------------------- #
 uh_tresh = 0
 rho_tresh = 0.8
@@ -561,8 +566,7 @@ MODE = [
     # 'vol',
     # '90grad'  # TODO: '90grad' Birth Bath ?!
 ]
-# overwrite = False
-overwrite = True  # TODO
+overwrite = False
 # --------------------------------------------------------------------------- #
 uh_tresh = 0
 rho_tresh = 0.8

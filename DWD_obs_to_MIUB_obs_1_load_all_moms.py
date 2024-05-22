@@ -385,10 +385,11 @@ def extract_all_moms(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20210604",  # case01
-    "20210620", "20210621",  # case02
-    "20210628", "20210629",  # case03
-    "20220519", "20220520",  # case04
+    # "20210604",  # case01
+    # "20210620", "20210621",  # case02
+    # "20210628", "20210629",  # case03
+    # "20220519",
+    "20220520",  # case04
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
@@ -400,16 +401,18 @@ LOCATIONS = [
     'boo', 'drs', 'eis',
     'ess',
     'fbg', 'fld', 'hnr', 'isn',
-    'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+    'mem', 'neu', 'nhb',
+    'oft',
+    'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
     # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
 ])
 MODE = [
-    'pcp',
+    # 'pcp',
     # 'vol',
-    # '90grad'  # TODO: '90grad' Birth Bath ?!
+    '90grad'  # TODO: '90grad' Birth Bath ?!
 ]
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
 # moments = ['DFTV', 'DFTV']
@@ -429,10 +432,12 @@ for date in DATES:
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20170719",
+    # "20170719",
+    "20170725",
 ]
 LOCATIONS = [
-    'pro', 'umd', 'nhb', 'fld',
+    'pro',
+    'umd', 'nhb', 'fld',
     # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
     # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
 ]
@@ -443,9 +448,9 @@ ELEVATIONS = np.array([
     # # 17.0, 25.0
 ])
 MODE = [
-    'pcp',
+    # 'pcp',
     # 'vol',
-    # '90grad'  # TODO: '90grad' Birth Bath ?!
+    '90grad'  # TODO: '90grad' Birth Bath ?!
 ]
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
 # moments = ['DFTV', 'DFTV']
