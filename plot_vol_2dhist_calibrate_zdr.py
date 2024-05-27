@@ -3,200 +3,27 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 22.05.24                                                 #
-# DWD_obs_to_MIUB_obs_5_calibrate_zdr.py                                      #
+# plot_vol2dhist_calibrate_zdr.py                                             #
 #                                                                             #
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
-# STEP 5: calibrate ZDR.                                                      #
+# STEP 5: calibrate ZDR (plotting routine)                                    #
 #         Adapted from Velibor Pejcic                                         #
 # --------------------------------------------------------------------------- #
 
+import HEADER_RADAR_toolbox as header
+import xarray as xr
 import datatree as dttree
 import numpy as np
-import pandas as pd
-import sys
-import glob
-import HEADER_RADAR_toolbox as header
-import os
-import xarray as xr
-from scipy.ndimage import uniform_filter, gaussian_filter
-import time
-import warnings
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
-warnings.filterwarnings("ignore")
+import wradlib as wrl
+import glob
+import pandas as pd
+import os
+# import matplotlib as mpl
+# from PLOT_PPI import plot_PPI, plot_PPI_temp_ring
 
-
-# V. Pejcic
-def cal_zhzdr_lightrain(ZH, ZDR, plot=[True, True], axes=None):
-    """
-    ZH-ZDR Consistency in light rain
-    AR p.155-156
-    """
-    zdr_zh_20 = np.nanmedian(ZDR[(ZH >= 19) & (ZH < 21)])
-    zdr_zh_22 = np.nanmedian(ZDR[(ZH >= 21) & (ZH < 23)])
-    zdr_zh_24 = np.nanmedian(ZDR[(ZH >= 23) & (ZH < 25)])
-    zdr_zh_26 = np.nanmedian(ZDR[(ZH >= 25) & (ZH < 27)])
-    zdr_zh_28 = np.nanmedian(ZDR[(ZH >= 27) & (ZH < 29)])
-    zdr_zh_30 = np.nanmedian(ZDR[(ZH >= 29) & (ZH < 31)])
-    # valid for S-Band !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    zdroffset = np.nansum([zdr_zh_20 - .23, zdr_zh_22 - .27, zdr_zh_24 - .32,
-                           zdr_zh_26 - .38, zdr_zh_28 - .46,
-                           zdr_zh_30 - .55]) / 6.
-    # valid for S-Band !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    nm = (ZH >= 19) & (ZH < 31) & (~np.isnan(ZH))
-    if plot[0]:
-        if axes is None:
-            plt.figure(figsize=(8, 3))
-            ax = plt.subplot(1, 2, 1)
-        else:
-            ax = axes[0]
-
-        hist_2d(ZH, ZDR, ax=ax,
-                bins1=np.arange(0, 40, 1),
-                bins2=np.arange(-1, 3, .1))
-        ax.plot([20, 22, 24, 26, 28, 30],
-                [.23, .27, .33, .40, .48, .56], color='black')
-        ax.set_title('Non-calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-
-    if plot[1]:
-        if axes is None:
-            ax = plt.subplot(1, 2, 2)
-        else:
-            ax = axes[1]
-
-        hist_2d(ZH, ZDR - zdroffset, ax=ax,
-                bins1=np.arange(0, 40, 1),
-                bins2=np.arange(-1, 3, .1))
-        ax.plot([20, 22, 24, 26, 28, 30],
-                [.23, .27, .33, .40, .48, .56], color='black')
-        ax.set_title('Calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-        ax.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                        'dB\n' + r'$N$: ' + str(np.sum(nm)))
-
-    if sum(plot) > 0:
-        plt.tight_layout()
-        plt.show()
-
-    return zdroffset, np.sum(nm)
-
-
-# V. Pejcic
-def cal_zhzdr_smalldrops(ZH, ZDR, band='S', plot=[True, True], axes=None):
-    """
-    Daniel zhzdr_for_small_drops ...
-    """
-    zdr_bar = {'X': 0.165, 'C': 0.183, 'S': 0.176}
-    zdr_zh_1 = np.nanmedian(ZDR[(ZH >= 0) & (ZH < 2)])
-    zdr_zh_3 = np.nanmedian(ZDR[(ZH >= 2) & (ZH < 4)])
-    zdr_zh_5 = np.nanmedian(ZDR[(ZH >= 4) & (ZH < 6)])
-    zdr_zh_7 = np.nanmedian(ZDR[(ZH >= 6) & (ZH < 8)])
-    zdr_zh_9 = np.nanmedian(ZDR[(ZH >= 8) & (ZH < 10)])
-    zdr_zh_11 = np.nanmedian(ZDR[(ZH >= 10) & (ZH < 12)])
-    zdr_zh_13 = np.nanmedian(ZDR[(ZH >= 12) & (ZH < 14)])
-    zdr_zh_15 = np.nanmedian(ZDR[(ZH >= 14) & (ZH < 16)])
-    zdr_zh_17 = np.nanmedian(ZDR[(ZH >= 16) & (ZH < 18)])
-    zdr_zh_19 = np.nanmedian(ZDR[(ZH >= 18) & (ZH < 20)])
-    zdroffset = np.nansum([zdr_zh_1 - zdr_bar[band],
-                           zdr_zh_3 - zdr_bar[band],
-                           zdr_zh_5 - zdr_bar[band],
-                           zdr_zh_7 - zdr_bar[band],
-                           zdr_zh_9 - zdr_bar[band],
-                           zdr_zh_11 - zdr_bar[band],
-                           zdr_zh_13 - zdr_bar[band],
-                           zdr_zh_15 - zdr_bar[band],
-                           zdr_zh_17 - zdr_bar[band],
-                           zdr_zh_19 - zdr_bar[band], ]) / 10.
-    nm = (ZH >= 0) & (ZH < 20) & (~np.isnan(ZH))
-    if plot[0]:
-        if axes is None:
-            plt.figure(figsize=(8, 3))
-            ax = plt.subplot(1, 2, 1)
-        else:
-            ax = axes[0]
-
-        hist_2d(ZH.flatten(), ZDR.flatten(), ax=ax,
-                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-        ax.axhline(zdr_bar[band], color='black')
-        ax.set_title('Non-calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-
-    if plot[1]:
-        if axes is None:
-            ax = plt.subplot(1, 2, 2)
-        else:
-            ax = axes[1]
-
-        hist_2d(ZH.flatten(), (ZDR - zdroffset).flatten(), ax=ax,
-                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-        ax.axhline(zdr_bar[band], color='black')
-        ax.set_title('Calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-        ax.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                        'dB\n' + r'$N$: ' + str(np.sum(nm)))
-
-    if sum(plot) > 0:
-        plt.tight_layout()
-        plt.show()
-
-    return zdroffset, np.sum(nm)
-
-
-# V. Pejcic -> T. Scharbach
-def cal_zhzdr_smalldrops2(ZH, ZDR, band='S', plot=[True, True], axes=None):
-    """
-    Daniel zhzdr_for_small_drops ...
-    """
-    zdr_bar = {'X': 0.165, 'C': 0.183, 'S': 0.176}
-    zdr_zh_1 = np.nanmedian(ZDR[(ZH >= 0) & (ZH < 20)])
-    zdroffset = np.nansum(zdr_zh_1 - zdr_bar[band])
-    nm = (ZH >= 0) & (ZH < 20) & (~np.isnan(ZH))
-    if plot[0]:
-        if axes is None:
-            plt.figure(figsize=(8, 3))
-            ax = plt.subplot(1, 2, 1)
-        else:
-            ax = axes[0]
-
-        hist_2d(ZH.flatten(), ZDR.flatten(), ax=ax,
-                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-        ax.axhline(zdr_bar[band], color='black')
-        ax.set_title('Non-calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-
-    if plot[1]:
-        if axes is None:
-            ax = plt.subplot(1, 2, 2)
-        else:
-            ax = axes[1]
-
-        hist_2d(ZH.flatten(), (ZDR - zdroffset).flatten(),
-                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-        ax.axhline(zdr_bar[band], color='black')
-        ax.set_title('Calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-        ax.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                        'dB\n' + r'$N$: ' + str(np.sum(nm)))
-
-    if sum(plot) > 0:
-        plt.tight_layout()
-        plt.show()
-
-    return zdroffset, np.sum(nm)
+# --------------------------------------------------------------------------- #
 
 
 # V. Pejcic
@@ -471,7 +298,7 @@ LOCATIONS = [
 ]
 # --------------------------------------------------------------------------- #
 overwrite = False
-plot = False
+plot = True
 pdf_or_png = 'png'
 include_sweep = np.array([
     True,
@@ -596,12 +423,8 @@ for date in DATES:
                         'sweep_' + str(int(sweep))].to_dataset()
                     # ------------------------------------------------------- #
                     # plot calibration
-                    if plot:
-                        index = index + 1
-                        ax = plt.subplot(n_rows, n_cols, index + 0*n_cols)
-                    else:
-                        ax = None
-
+                    index = index + 1
+                    ax = plt.subplot(n_rows, n_cols, index + 0*n_cols)
                     bb_off, bb_nm = cal_zdr_birdbath(data, plot=plot, ax=ax)
                     # saving
                     path_out_nc = nc_file_mom.replace(

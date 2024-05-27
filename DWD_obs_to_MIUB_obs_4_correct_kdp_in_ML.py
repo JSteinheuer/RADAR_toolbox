@@ -329,14 +329,12 @@ def smooth_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
     dir_data_era5 : directory to search for era5 files.
     [...]
     """
-    ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-                               8.0, 12.0, 17.0, 25.0])
     parts_current = parts
     time_a = time.time()
     year = date[0:4]
     mon = date[4:6]
     day = date[6:8]
-    sweep = '0' + str(np.where(ELEVATIONS_ALL ==
+    sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
                                float(elevation_deg))[0][0])
     if mode == 'pcp':
         if sweep != '00':
@@ -481,17 +479,15 @@ def smooth_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20210604",  # case01
-    # "20210620", "20210621",  # case02
-    # "20210628", "20210629",  # case03
-    # "20220519","20220520",  # case04
-    # "20220623", "20220624", "20220625",  # case05
-    # "20220626",
-    "20220627",
-    "20220628",  # case06+07  # TODO: include all loc
-    "20220630", "20220701",  # case08  # TODO: include all loc
-    "20210714",  # case09  # TODO: include all loc
-    "20221222",  # case10  # TODO: include all loc
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
+    "20220630", "20220701",  # case08
+    "20210714",  # case09
+    "20221222",  # case10
 ]
 LOCATIONS = [
     'asb',
@@ -505,15 +501,14 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
 ])
 MODE = [
     'pcp',
-    # 'vol',
+    'vol',
     # '90grad'  # TODO: '90grad' Birth Bath ?!
 ]
-overwrite = True  # TODO
-# overwrite = False
+overwrite = False
 # --------------------------------------------------------------------------- #
 uh_tresh = 0
 rho_tresh = 0.8

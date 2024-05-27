@@ -79,10 +79,7 @@ n_i_zdr = n_cols*1
 n_i_rho = n_cols*2
 n_i_kdp = n_cols*3
 fig = plt.figure(figsize=(5 * n_cols, 4 * n_rows))
-# --------------------------------------------------------------------------- #
-# loop over all elevations:
-# --------------------------------------------------------------------------- #
-# plot parameters
+# sorting volume
 elevation_degs_2_sort = elevation_degs.copy()
 elevation_degs_2_sort[modes == 'pcp'] = 0
 sort_i = elevation_degs_2_sort.argsort()
@@ -90,6 +87,9 @@ range_maxes = np.array(range_maxes)[sort_i]
 temp_thicknesses = np.array(temp_thicknesses)[sort_i]
 elevation_degs = elevation_degs[sort_i]
 modes = modes[sort_i]
+# --------------------------------------------------------------------------- #
+# loop over all elevations:
+# --------------------------------------------------------------------------- #
 for elevation_deg, range_max, temp_thickness, mode in \
         zip(elevation_degs, range_maxes, temp_thicknesses, modes):
     print(elevation_deg)

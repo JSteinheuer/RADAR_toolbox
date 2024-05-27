@@ -106,12 +106,10 @@ def correct_rho_hv(date, location , elevation_deg=5.5, mode='vol',
     dir_data_obs : directory to search for input cases
                   (>dir_data_obs</*/yyyy/yyyy-mm/yyyy-mm-dd).
     """
-    ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-                               8.0, 12.0, 17.0, 25.0])
     year = date[0:4]
     mon = date[4:6]
     day = date[6:8]
-    sweep = '0' + str(np.where(ELEVATIONS_ALL ==
+    sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
                                float(elevation_deg))[0][0])
     if mode == 'pcp' and sweep != '00':
         return

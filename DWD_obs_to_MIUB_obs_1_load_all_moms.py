@@ -286,12 +286,10 @@ def extract_all_moms(date, location, elevation_deg=5.5, mode='vol',
     dir_data_obs_realpep : a second directory to search for input.
                          (>dir_data_obs</yyyy/yyyy-mm/yyyy-mm-dd/).
     """
-    ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-                               8.0, 12.0, 17.0, 25.0])
     year = date[0:4]
     mon = date[4:6]
     day = date[6:8]
-    sweep = '0' + str(np.where(ELEVATIONS_ALL ==
+    sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
                                float(elevation_deg))[0][0])
     if mode == 'pcp' and sweep != '00':
         return
@@ -385,10 +383,10 @@ def extract_all_moms(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20210604",  # case01
-    # "20210620", "20210621",  # case02
-    # "20210628", "20210629",  # case03
-    # "20220519",
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519",
     "20220520",  # case04
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
@@ -407,11 +405,11 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
 ])
 MODE = [
-    # 'pcp',
-    # 'vol',
+    'pcp',
+    'vol',
     '90grad'  # TODO: '90grad' Birth Bath ?!
 ]
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
