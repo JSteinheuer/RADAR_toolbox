@@ -24,6 +24,7 @@ import time
 import warnings
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+
 warnings.filterwarnings("ignore")
 
 
@@ -222,7 +223,7 @@ def hist_2d(A, B, bins1=35, bins2=35, mini=1, maxi=None, ax=None, cmap='jet',
     from matplotlib.colors import LogNorm
     m = ~np.isnan(A) & ~np.isnan(B)
     if density:
-        norm =LogNorm(vmin=0.000001, vmax=1.01)
+        norm = LogNorm(vmin=0.000001, vmax=1.01)
     else:
         norm = LogNorm(vmin=mini, vmax=maxi)
 
@@ -324,7 +325,7 @@ def cal_zdr_lightrain(swp_cf, band='C', plot=[True, True],
 
 # J. Steinheuer
 def cal_zdr_smalldrops(swp_cf, band='C', plot=[True, True],
-                      colorbar=[True, True],  axes=None):
+                       colorbar=[True, True], axes=None):
     """
     Daniel zhzdr_for_small_drops ...
     """
@@ -425,7 +426,7 @@ def cal_zdr_birdbath(swp_cf, plot=True, ax=None):
         # ax.hist(swp_cf.ZDR.values.flatten(),
         #          bins=np.arange(-1, 3, .025), density=True, alpha=.5)
         ax.hist(swp_mask.ZDR.values.flatten(),
-                 bins=np.arange(-1, 3, .025))
+                bins=np.arange(-1, 3, .025))
         ax.axvline(zdroffset, color='black')
         ax.set_title('Birdbath $90°$')
         ax.set_xlabel(r'$Z_{DR}$', fontsize=15)
@@ -442,10 +443,7 @@ def cal_zdr_birdbath(swp_cf, plot=True, ax=None):
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 # case (adjust!):
-# date = "20221222"
 # date = "20210714"
-# location = 'oft'
-# location = 'fld'
 # location = 'ess'
 # --------------------------------------------------------------------------- #
 # OR:
@@ -459,19 +457,17 @@ DATES = [
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
     "20221222",  # case10
+    "20170719",  # old case
+    "20170725",  # old case
 ]
 LOCATIONS = [
-    'asb',
-    'boo', 'drs', 'eis',
-    'ess',
-    'fbg', 'fld', 'hnr', 'isn',
-    'mem', 'neu', 'nhb',
-    'oft',
-    'pro', 'ros', 'tur', 'umd',
+    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 # --------------------------------------------------------------------------- #
 overwrite = False
-plot = False
+plot = True
 pdf_or_png = 'png'
 include_sweep = np.array([
     True,
@@ -479,12 +475,6 @@ include_sweep = np.array([
     True, True, True, True,
     True,
 ])
-# include_sweep = np.array([
-#     True,
-#     False, False, False, False, False, False,
-#     False, False, False, True,
-#     True
-# ])
 elevation_degs = np.array([
     5.5,
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
@@ -509,8 +499,9 @@ elevation_degs_2_sort[modes == '90grad'] = 90
 sort_i = elevation_degs_2_sort.argsort()
 elevation_degs = elevation_degs[sort_i]
 modes = modes[sort_i]
-# date = DATES[0]
-# location = LOCATIONS[0]
+# --------------------------------------------------------------------------- #
+# START: Loop over cases, dates, and radars:
+# --------------------------------------------------------------------------- #
 for date in DATES:
     for location in LOCATIONS:
         # plot parameters
@@ -525,7 +516,8 @@ for date in DATES:
         # loop over all elevations:
         # ------------------------------------------------------------------- #
         for elevation_deg, mode in zip(elevation_degs, modes):
-            print(elevation_deg)
+            print(mode + ' ' + (str(elevation_deg) if (mode == 'vol') else '')
+                  + ' ' + location + ' ' + date)
             # ----------------------------------------------------------------#
             # folder and file search
             folder_plot = header.folder_plot
@@ -551,18 +543,18 @@ for date in DATES:
                 if elevation_deg == elevation_degs[0] and mode == modes[0]:
                     file_in = nc_file_mom.split('/')[-1]
                     if plot:
-                        file_out = file_in.replace('.hd5', '_' + str(n_rows) +
-                                                   'x' + str(n_cols) + '.' +
-                                                   pdf_or_png).replace('_' +
-                                                                       sweep,
-                                                                       '_all')
+                        file_out = file_in.replace(
+                            '.hd5', '_' + str(n_rows) + 'x' + str(n_cols) +
+                                    '.' + pdf_or_png).replace(
+                            '_' + sweep, '_all')
                         path_out = folder_plot + 'ZDR_calibration/' + \
-                                   location.upper() + '/ZDR_calibration_' + \
-                                   str(n_rows) + 'x' + str(n_cols) + '_' + \
-                                   file_out
+                            location.upper() + '/ZDR_calibration_' + \
+                            str(n_rows) + 'x' + str(n_cols) + '_' + \
+                            file_out
                         if os.path.isfile(path_out) and not overwrite:
                             print(path_out + ' exists;\n' + ' ... set: ' +
                                   '> overwrite = True < for recalculation')
+                            plt.close()
                             save = False
                             break
 
@@ -578,7 +570,6 @@ for date in DATES:
                     print('rho: too many files')
                 elif len(nc_file_rho) == 0:
                     print('rho: no files')
-                    # nc_file_rho = nc_file_mom
                 else:
                     nc_file_rho = nc_file_rho[0]
                 # ----------------------------------------------------------- #
@@ -590,17 +581,17 @@ for date in DATES:
                 dti = pd.date_range(dti_start, dti_end, freq="5min",
                                     inclusive='both')
                 # ----------------------------------------------------------- #
+                # vol/pcp or bird bad                                         #
                 # ----------------------------------------------------------- #
                 if mode == '90grad':
                     data = dttree.open_datatree(nc_file_mom)[
                         'sweep_' + str(int(sweep))].to_dataset()
                     # ------------------------------------------------------- #
                     # plot calibration
+                    ax = None
                     if plot:
                         index = index + 1
-                        ax = plt.subplot(n_rows, n_cols, index + 0*n_cols)
-                    else:
-                        ax = None
+                        ax = plt.subplot(n_rows, n_cols, index + 0 * n_cols)
 
                     bb_off, bb_nm = cal_zdr_birdbath(data, plot=plot, ax=ax)
                     # saving
@@ -632,7 +623,8 @@ for date in DATES:
                         print('saving: ... ' + path_out_nc.split('/')[-1] +
                               ' ...')
                         dtree.load().to_netcdf(path_out_nc)
-                        data.close()
+
+                    data.close()
                 else:
                     data = dttree.open_datatree(nc_file_mom)[
                         'sweep_' + str(int(sweep))].to_dataset()
@@ -658,8 +650,9 @@ for date in DATES:
                     axes = None
                     if plot:
                         index = index + 1
-                        axes = [plt.subplot(n_rows, n_cols, index + 0*n_cols),
-                                plt.subplot(n_rows, n_cols, index + 0*n_cols)]
+                        axes = [
+                            plt.subplot(n_rows, n_cols, index + 0 * n_cols),
+                            plt.subplot(n_rows, n_cols, index + 0 * n_cols)]
 
                     lr_off, lr_nm = cal_zdr_lightrain(data, band='C',
                                                       plot=[plot, False],
@@ -674,16 +667,18 @@ for date in DATES:
                                           '    ')
 
                     if plot:
-                        axes = [plt.subplot(n_rows, n_cols, index + 1*n_cols),
-                                plt.subplot(n_rows, n_cols, index + 1*n_cols)]
+                        axes = [
+                            plt.subplot(n_rows, n_cols, index + 1 * n_cols),
+                            plt.subplot(n_rows, n_cols, index + 1 * n_cols)]
 
                     sd_off, sd_nm = cal_zdr_smalldrops(data, band='C',
                                                        plot=[plot, False],
                                                        axes=axes,
                                                        colorbar=colorbar)
                     if plot:
-                        axes = [plt.subplot(n_rows, n_cols, index + 2*n_cols),
-                                plt.subplot(n_rows, n_cols, index + 2*n_cols)]
+                        axes = [
+                            plt.subplot(n_rows, n_cols, index + 2 * n_cols),
+                            plt.subplot(n_rows, n_cols, index + 2 * n_cols)]
 
                     lr_off_ec, lr_nm_ec = cal_zdr_lightrain(data2, band='C',
                                                             plot=[plot, False],
@@ -697,8 +692,9 @@ for date in DATES:
                                           r'$°) \rightarrow Z_{DR}(0°)$')
 
                     if plot:
-                        axes = [plt.subplot(n_rows, n_cols, index + 3*n_cols),
-                                plt.subplot(n_rows, n_cols, index + 3*n_cols)]
+                        axes = [
+                            plt.subplot(n_rows, n_cols, index + 3 * n_cols),
+                            plt.subplot(n_rows, n_cols, index + 3 * n_cols)]
 
                     sd_off_ec, sd_nm_ec = cal_zdr_smalldrops(data2, band='C',
                                                              plot=[plot,
@@ -783,7 +779,12 @@ for date in DATES:
                         print('saving: ... ' + path_out_nc.split('/')[-1] +
                               ' ...')
                         dtree.load().to_netcdf(path_out_nc)
-                        data.close()
+
+                    data.close()
+                    data2.close()
+                    data_rho.close()
+                    data_temp.close()
+                    data_temp2.close()
             else:
                 print('exists: ' + path_out_nc + ' -> continue')
                 save = False

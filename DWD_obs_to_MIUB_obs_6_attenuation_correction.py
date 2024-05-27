@@ -2,240 +2,33 @@
 # #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
 
 # --------------------------------------------------------------------------- #
-# Julian Steinheuer; 22.05.24                                                 #
-# plot_vol2dhist_calibrate_zdr.py                                             #
+# Julian Steinheuer; 27.05.24                                                 #
+# DWD_obs_to_MIUB_obs_6_attenuation_correction.py                             #
 #                                                                             #
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
-# STEP 5: calibrate ZDR (plotting routine)                                    #
-#         Adapted from Velibor Pejcic                                         #
+# STEP 6: attenuation correction.                                             #
+#         see Ryzhkov and Zrnic (2019): 6.4 (pp. 162, 167)                    #
 # --------------------------------------------------------------------------- #
 
-import HEADER_RADAR_toolbox as header
-import xarray as xr
 import datatree as dttree
 import numpy as np
-import matplotlib.pyplot as plt
-import wradlib as wrl
-import glob
 import pandas as pd
+import sys
+import glob
+import HEADER_RADAR_toolbox as header
 import os
-# import matplotlib as mpl
-# from PLOT_PPI import plot_PPI, plot_PPI_temp_ring
-
-# --------------------------------------------------------------------------- #
-
-
-# V. Pejcic
-def hist_2d(A, B, bins1=35, bins2=35, mini=1, maxi=None, ax=None, cmap='jet',
-            alpha=1, fsize=15, colorbar=True, density=True):
-    """
-    # Histogram 2d Quicklooks
-    # ------------------------
-    Plotting 2d Histogramm of two varibles
-    # Input
-    # -----
-    A,B  ::: Variables
-    bins1, bins2 ::: x, y bins
-    mini, maxi  ::: min and max
-    cmap  ::: colormap
-    colsteps  ::: number of cmap steps
-    alpha  ::: transperency
-    fsize  ::: fontsize
-    # Output
-    # ------
-    2D Histogramm Plot
-    """
-    from matplotlib.colors import LogNorm
-    m = ~np.isnan(A) & ~np.isnan(B)
-    if density:
-        norm =LogNorm(vmin=0.000001, vmax=1.01)
-    else:
-        norm = LogNorm(vmin=mini, vmax=maxi)
-
-    if ax:
-        h = ax.hist2d(A[m], B[m], bins=(bins1, bins2), cmap=cmap,
-                      density=density, norm=norm, alpha=alpha)
-    else:
-        h = plt.hist2d(A[m], B[m], bins=(bins1, bins2), cmap=cmap,
-                       density=density, norm=norm, alpha=alpha)
-
-    if colorbar:
-        cb = plt.colorbar(h[3], shrink=1, pad=0.01, ax=ax)
-        if not density:
-            cb.ax.set_title('#', fontsize=fsize)
-
-        cb.ax.tick_params(labelsize=fsize)
+import xarray as xr
+from scipy.ndimage import uniform_filter, gaussian_filter
+import time
+import warnings
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+warnings.filterwarnings("ignore")
 
 
 # J. Steinheuer
-def cal_zdr_lightrain(swp_cf, band='C', plot=[True, True],
-                      colorbar=[True, True], axes=None):
-    """
-    ZH-ZDR Consistency in light rain
-    AR p.155-156
-    """
-    zdr_bar = {'S': [0.23, 0.27, 0.32, 0.38, 0.46, 0.55],
-               'C': [0.23, 0.27, 0.33, 0.40, 0.48, 0.56],
-               'X': [0.23, 0.28, 0.33, 0.41, 0.49, 0.58]}
-    swp_mask = swp_cf.where((swp_cf.temp_beamtop > 4 + 273.15) &
-                            (swp_cf.RHOHV > 0.98) &
-                            np.isnan(swp_cf.CMAP))
-    zdr_zh_20 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 19) &
-                                            (swp_mask.DBZH < 21)).ZDR)
-    zdr_zh_22 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 21) &
-                                            (swp_mask.DBZH < 23)).ZDR)
-    zdr_zh_24 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 23) &
-                                            (swp_mask.DBZH < 25)).ZDR)
-    zdr_zh_26 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 25) &
-                                            (swp_mask.DBZH < 27)).ZDR)
-    zdr_zh_28 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 27) &
-                                            (swp_mask.DBZH < 29)).ZDR)
-    zdr_zh_30 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 29) &
-                                            (swp_mask.DBZH < 31)).ZDR)
-    zdroffset = np.nansum(
-        [zdr_zh_20 - zdr_bar[band][0], zdr_zh_22 - zdr_bar[band][1],
-         zdr_zh_24 - zdr_bar[band][2], zdr_zh_26 - zdr_bar[band][3],
-         zdr_zh_28 - zdr_bar[band][4], zdr_zh_30 - zdr_bar[band][5]]) / 6.
-    nm = np.sum(((swp_mask.DBZH >= 19) & (swp_mask.DBZH < 31) &
-                 (~np.isnan(swp_mask.DBZH)))).values.item()
-    if plot[0]:
-        if axes is None:
-            plt.figure(figsize=(8, 3))
-            ax = plt.subplot(1, 2, 1)
-        else:
-            ax = axes[0]
-
-        hist_2d(swp_mask.where((swp_mask.DBZH >= 19) & (swp_mask.DBZH < 31)
-                               ).DBZH.values.flatten(),
-                swp_mask.where((swp_mask.DBZH >= 19) & (swp_mask.DBZH < 31)
-                               ).ZDR.values.flatten() - zdroffset,
-                ax=ax,
-                colorbar=colorbar[0],
-                bins1=np.arange(0, 40, 1),
-                bins2=np.arange(-1, 3, .1))
-        ax.plot([20, 22, 24, 26, 28, 30], zdr_bar[band], color='black')
-        # ax.set_title('Calibrated $Z_{DR}$ (used)')
-        ax.set_xlabel(r'$Z_H [dBZ]$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR} [dB]$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-        ax.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                        'dB\n' + r'$N$: ' + str(nm), loc='upper left')
-
-    if plot[1]:
-        if axes is None:
-            ax = plt.subplot(1, 2, 2)
-        else:
-            ax = axes[1]
-
-        hist_2d(swp_cf.DBZH.values.flatten(),
-                swp_cf.ZDR.values.flatten() - zdroffset,
-                ax=ax,
-                colorbar=colorbar[1],
-                bins1=np.arange(0, 40, 1),
-                bins2=np.arange(-1, 3, .1))
-        ax.plot([20, 22, 24, 26, 28, 30], zdr_bar[band], color='black')
-        # ax.set_title('Calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-        ax.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                        'dB\n' + r'$N$: ' + str(nm), loc='upper left')
-
-    if sum(plot) > 0:
-        plt.tight_layout()
-        # plt.show()
-
-    return zdroffset, nm
-
-
-# J. Steinheuer
-def cal_zdr_smalldrops(swp_cf, band='C', plot=[True, True],
-                      colorbar=[True, True],  axes=None):
-    """
-    Daniel zhzdr_for_small_drops ...
-    """
-    zdr_bar = {'X': 0.165, 'C': 0.183, 'S': 0.176}
-    swp_mask = swp_cf.where((swp_cf.DBZH > 0) &
-                            (swp_cf.DBZH < 20) &
-                            (swp_cf.RHOHV > 0.98) &
-                            (swp_cf.temp_beamtop > 4 + 273.15) &
-                            np.isnan(swp_cf.CMAP))
-    zdr_zh_1 = np.nanmedian(swp_mask.ZDR)
-    zdroffset = np.nansum(zdr_zh_1 - zdr_bar[band])
-    nm = np.sum(~np.isnan(swp_mask.ZDR.values))
-    if plot[0]:
-        if axes is None:
-            plt.figure(figsize=(8, 3))
-            ax = plt.subplot(1, 2, 1)
-        else:
-            ax = axes[0]
-
-        hist_2d(swp_mask.DBZH.values.flatten(),
-                swp_mask.ZDR.values.flatten() - zdroffset,
-                ax=ax,
-                colorbar=colorbar[0],
-                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-        ax.axhline(zdr_bar[band], color='black')
-        # ax.set_title('Calibrated $Z_{DR}$ (used)')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-        ax.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                        'dB\n' + r'$N$: ' + str(nm))
-
-    if plot[1]:
-        if axes is None:
-            ax = plt.subplot(1, 2, 2)
-        else:
-            ax = axes[1]
-
-        hist_2d(swp_cf.DBZH.values.flatten(),
-                swp_cf.ZDR.values.flatten() - zdroffset,
-                ax=ax,
-                colorbar=colorbar[1],
-                bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
-        ax.axhline(zdr_bar[band], color='black')
-        # ax.set_title('Calibrated $Z_{DR}$')
-        ax.set_xlabel(r'$Z_H$', fontsize=15)
-        ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
-        ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
-        ax.legend(title=r'$\Delta Z_{DR}$: ' + str(np.round(zdroffset, 3)) +
-                        'dB\n' + r'$N$: ' + str(nm))
-
-    if sum(plot) > 0:
-        plt.tight_layout()
-        # plt.show()
-
-    return zdroffset, nm
-
-
-# J. Steinheuer
-def zdr_at_zero_elev(swp_cf):
-    """
-    rearange Eq. (8) from Sanchez-Rivas, Rico-Ramirez 2022
-    (resp. from Chandrasekar(2001)).
-    """
-    zdr = swp_cf.ZDR
-    el = swp_cf.elevation
-    zdr_lin = 10 ** (zdr / 10)
-    el_rad = el * np.pi / 180
-    zdr_lin_0 = (zdr_lin * np.cos(el_rad) ** 4) / \
-                (zdr_lin * np.sin(el_rad) ** 4 -
-                 2 * zdr_lin ** (1 / 2) * np.sin(el_rad) ** 2 + 1)
-    # zdr_lin_02 = (zdr_lin * np.cos(el_rad)**4) / \
-    #              (zdr_lin * np.sin(el_rad)**4 +
-    #               2 * zdr_lin**(1 / 2) * np.sin(el_rad)**2 + 1)
-    zdr_0 = 10 * np.log10(zdr_lin_0)
-    zdr_0.attrs["long_name"] = 'equivalent log differential reflectivity at 0°'
-    zdr_0.attrs["short_name"] = 'equivalent ZDR 0°'
-    zdr_0.attrs["units"] = 'dB'
-    swp_cf = swp_cf.assign(ZDR0=zdr_0)
-    return swp_cf
-
-
-# J. Steinheuer
-def cal_zdr_birdbath(swp_cf, plot=True, ax=None):
+def attenuation_correction(swp_cf, alpha=0.08, beta=0.02, until_temp_bottom=4):
     """
     ...
     """
@@ -267,15 +60,6 @@ def cal_zdr_birdbath(swp_cf, plot=True, ax=None):
 
 
 # --------------------------------------------------------------------------- #
-# --------------------------------------------------------------------------- #
-# case (adjust!):
-# date = "20221222"
-# date = "20210714"
-# location = 'oft'
-# location = 'fld'
-# location = 'ess'
-# --------------------------------------------------------------------------- #
-# OR:
 DATES = [
     "20210714",  # case09
     "20210604",  # case01
@@ -298,34 +82,7 @@ LOCATIONS = [
 ]
 # --------------------------------------------------------------------------- #
 overwrite = False
-plot = True
-pdf_or_png = 'png'
-include_sweep = np.array([
-    True,
-    True, True, True, True, True, True,
-    True, True, True, True,
-    True,
-])
-# include_sweep = np.array([
-#     True,
-#     False, False, False, False, False, False,
-#     False, False, False, True,
-#     True
-# ])
-elevation_degs = np.array([
-    5.5,
-    5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-    8., 12., 17., 25.,
-    5.5,
-])
-modes = np.array([
-    'pcp',
-    'vol', 'vol', 'vol', 'vol', 'vol', 'vol',
-    'vol', 'vol', 'vol', 'vol',
-    '90grad'
-])
-elevation_degs = elevation_degs[include_sweep]
-modes = modes[include_sweep]
+
 # case (adjust!):
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -423,8 +180,12 @@ for date in DATES:
                         'sweep_' + str(int(sweep))].to_dataset()
                     # ------------------------------------------------------- #
                     # plot calibration
-                    index = index + 1
-                    ax = plt.subplot(n_rows, n_cols, index + 0*n_cols)
+                    if plot:
+                        index = index + 1
+                        ax = plt.subplot(n_rows, n_cols, index + 0*n_cols)
+                    else:
+                        ax = None
+
                     bb_off, bb_nm = cal_zdr_birdbath(data, plot=plot, ax=ax)
                     # saving
                     path_out_nc = nc_file_mom.replace(

@@ -227,30 +227,23 @@ DATES = [
     "20210628", "20210629",  # case03
     "20220519", "20220520",  # case04
     "20220623", "20220624", "20220625",  # case05
-    "20220626",
-    "20220627",
-    "20220628",  # case06+07
+    "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
     "20210714",  # case09
     "20221222",  # case10
 ]
 LOCATIONS = [
-    'asb',
-    'boo', 'drs', 'eis',
-    'ess',
-    'fbg', 'fld', 'hnr', 'isn',
-    'mem', 'neu', 'nhb',
-    'oft',
-    'pro', 'ros', 'tur', 'umd',
+    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    'pcp',
-    'vol',
-    # '90grad'  # TODO: '90grad' Birth Bath ?!
+    # 'pcp',
+    # 'vol',
 ]
 overwrite = False
 # --------------------------------------------------------------------------- #
@@ -268,22 +261,20 @@ for date in DATES:
 # SET PARAMS:
 DATES = [
     "20170719",
+    "20170725",
 ]
 LOCATIONS = [
-    'pro', 'umd', 'nhb', 'fld',
-    # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
-    # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0,
-    12.0,
-    # 17.0, 25.0
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',
     'vol',
-    # '90grad'  # TODO: '90grad' Birth Bath ?!
 ]
 overwrite = False
 # --------------------------------------------------------------------------- #
@@ -297,4 +288,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-import DWD_obs_to_MIUB_obs_3_ERA5_temp_to_RAD
+# import DWD_obs_to_MIUB_obs_3_ERA5_temp_to_RAD

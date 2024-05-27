@@ -251,8 +251,8 @@ def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt,
     #         mod_z >= rad_alt.min()) & (mod_z <= rad_alt.max())
 
     # only those model data that are in radar domain + bordering volume
-    outer_x = 0.3 * (rad_x.max() - rad_x.min())
-    outer_y = 0.3 * (rad_y.max() - rad_y.min())
+    outer_x = max(0.3 * (rad_x.max() - rad_x.min()), 1)
+    outer_y = max(0.3 * (rad_y.max() - rad_y.min()), 1)
     lower_z = 50
     upper_z = 2000
     mask = (mod_x >= rad_x.min() - outer_x) & (

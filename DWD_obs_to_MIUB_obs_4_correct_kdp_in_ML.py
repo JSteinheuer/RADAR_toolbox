@@ -490,23 +490,17 @@ DATES = [
     "20221222",  # case10
 ]
 LOCATIONS = [
-    'asb',
-    'boo', 'drs', 'eis',
-    'ess',
-    'fbg', 'fld',
-    'hnr', 'isn',
-    'mem', 'neu', 'nhb', 'oft',
-    'pro', 'ros',
-    'tur', 'umd',
+    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    'pcp',
-    'vol',
-    # '90grad'  # TODO: '90grad' Birth Bath ?!
+    # 'pcp',
+    # 'vol',
 ]
 overwrite = False
 # --------------------------------------------------------------------------- #
@@ -544,22 +538,20 @@ for date in DATES:
 # SET PARAMS:
 DATES = [
     "20170719",
+    "20170725",
 ]
 LOCATIONS = [
-    'pro', 'umd', 'nhb', 'fld',
-    # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
-    # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
-    # # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0,
-    # 12.0,
-    # # 17.0, 25.0
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',
-    # 'vol',
-    # '90grad'  # TODO: '90grad' Birth Bath ?!
+    'vol',
 ]
 overwrite = False
 # --------------------------------------------------------------------------- #

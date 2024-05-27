@@ -305,7 +305,7 @@ def extract_all_moms(date, location, elevation_deg=5.5, mode='vol',
             if 'rhohv_nc' not in file:
                 if 'ERA5' not in file:
                     if 'kdp_nc' not in file:
-                        if 'zdr_c' not in file:
+                        if 'zdr_off' not in file:
                             files_temp.append(file)
 
     files = files_temp
@@ -336,7 +336,10 @@ def extract_all_moms(date, location, elevation_deg=5.5, mode='vol',
     for file in files:
         if 'allmoms' not in file:
             if 'rhohv_nc' not in file:
-                files_temp.append(file)
+                if 'ERA5' not in file:
+                    if 'kdp_nc' not in file:
+                        if 'zdr_off' not in file:
+                            files_temp.append(file)
 
     files = files_temp
     name = files[0].split("/")[-1].split("_")
@@ -386,8 +389,7 @@ DATES = [
     "20210604",  # case01
     "20210620", "20210621",  # case02
     "20210628", "20210629",  # case03
-    "20220519",
-    "20220520",  # case04
+    "20220519", "20220520",  # case04
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
@@ -395,26 +397,20 @@ DATES = [
     "20221222",  # case10
 ]
 LOCATIONS = [
-    'asb',
-    'boo', 'drs', 'eis',
-    'ess',
-    'fbg', 'fld', 'hnr', 'isn',
-    'mem', 'neu', 'nhb',
-    'oft',
-    'pro', 'ros', 'tur', 'umd',
+    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0
+    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    'pcp',
-    'vol',
-    '90grad'  # TODO: '90grad' Birth Bath ?!
+    # 'pcp',
+    # 'vol',
+    '90grad',
 ]
-moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
-# moments = ['DFTV', 'DFTV']
-# moments = '*'
+moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC', ]
 overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
@@ -430,29 +426,24 @@ for date in DATES:
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20170719",
+    "20170719",
     "20170725",
 ]
 LOCATIONS = [
-    'pro',
-    'umd', 'nhb', 'fld',
-    # 'asb', 'boo', 'drs', 'eis', 'ess', 'fbg', 'fld',  'hnr', 'isn',
-    # 'mem', 'neu', 'nhb', 'oft', 'pro', 'ros', 'tur', 'umd',
+    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
-    # # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0,
-    # 12.0,
-    # # 17.0, 25.0
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    # 'pcp',
-    # 'vol',
-    '90grad'  # TODO: '90grad' Birth Bath ?!
+    'pcp',
+    'vol',
+    '90grad',
 ]
-moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC']
-# moments = ['DFTV', 'DFTV']
-# moments = '*'
+moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC', ]
 overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
