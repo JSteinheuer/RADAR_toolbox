@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+# !/usr/bin/env python3.11
 # #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
 
 # --------------------------------------------------------------------------- #
@@ -24,7 +24,6 @@ import time
 import warnings
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-
 warnings.filterwarnings("ignore")
 
 
@@ -440,13 +439,502 @@ def cal_zdr_birdbath(swp_cf, plot=True, ax=None):
     return zdroffset, nm
 
 
+# J. Steinheuer
+def calibrate_zdr(date, location, elevation_deg=5.5, mode='pcp',
+                  overwrite=False):
+    """
+    calibrate zdr.
+    Parameter
+    ---------
+    date : 'yyyymmdd' date string.
+    location : 'rrr' 3-letter string for radar location.
+    elevation_degs : elevations in degrees, set to 5.5 for precipitation scan
+                    (as this is the sweep 0 for the volume).
+    modes : set 'vol' for volume and 'pcp' for precipitation.
+    overwrite : Bool;, if *zdr_off*-output exists, it can be
+                       overwritten
+    """
+    print(mode + ' ' +
+          (str(elevation_deg) if (mode == 'vol') else '') +
+          ' ' + location + ' ' + date)
+    sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
+                               float(elevation_deg))[0][0])
+    year = date[0:4]
+    mon = date[4:6]
+    day = date[6:8]
+    folder_in = "/".join([header.dir_data_obs + '*', year,
+                          year + '-' + mon,
+                          year + '-' + mon + '-' + day,
+                          location, mode + '*', sweep])
+    nc_file_mom = glob.glob(folder_in + '/*allmoms*')
+    if len(nc_file_mom) > 1:
+        print('mom: too many files')
+        return
+    elif len(nc_file_mom) == 0:
+        print('mom: no files')
+        return
+    else:
+        nc_file_mom = nc_file_mom[0]
+
+    path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
+    if overwrite or not os.path.exists(path_out_nc) or plot:
+        nc_file_temp = glob.glob(folder_in + '/*temp*')
+        if len(nc_file_temp) > 1:
+            print('temp: too many files')
+            if mode != '90grad':
+                return
+
+        elif len(nc_file_temp) == 0:
+            print('temp: no files')
+            if mode != '90grad':
+                return
+
+        else:
+            nc_file_temp = nc_file_temp[0]
+
+        nc_file_rho = glob.glob(folder_in + '/*rhohv_nc*')
+        if len(nc_file_rho) > 1:
+            print('rho: too many files')
+            if mode != '90grad':
+                return
+
+        elif len(nc_file_rho) == 0:
+            print('rho: no files')
+            if mode != '90grad':
+                return
+
+        else:
+            nc_file_rho = nc_file_rho[0]
+
+        # --------------------------------------------------------------- #
+        # vol/pcp or bird bad                                             #
+        # --------------------------------------------------------------- #
+        if mode == '90grad':
+            data = dttree.open_datatree(nc_file_mom)[
+                'sweep_' + str(int(sweep))].to_dataset()
+            bb_off, bb_nm = cal_zdr_birdbath(data, plot=[False, False],
+                                             ax=None)
+            path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
+            if not overwrite and os.path.exists(path_out_nc):
+                print('exists: ' + path_out_nc + ' -> continue')
+            else:
+                remo_var = list(data.data_vars.keys())
+                remo_var.remove('ZDR')
+                data = data.drop_vars(remo_var)
+                data['zdr_off_bb'] = bb_off
+                data['zdr_off_bb'].attrs["long_name"] = 'ZDR offset ' + \
+                                                        'from bird bath'
+                data['zdr_off_bb'].attrs["short_name"] = 'ZDR off BB'
+                data['zdr_off_bb'].attrs["units"] = 'dB'
+                data['zdr_off_bb'].attrs["comment"] = 'to subtract ' + \
+                                                      'from ZDR'
+                data['zdr_off_bb_n'] = bb_nm
+                data['zdr_off_bb_n'].attrs["long_name"] = 'number ' + \
+                                                          'values for BB'
+                data['zdr_off_bb_n'].attrs["short_name"] = 'nm for BB'
+                data['zdr_off_bb_n'].attrs["units"] = '1'
+                dtree = dttree.DataTree(name="root")
+                dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                                parent=dtree)
+                print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
+                dtree.load().to_netcdf(path_out_nc)
+
+            data.close()
+        else:
+            data = dttree.open_datatree(nc_file_mom)[
+                'sweep_' + str(int(sweep))].to_dataset()
+            data_rho = dttree.open_datatree(nc_file_rho)[
+                'sweep_' + str(int(sweep))].to_dataset()
+            data_temp = dttree.open_datatree(nc_file_temp)[
+                'sweep_' + str(int(sweep))].to_dataset()
+            data_temp2 = data_temp.interp(
+                coords=data.drop(['longitude', 'latitude',
+                                  'altitude', 'elevation']).coords,
+                method='nearest')
+            data.RHOHV.values = data_rho.RHOHV_NC2P.values
+            data = data.assign({'temp_beamtop': data_temp2.temp_beamtop})
+            data = data.transpose('time', 'azimuth', 'range')
+            data2 = zdr_at_zero_elev(data)
+            data2 = data.assign({'ZDR': data2.ZDR0})
+            lr_off, lr_nm = cal_zdr_lightrain(data, band='C',
+                                              plot=[False, False],
+                                              axes=None,
+                                              colorbar=[False, False])
+            sd_off, sd_nm = cal_zdr_smalldrops(data, band='C',
+                                               plot=[False, False],
+                                               axes=None,
+                                               colorbar=[False, False])
+            lr_off_ec, lr_nm_ec = cal_zdr_lightrain(data2, band='C',
+                                                    plot=[False, False],
+                                                    axes=None,
+                                                    colorbar=[False, False])
+            sd_off_ec, sd_nm_ec = cal_zdr_smalldrops(data2, band='C',
+                                                     plot=[False, False],
+                                                     axes=None,
+                                                     colorbar=[False, False])
+            path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
+            if not overwrite and os.path.exists(path_out_nc):
+                print('exists: ' + path_out_nc + ' -> continue')
+            else:
+                remo_var = list(data.data_vars.keys())
+                remo_var.remove('ZDR')
+                data = data.drop_vars(remo_var)
+                data['zdr_off_lr'] = lr_off
+                data['zdr_off_lr'].attrs["long_name"] = 'ZDR offset ' + \
+                                                        'from light rain'
+                data['zdr_off_lr'].attrs["short_name"] = 'ZDR off LR'
+                data['zdr_off_lr'].attrs["units"] = 'dB'
+                data['zdr_off_lr'].attrs["comment"] = 'to subtract ' + \
+                                                      'from ZDR'
+                data['zdr_off_lr_n'] = lr_nm
+                data['zdr_off_lr_n'].attrs["long_name"] = 'number ' + \
+                                                          'values for LR'
+                data['zdr_off_lr_n'].attrs["short_name"] = 'nm for LR'
+                data['zdr_off_lr_n'].attrs["units"] = '1'
+                data['zdr_off_lr_ec'] = lr_off_ec
+                data['zdr_off_lr_ec'].attrs["long_name"] = \
+                    'ZDR offset from light rain and elevation ' + \
+                    'corrected ZDR'
+                data['zdr_off_lr_ec'].attrs["short_name"] = 'ZDR off LR ec'
+                data['zdr_off_lr_ec'].attrs["units"] = 'dB'
+                data['zdr_off_lr_ec'].attrs["comment"] = 'to subtract ' + \
+                                                         'from ZDR'
+                data['zdr_off_lr_n_ec'] = lr_nm
+                data['zdr_off_lr_n_ec'].attrs["long_name"] = \
+                    'number values for LR ec'
+                data['zdr_off_lr_n_ec'].attrs["short_name"] = 'nm for ' + \
+                                                              'LR ec'
+                data['zdr_off_lr_n_ec'].attrs["units"] = '1'
+                data['zdr_off_sd'] = sd_off
+                data['zdr_off_sd'].attrs["long_name"] = 'ZDR offset ' + \
+                                                        'from small drops'
+                data['zdr_off_sd'].attrs["short_name"] = 'ZDR off SD'
+                data['zdr_off_sd'].attrs["units"] = 'dB'
+                data['zdr_off_sd'].attrs["comment"] = 'to subtract ' + \
+                                                      'from ZDR'
+                data['zdr_off_sd_n'] = sd_nm
+                data['zdr_off_sd_n'].attrs["long_name"] = 'number' + \
+                                                          ' values for SD'
+                data['zdr_off_sd_n'].attrs["short_name"] = 'nm for SD'
+                data['zdr_off_sd_n'].attrs["units"] = '1'
+                data['zdr_off_sd_ec'] = sd_off_ec
+                data['zdr_off_sd_ec'].attrs["long_name"] = \
+                    'ZDR offset from small drops and elevation ' + \
+                    'corrected ZDR'
+                data['zdr_off_sd_ec'].attrs["short_name"] = 'ZDR off SD ec'
+                data['zdr_off_sd_ec'].attrs["units"] = 'dB'
+                data['zdr_off_sd_ec'].attrs["comment"] = 'to subtract ' + \
+                                                         'from ZDR'
+                data['zdr_off_sd_n_ec'] = sd_nm
+                data['zdr_off_sd_n_ec'].attrs["long_name"] = \
+                    'number values for SD ec'
+                data['zdr_off_sd_n_ec'].attrs["short_name"] = 'nm for ' + \
+                                                              'SD ec'
+                data['zdr_off_sd_n_ec'].attrs["units"] = '1'
+                dtree = dttree.DataTree(name="root")
+                dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                                parent=dtree)
+                print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
+                dtree.load().to_netcdf(path_out_nc)
+
+            data.close()
+            data2.close()
+            data_rho.close()
+            data_temp.close()
+            data_temp2.close()
+    else:
+        print('exists: ' + path_out_nc + ' -> continue')
+
+    return
+
+
+# J. Steinheuer
+def calibrate_zdr_with_plot(date, location,
+                            elevation_degs=np.array([5.5, 5.5, 4.5, 3.5, 2.5,
+                                                     1.5, 0.5, 8., 12., 17.,
+                                                     25., 5.5]),
+                            modes=np.array(['pcp', 'vol', 'vol', 'vol', 'vol',
+                                            'vol', 'vol', 'vol', 'vol', 'vol',
+                                            'vol', '90grad']),
+                            overwrite=False, pdf_or_png='png',
+                            ):
+    """
+    calibrate zdr and plot it.
+    Parameter
+    ---------
+    date : 'yyyymmdd' date string.
+    location : 'rrr' 3-letter string for radar location.
+    elevation_degs : elevations in degrees, set to 5.5 for precipitation scan
+                    (as this is the sweep 0 for the volume).
+    modes : set 'vol' for volume and 'pcp' for precipitation.
+    overwrite : Bool; if *allmoms*-output and plot exists, it can be
+                      overwritten
+    pdf_or_png : 'png' or 'pdf'
+    """
+    index = 0
+    n_rows = 4
+    n_cols = elevation_degs.size
+    plt.figure(figsize=(3 * n_cols, 3 * n_rows))
+    save = True
+    # ----------------------------------------------------------------------- #
+    # loop over all elevations:
+    # ----------------------------------------------------------------------- #
+    for elevation_deg, mode in zip(elevation_degs, modes):
+        print(mode + ' ' +
+              (str(elevation_deg) if (mode == 'vol') else '') +
+              ' ' + location + ' ' + date)
+        folder_plot = header.folder_plot
+        sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
+                                   float(elevation_deg))[0][0])
+        year = date[0:4]
+        mon = date[4:6]
+        day = date[6:8]
+        folder_in = "/".join([header.dir_data_obs + '*', year,
+                              year + '-' + mon,
+                              year + '-' + mon + '-' + day,
+                              location, mode + '*', sweep])
+        nc_file_mom = glob.glob(folder_in + '/*allmoms*')
+        if len(nc_file_mom) > 1:
+            print('mom: too many files')
+            return
+        elif len(nc_file_mom) == 0:
+            print('mom: no files')
+            return
+        else:
+            nc_file_mom = nc_file_mom[0]
+
+        path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
+        if overwrite or not os.path.exists(path_out_nc) or plot:
+            if elevation_deg == elevation_degs[0] and mode == modes[0]:
+                file_in = nc_file_mom.split('/')[-1]
+                file_out = file_in.replace('.hd5', '_' + str(n_rows) +
+                                           'x' + str(n_cols) + '.' +
+                                           pdf_or_png).replace('_' + sweep,
+                                                               '_all')
+                path_out_plot = folder_plot + 'ZDR_calibration/' + \
+                                location.upper() + '/ZDR_calibration_' + \
+                                str(n_rows) + 'x' + str(n_cols) + '_' + \
+                                file_out
+                if os.path.isfile(path_out_plot) and not overwrite:
+                    print(path_out_plot + ' exists;\n' + ' ... set: ' +
+                          '> overwrite = True < for recalculation')
+                    plt.close()
+                    save = False
+                    break
+
+            nc_file_temp = glob.glob(folder_in + '/*temp*')
+            if len(nc_file_temp) > 1:
+                print('temp: too many files')
+                if mode != '90grad':
+                    return
+
+            elif len(nc_file_temp) == 0:
+                print('temp: no files')
+                if mode != '90grad':
+                    return
+            else:
+                nc_file_temp = nc_file_temp[0]
+
+            nc_file_rho = glob.glob(folder_in + '/*rhohv_nc*')
+            if len(nc_file_rho) > 1:
+                print('rho: too many files')
+                if mode != '90grad':
+                    return
+
+            elif len(nc_file_rho) == 0:
+                print('rho: no files')
+                if mode != '90grad':
+                    return
+
+            else:
+                nc_file_rho = nc_file_rho[0]
+
+            # --------------------------------------------------------------- #
+            # vol/pcp or bird bad                                             #
+            # --------------------------------------------------------------- #
+            if mode == '90grad':
+                data = dttree.open_datatree(nc_file_mom)[
+                    'sweep_' + str(int(sweep))].to_dataset()
+                index = index + 1
+                ax = plt.subplot(n_rows, n_cols, index + 0 * n_cols)
+                bb_off, bb_nm = cal_zdr_birdbath(data, plot=plot, ax=ax)
+                path_out_nc = nc_file_mom.replace(
+                    '_allmoms_', '_zdr_off_')
+                if not overwrite and os.path.exists(path_out_nc):
+                    print('exists: ' + path_out_nc + ' -> continue')
+                else:
+                    remo_var = list(data.data_vars.keys())
+                    remo_var.remove('ZDR')
+                    data = data.drop_vars(remo_var)
+                    data['zdr_off_bb'] = bb_off
+                    data['zdr_off_bb'].attrs["long_name"] = 'ZDR offset ' + \
+                                                            'from bird bath'
+                    data['zdr_off_bb'].attrs["short_name"] = 'ZDR off BB'
+                    data['zdr_off_bb'].attrs["units"] = 'dB'
+                    data['zdr_off_bb'].attrs["comment"] = 'to subtract ' + \
+                                                          'from ZDR'
+                    data['zdr_off_bb_n'] = bb_nm
+                    data['zdr_off_bb_n'].attrs["long_name"] = 'number ' + \
+                                                              'values for BB'
+                    data['zdr_off_bb_n'].attrs["short_name"] = 'nm for BB'
+                    data['zdr_off_bb_n'].attrs["units"] = '1'
+                    dtree = dttree.DataTree(name="root")
+                    dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                                    parent=dtree)
+                    print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
+                    dtree.load().to_netcdf(path_out_nc)
+
+                data.close()
+            else:
+                data = dttree.open_datatree(nc_file_mom)[
+                    'sweep_' + str(int(sweep))].to_dataset()
+                data_rho = dttree.open_datatree(nc_file_rho)[
+                    'sweep_' + str(int(sweep))].to_dataset()
+                data_temp = dttree.open_datatree(nc_file_temp)[
+                    'sweep_' + str(int(sweep))].to_dataset()
+                data_temp2 = data_temp.interp(
+                    coords=data.drop(['longitude', 'latitude',
+                                      'altitude', 'elevation']).coords,
+                    method='nearest')
+                data.RHOHV.values = data_rho.RHOHV_NC2P.values
+                data = data.assign({'temp_beamtop': data_temp2.temp_beamtop})
+                data = data.transpose('time', 'azimuth', 'range')
+                data2 = zdr_at_zero_elev(data)
+                data2 = data.assign({'ZDR': data2.ZDR0})
+                colorbar = [True, True]
+                index = index + 1
+                axes = [plt.subplot(n_rows, n_cols, index + 0 * n_cols),
+                        plt.subplot(n_rows, n_cols, index + 0 * n_cols)]
+                lr_off, lr_nm = cal_zdr_lightrain(data, band='C',
+                                                  plot=[plot, False],
+                                                  axes=axes,
+                                                  colorbar=colorbar)
+                if mode == 'pcp0':
+                    axes[0].set_title('PCP ' + location.upper() + ' ' +
+                                      date + '    ')
+                else:
+                    axes[0].set_title(str(elevation_deg) + '° ' +
+                                      location.upper() + ' ' + date +
+                                      '    ')
+
+                axes = [plt.subplot(n_rows, n_cols, index + 1 * n_cols),
+                        plt.subplot(n_rows, n_cols, index + 1 * n_cols)]
+                sd_off, sd_nm = cal_zdr_smalldrops(data, band='C',
+                                                   plot=[plot, False],
+                                                   axes=axes,
+                                                   colorbar=colorbar)
+                axes = [plt.subplot(n_rows, n_cols, index + 2 * n_cols),
+                        plt.subplot(n_rows, n_cols, index + 2 * n_cols)]
+                lr_off_ec, lr_nm_ec = cal_zdr_lightrain(data2, band='C',
+                                                        plot=[plot, False],
+                                                        axes=axes,
+                                                        colorbar=colorbar)
+                if mode == 'pcp':
+                    axes[0].set_title(r'$Z_{DR}(PCP) \rightarrow Z_{DR}(0°)$')
+                else:
+                    axes[0].set_title(r'$Z_{DR}($' + str(elevation_deg) +
+                                      r'$°) \rightarrow Z_{DR}(0°)$')
+
+                axes = [plt.subplot(n_rows, n_cols, index + 3 * n_cols),
+                        plt.subplot(n_rows, n_cols, index + 3 * n_cols)]
+                sd_off_ec, sd_nm_ec = cal_zdr_smalldrops(data2, band='C',
+                                                         plot=[plot, False],
+                                                         axes=axes,
+                                                         colorbar=colorbar)
+                path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
+                if not overwrite and os.path.exists(path_out_nc):
+                    print('exists: ' + path_out_nc + ' -> continue')
+                else:
+                    remo_var = list(data.data_vars.keys())
+                    remo_var.remove('ZDR')
+                    data = data.drop_vars(remo_var)
+                    data['zdr_off_lr'] = lr_off
+                    data['zdr_off_lr'].attrs["long_name"] = 'ZDR offset ' + \
+                                                            'from light rain'
+                    data['zdr_off_lr'].attrs["short_name"] = 'ZDR off LR'
+                    data['zdr_off_lr'].attrs["units"] = 'dB'
+                    data['zdr_off_lr'].attrs["comment"] = 'to subtract ' + \
+                                                          'from ZDR'
+                    data['zdr_off_lr_n'] = lr_nm
+                    data['zdr_off_lr_n'].attrs["long_name"] = 'number ' + \
+                                                              'values for LR'
+                    data['zdr_off_lr_n'].attrs["short_name"] = 'nm for LR'
+                    data['zdr_off_lr_n'].attrs["units"] = '1'
+                    data['zdr_off_lr_ec'] = lr_off_ec
+                    data['zdr_off_lr_ec'].attrs["long_name"] = \
+                        'ZDR offset from light rain and elevation ' + \
+                        'corrected ZDR'
+                    data['zdr_off_lr_ec'].attrs["short_name"] = 'ZDR off LR ec'
+                    data['zdr_off_lr_ec'].attrs["units"] = 'dB'
+                    data['zdr_off_lr_ec'].attrs["comment"] = 'to subtract ' + \
+                                                             'from ZDR'
+                    data['zdr_off_lr_n_ec'] = lr_nm
+                    data['zdr_off_lr_n_ec'].attrs["long_name"] = \
+                        'number values for LR ec'
+                    data['zdr_off_lr_n_ec'].attrs["short_name"] = 'nm for ' + \
+                                                                  'LR ec'
+                    data['zdr_off_lr_n_ec'].attrs["units"] = '1'
+                    data['zdr_off_sd'] = sd_off
+                    data['zdr_off_sd'].attrs["long_name"] = 'ZDR offset ' + \
+                                                            'from small drops'
+                    data['zdr_off_sd'].attrs["short_name"] = 'ZDR off SD'
+                    data['zdr_off_sd'].attrs["units"] = 'dB'
+                    data['zdr_off_sd'].attrs["comment"] = 'to subtract ' + \
+                                                          'from ZDR'
+                    data['zdr_off_sd_n'] = sd_nm
+                    data['zdr_off_sd_n'].attrs["long_name"] = 'number' + \
+                                                              ' values for SD'
+                    data['zdr_off_sd_n'].attrs["short_name"] = 'nm for SD'
+                    data['zdr_off_sd_n'].attrs["units"] = '1'
+                    data['zdr_off_sd_ec'] = sd_off_ec
+                    data['zdr_off_sd_ec'].attrs["long_name"] = \
+                        'ZDR offset from small drops and elevation ' + \
+                        'corrected ZDR'
+                    data['zdr_off_sd_ec'].attrs["short_name"] = 'ZDR off SD ec'
+                    data['zdr_off_sd_ec'].attrs["units"] = 'dB'
+                    data['zdr_off_sd_ec'].attrs["comment"] = 'to subtract ' + \
+                                                             'from ZDR'
+                    data['zdr_off_sd_n_ec'] = sd_nm
+                    data['zdr_off_sd_n_ec'].attrs["long_name"] = \
+                        'number values for SD ec'
+                    data['zdr_off_sd_n_ec'].attrs["short_name"] = 'nm for ' + \
+                                                                  'SD ec'
+                    data['zdr_off_sd_n_ec'].attrs["units"] = '1'
+                    dtree = dttree.DataTree(name="root")
+                    dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                                    parent=dtree)
+                    print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
+                    dtree.load().to_netcdf(path_out_nc)
+
+                data.close()
+                data2.close()
+                data_rho.close()
+                data_temp.close()
+                data_temp2.close()
+        else:
+            print('exists: ' + path_out_nc + ' -> continue')
+            save = False
+
+    # ----------------------------------------------------------------------- #
+    # SAVE                                                                    #
+    # ----------------------------------------------------------------------- #
+    if save:
+        plt.tight_layout()
+        if not os.path.exists(folder_plot + 'ZDR_calibration/' +
+                              location.upper() + '/'):
+            os.makedirs(folder_plot + 'ZDR_calibration/' +
+                        location.upper() + '/')
+
+        plt.savefig(path_out_plot, format=pdf_or_png, transparent=True)
+        plt.close()
+
+    return
+
+
 # --------------------------------------------------------------------------- #
+# NEW CASES                                                                   #
 # --------------------------------------------------------------------------- #
-# case (adjust!):
-# date = "20210714"
-# location = 'ess'
-# --------------------------------------------------------------------------- #
-# OR:
+# SET PARAMS:
 DATES = [
     "20210714",  # case09
     "20210604",  # case01
@@ -457,16 +945,14 @@ DATES = [
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
     "20221222",  # case10
-    "20170719",  # old case
-    "20170725",  # old case
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
-# --------------------------------------------------------------------------- #
 overwrite = False
+# ----------------------------------- #
 plot = True
 pdf_or_png = 'png'
 include_sweep = np.array([
@@ -489,9 +975,6 @@ modes = np.array([
 ])
 elevation_degs = elevation_degs[include_sweep]
 modes = modes[include_sweep]
-# case (adjust!):
-# --------------------------------------------------------------------------- #
-# --------------------------------------------------------------------------- #
 # sorting volume
 elevation_degs_2_sort = elevation_degs.copy()
 elevation_degs_2_sort[modes == 'pcp'] = 0
@@ -501,303 +984,78 @@ elevation_degs = elevation_degs[sort_i]
 modes = modes[sort_i]
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
-# --------------------------------------------------------------------------- #
 for date in DATES:
     for location in LOCATIONS:
-        # plot parameters
         if plot:
-            index = 0
-            n_rows = 4
-            n_cols = elevation_degs.size
-            fig = plt.figure(figsize=(3 * n_cols, 3 * n_rows))
-            save = True
+            calibrate_zdr_with_plot(date, location,
+                                    elevation_degs=elevation_degs,
+                                    modes=modes, overwrite=overwrite,
+                                    pdf_or_png=pdf_or_png
+                                    )
+        else:
+            for elevation_deg, mode in zip(elevation_degs, modes):
+                calibrate_zdr(date, location, elevation_deg=elevation_deg,
+                              mode=mode, overwrite=overwrite)
 
-        # ------------------------------------------------------------------- #
-        # loop over all elevations:
-        # ------------------------------------------------------------------- #
-        for elevation_deg, mode in zip(elevation_degs, modes):
-            print(mode + ' ' + (str(elevation_deg) if (mode == 'vol') else '')
-                  + ' ' + location + ' ' + date)
-            # ----------------------------------------------------------------#
-            # folder and file search
-            folder_plot = header.folder_plot
-            sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
-                                       float(elevation_deg))[0][0])
-            year = date[0:4]
-            mon = date[4:6]
-            day = date[6:8]
-            folder_in = "/".join([header.dir_data_obs + '*',
-                                  year, year + '-' + mon,
-                                  year + '-' + mon + '-' + day,
-                                  location, mode + '*', sweep])
-            nc_file_mom = glob.glob(folder_in + '/*allmoms*')
-            if len(nc_file_mom) > 1:
-                print('mom: too many files')
-            elif len(nc_file_mom) == 0:
-                print('mom: no files')
-            else:
-                nc_file_mom = nc_file_mom[0]
+# --------------------------------------------------------------------------- #
+# OLD CASES                                                                   #
+# --------------------------------------------------------------------------- #
+# SET PARAMS:
+DATES = [
+    "20170719",  # old case
+    "20170725",  # old case
+]
+LOCATIONS = [
+    'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
+]
+overwrite = False
+# ----------------------------------- #
+plot = True
+pdf_or_png = 'png'
+include_sweep = np.array([
+    True,
+    True, True, True, True, True, True,
+    True, True, True, True,
+    True,
+])
+elevation_degs = np.array([
+    5.5,
+    5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
+    8., 12., 17., 25.,
+    5.5,
+])
+modes = np.array([
+    'pcp',
+    'vol', 'vol', 'vol', 'vol', 'vol', 'vol',
+    'vol', 'vol', 'vol', 'vol',
+    '90grad'
+])
+elevation_degs = elevation_degs[include_sweep]
+modes = modes[include_sweep]
+# sorting volume
+elevation_degs_2_sort = elevation_degs.copy()
+elevation_degs_2_sort[modes == 'pcp'] = 0
+elevation_degs_2_sort[modes == '90grad'] = 90
+sort_i = elevation_degs_2_sort.argsort()
+elevation_degs = elevation_degs[sort_i]
+modes = modes[sort_i]
+# --------------------------------------------------------------------------- #
+# START: Loop over cases, dates, and radars:
+for date in DATES:
+    for location in LOCATIONS:
+        if plot:
+            calibrate_zdr_with_plot(date, location,
+                                    elevation_degs=elevation_degs,
+                                    modes=modes, overwrite=overwrite,
+                                    pdf_or_png=pdf_or_png
+                                    )
+        else:
+            for elevation_deg, mode in zip(elevation_degs, modes):
+                calibrate_zdr(date, location, elevation_deg=elevation_deg,
+                              mode=mode, overwrite=overwrite)
 
-            path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
-            if overwrite or not os.path.exists(path_out_nc) or plot:
-                if elevation_deg == elevation_degs[0] and mode == modes[0]:
-                    file_in = nc_file_mom.split('/')[-1]
-                    if plot:
-                        file_out = file_in.replace(
-                            '.hd5', '_' + str(n_rows) + 'x' + str(n_cols) +
-                                    '.' + pdf_or_png).replace(
-                            '_' + sweep, '_all')
-                        path_out = folder_plot + 'ZDR_calibration/' + \
-                            location.upper() + '/ZDR_calibration_' + \
-                            str(n_rows) + 'x' + str(n_cols) + '_' + \
-                            file_out
-                        if os.path.isfile(path_out) and not overwrite:
-                            print(path_out + ' exists;\n' + ' ... set: ' +
-                                  '> overwrite = True < for recalculation')
-                            plt.close()
-                            save = False
-                            break
-
-                nc_file_temp = glob.glob(folder_in + '/*temp*')
-                if len(nc_file_temp) > 1:
-                    print('temp: too many files')
-                elif len(nc_file_temp) == 0:
-                    print('temp: no files')
-                else:
-                    nc_file_temp = nc_file_temp[0]
-                nc_file_rho = glob.glob(folder_in + '/*rhohv_nc*')
-                if len(nc_file_rho) > 1:
-                    print('rho: too many files')
-                elif len(nc_file_rho) == 0:
-                    print('rho: no files')
-                else:
-                    nc_file_rho = nc_file_rho[0]
-                # ----------------------------------------------------------- #
-                # time
-                time_start = date + nc_file_mom.split('-')[-4][-4:]
-                time_end = date + nc_file_mom.split('-')[-3][-4:]
-                dti_start = pd.to_datetime(time_start, format="%Y%m%d%H%M")
-                dti_end = pd.to_datetime(time_end, format="%Y%m%d%H%M")
-                dti = pd.date_range(dti_start, dti_end, freq="5min",
-                                    inclusive='both')
-                # ----------------------------------------------------------- #
-                # vol/pcp or bird bad                                         #
-                # ----------------------------------------------------------- #
-                if mode == '90grad':
-                    data = dttree.open_datatree(nc_file_mom)[
-                        'sweep_' + str(int(sweep))].to_dataset()
-                    # ------------------------------------------------------- #
-                    # plot calibration
-                    ax = None
-                    if plot:
-                        index = index + 1
-                        ax = plt.subplot(n_rows, n_cols, index + 0 * n_cols)
-
-                    bb_off, bb_nm = cal_zdr_birdbath(data, plot=plot, ax=ax)
-                    # saving
-                    path_out_nc = nc_file_mom.replace(
-                        '_allmoms_', '_zdr_off_')
-                    if not overwrite and os.path.exists(path_out_nc):
-                        print('exists: ' + path_out_nc + ' -> continue')
-                    else:
-                        remo_var = list(data.data_vars.keys())
-                        remo_var.remove('ZDR')
-                        data = data.drop_vars(remo_var)
-                        data['zdr_off_bb'] = bb_off
-                        data['zdr_off_bb'].attrs["long_name"] = \
-                            'ZDR offset from bird bath'
-                        data['zdr_off_bb'].attrs["short_name"] = 'ZDR off BB'
-                        data['zdr_off_bb'].attrs["units"] = 'dB'
-                        data['zdr_off_bb'].attrs["comment"] = \
-                            'to subtract from ZDR'
-
-                        data['zdr_off_bb_n'] = bb_nm
-                        data['zdr_off_bb_n'].attrs["long_name"] = \
-                            'number values for BB'
-                        data['zdr_off_bb_n'].attrs["short_name"] = 'nm for BB'
-                        data['zdr_off_bb_n'].attrs["units"] = '1'
-
-                        dtree = dttree.DataTree(name="root")
-                        dttree.DataTree(data, name=f"sweep_{int(sweep)}",
-                                        parent=dtree)
-                        print('saving: ... ' + path_out_nc.split('/')[-1] +
-                              ' ...')
-                        dtree.load().to_netcdf(path_out_nc)
-
-                    data.close()
-                else:
-                    data = dttree.open_datatree(nc_file_mom)[
-                        'sweep_' + str(int(sweep))].to_dataset()
-                    data_rho = dttree.open_datatree(nc_file_rho)[
-                        'sweep_' + str(int(sweep))].to_dataset()
-                    data_temp = dttree.open_datatree(nc_file_temp)[
-                        'sweep_' + str(int(sweep))].to_dataset()
-                    data_temp2 = data_temp.interp(
-                        coords=data.drop(['longitude', 'latitude',
-                                          'altitude', 'elevation']).coords,
-                        method='nearest')
-                    data.RHOHV.values = data_rho.RHOHV_NC2P.values
-                    data = data.assign({'temp_beamtop':
-                                            data_temp2.temp_beamtop})
-                    remo_var = list(data.data_vars.keys())
-                    data = data.transpose('time', 'azimuth', 'range')
-                    # elevation contribution included:
-                    data2 = zdr_at_zero_elev(data)
-                    data2 = data.assign({'ZDR': data2.ZDR0})
-                    # ------------------------------------------------------- #
-                    # plot calibration
-                    colorbar = [True, True]
-                    axes = None
-                    if plot:
-                        index = index + 1
-                        axes = [
-                            plt.subplot(n_rows, n_cols, index + 0 * n_cols),
-                            plt.subplot(n_rows, n_cols, index + 0 * n_cols)]
-
-                    lr_off, lr_nm = cal_zdr_lightrain(data, band='C',
-                                                      plot=[plot, False],
-                                                      axes=axes,
-                                                      colorbar=colorbar)
-                    if mode == 'pcp' and plot:
-                        axes[0].set_title('PCP ' + location.upper() + ' ' +
-                                          date + '    ')
-                    elif plot:
-                        axes[0].set_title(str(elevation_deg) + '° ' +
-                                          location.upper() + ' ' + date +
-                                          '    ')
-
-                    if plot:
-                        axes = [
-                            plt.subplot(n_rows, n_cols, index + 1 * n_cols),
-                            plt.subplot(n_rows, n_cols, index + 1 * n_cols)]
-
-                    sd_off, sd_nm = cal_zdr_smalldrops(data, band='C',
-                                                       plot=[plot, False],
-                                                       axes=axes,
-                                                       colorbar=colorbar)
-                    if plot:
-                        axes = [
-                            plt.subplot(n_rows, n_cols, index + 2 * n_cols),
-                            plt.subplot(n_rows, n_cols, index + 2 * n_cols)]
-
-                    lr_off_ec, lr_nm_ec = cal_zdr_lightrain(data2, band='C',
-                                                            plot=[plot, False],
-                                                            axes=axes,
-                                                            colorbar=colorbar)
-                    if mode == 'pcp' and plot:
-                        axes[0].set_title(
-                            r'$Z_{DR}(PCP) \rightarrow Z_{DR}(0°)$')
-                    elif plot:
-                        axes[0].set_title(r'$Z_{DR}($' + str(elevation_deg) +
-                                          r'$°) \rightarrow Z_{DR}(0°)$')
-
-                    if plot:
-                        axes = [
-                            plt.subplot(n_rows, n_cols, index + 3 * n_cols),
-                            plt.subplot(n_rows, n_cols, index + 3 * n_cols)]
-
-                    sd_off_ec, sd_nm_ec = cal_zdr_smalldrops(data2, band='C',
-                                                             plot=[plot,
-                                                                   False],
-                                                             axes=axes,
-                                                             colorbar=colorbar)
-                    # saving
-                    path_out_nc = nc_file_mom.replace(
-                        '_allmoms_', '_zdr_off_')
-                    if not overwrite and os.path.exists(path_out_nc):
-                        print('exists: ' + path_out_nc + ' -> continue')
-                    else:
-                        remo_var = list(data.data_vars.keys())
-                        remo_var.remove('ZDR')
-                        data = data.drop_vars(remo_var)
-
-                        data['zdr_off_lr'] = lr_off
-                        data['zdr_off_lr'].attrs["long_name"] = \
-                            'ZDR offset from light rain'
-                        data['zdr_off_lr'].attrs["short_name"] = 'ZDR off LR'
-                        data['zdr_off_lr'].attrs["units"] = 'dB'
-                        data['zdr_off_lr'].attrs["comment"] = \
-                            'to subtract from ZDR'
-
-                        data['zdr_off_lr_n'] = lr_nm
-                        data['zdr_off_lr_n'].attrs["long_name"] = \
-                            'number values for LR'
-                        data['zdr_off_lr_n'].attrs["short_name"] = 'nm for LR'
-                        data['zdr_off_lr_n'].attrs["units"] = '1'
-
-                        data['zdr_off_lr_ec'] = lr_off_ec
-                        data['zdr_off_lr_ec'].attrs["long_name"] = \
-                            'ZDR offset from light rain and elevation ' \
-                            'corrected ZDR'
-                        data['zdr_off_lr_ec'].attrs["short_name"] = \
-                            'ZDR off LR ec'
-                        data['zdr_off_lr_ec'].attrs["units"] = 'dB'
-                        data['zdr_off_lr_ec'].attrs["comment"] = \
-                            'to subtract from ZDR'
-
-                        data['zdr_off_lr_n_ec'] = lr_nm
-                        data['zdr_off_lr_n_ec'].attrs["long_name"] = \
-                            'number values for LR ec'
-                        data['zdr_off_lr_n_ec'].attrs["short_name"] = \
-                            'nm for LR ec'
-                        data['zdr_off_lr_n_ec'].attrs["units"] = '1'
-
-                        data['zdr_off_sd'] = sd_off
-                        data['zdr_off_sd'].attrs["long_name"] = \
-                            'ZDR offset from small drops'
-                        data['zdr_off_sd'].attrs["short_name"] = 'ZDR off SD'
-                        data['zdr_off_sd'].attrs["units"] = 'dB'
-                        data['zdr_off_sd'].attrs["comment"] = \
-                            'to subtract from ZDR'
-
-                        data['zdr_off_sd_n'] = sd_nm
-                        data['zdr_off_sd_n'].attrs["long_name"] = \
-                            'number values for SD'
-                        data['zdr_off_sd_n'].attrs["short_name"] = 'nm for SD'
-                        data['zdr_off_sd_n'].attrs["units"] = '1'
-
-                        data['zdr_off_sd_ec'] = sd_off_ec
-                        data['zdr_off_sd_ec'].attrs["long_name"] = \
-                            'ZDR offset from small drops and elevation ' \
-                            'corrected ZDR'
-                        data['zdr_off_sd_ec'].attrs["short_name"] = \
-                            'ZDR off SD ec'
-                        data['zdr_off_sd_ec'].attrs["units"] = 'dB'
-                        data['zdr_off_sd_ec'].attrs["comment"] = \
-                            'to subtract from ZDR'
-
-                        data['zdr_off_sd_n_ec'] = sd_nm
-                        data['zdr_off_sd_n_ec'].attrs["long_name"] = \
-                            'number values for SD ec'
-                        data['zdr_off_sd_n_ec'].attrs["short_name"] = \
-                            'nm for SD ec'
-                        data['zdr_off_sd_n_ec'].attrs["units"] = '1'
-
-                        dtree = dttree.DataTree(name="root")
-                        dttree.DataTree(data, name=f"sweep_{int(sweep)}",
-                                        parent=dtree)
-                        print('saving: ... ' + path_out_nc.split('/')[-1] +
-                              ' ...')
-                        dtree.load().to_netcdf(path_out_nc)
-
-                    data.close()
-                    data2.close()
-                    data_rho.close()
-                    data_temp.close()
-                    data_temp2.close()
-            else:
-                print('exists: ' + path_out_nc + ' -> continue')
-                save = False
-
-        # ------------------------------------------------------------------- #
-        # SAVE                                                                #
-        # ------------------------------------------------------------------- #
-        if save and plot:
-            plt.tight_layout()
-            if not os.path.exists(folder_plot + 'ZDR_calibration/' +
-                                  location.upper() + '/'):
-                os.makedirs(folder_plot + 'ZDR_calibration/' +
-                            location.upper() + '/')
-
-            plt.savefig(path_out, format=pdf_or_png, transparent=True)
-            plt.close()
+# --------------------------------------------------------------------------- #
+# CONTINUE?
+# import DWD_obs_to_MIUB_obs_6_attenuation_correction

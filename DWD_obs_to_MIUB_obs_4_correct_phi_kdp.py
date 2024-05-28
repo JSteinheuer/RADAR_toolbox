@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 23.01.24                                                 #
-# DWD_obs_to_MIUB_obs_4_correct_kdp_in_ML.py                                  #
+# DWD_obs_to_MIUB_obs_4_correct_phi_kdp.py                                    #
 #                                                                             #
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
@@ -307,12 +307,12 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
 
 
 # J. Steinheuer
-def smooth_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
-                   overwrite=False, dir_data_obs=header.dir_data_obs,
-                   parts=6, merge=True, remove_parts=True,
-                   uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
-                   win_r=25, win_azi=None, rng=3000,
-                   wkdp_light=9, wkdp_heavy=25):
+def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
+                    overwrite=False, dir_data_obs=header.dir_data_obs,
+                    parts=6, merge=True, remove_parts=True,
+                    uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
+                    win_r=25, win_azi=None, rng=3000,
+                    wkdp_light=9, wkdp_heavy=25):
     """
     Smooth phi and kdp and calculate phi offset.
 
@@ -499,8 +499,8 @@ ELEVATIONS = np.array([
     4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    # 'pcp',
-    # 'vol',
+    'pcp',
+    'vol',
 ]
 overwrite = False
 # --------------------------------------------------------------------------- #
@@ -522,15 +522,15 @@ for date in DATES:
     for location in LOCATIONS:
         for elevation_deg in ELEVATIONS:
             for mode in MODE:
-                smooth_phi_kdp(date=date, location=location,
-                               elevation_deg=elevation_deg, mode=mode,
-                               overwrite=overwrite,
-                               dir_data_obs=header.dir_data_obs,
-                               parts=parts, merge=merge,
-                               remove_parts=remove_parts, uh_tresh=uh_tresh,
-                               rho_tresh=rho_tresh, snr_tresh=snr_tresh,
-                               win_r=win_r, win_azi=win_azi, rng=rng,
-                               wkdp_light=wkdp_light, wkdp_heavy=wkdp_heavy)
+                correct_phi_kdp(date=date, location=location,
+                                elevation_deg=elevation_deg, mode=mode,
+                                overwrite=overwrite,
+                                dir_data_obs=header.dir_data_obs,
+                                parts=parts, merge=merge,
+                                remove_parts=remove_parts, uh_tresh=uh_tresh,
+                                rho_tresh=rho_tresh, snr_tresh=snr_tresh,
+                                win_r=win_r, win_azi=win_azi, rng=rng,
+                                wkdp_light=wkdp_light, wkdp_heavy=wkdp_heavy)
 
 # --------------------------------------------------------------------------- #
 # OLD CASES                                                                   #
@@ -541,7 +541,7 @@ DATES = [
     "20170725",
 ]
 LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'boo', 'drs', 'eis', 'ess', 'fbg',
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
@@ -573,15 +573,15 @@ for date in DATES:
     for location in LOCATIONS:
         for elevation_deg in ELEVATIONS:
             for mode in MODE:
-                smooth_phi_kdp(date=date, location=location,
-                               elevation_deg=elevation_deg, mode=mode,
-                               overwrite=overwrite,
-                               dir_data_obs=header.dir_data_obs,
-                               parts=parts, merge=merge,
-                               remove_parts=remove_parts, uh_tresh=uh_tresh,
-                               rho_tresh=rho_tresh, snr_tresh=snr_tresh,
-                               win_r=win_r, win_azi=win_azi, rng=rng,
-                               wkdp_light=wkdp_light, wkdp_heavy=wkdp_heavy)
+                correct_phi_kdp(date=date, location=location,
+                                elevation_deg=elevation_deg, mode=mode,
+                                overwrite=overwrite,
+                                dir_data_obs=header.dir_data_obs,
+                                parts=parts, merge=merge,
+                                remove_parts=remove_parts, uh_tresh=uh_tresh,
+                                rho_tresh=rho_tresh, snr_tresh=snr_tresh,
+                                win_r=win_r, win_azi=win_azi, rng=rng,
+                                wkdp_light=wkdp_light, wkdp_heavy=wkdp_heavy)
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?

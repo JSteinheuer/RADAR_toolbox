@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 05.02.24                                                 #
-# DWD_obs_to_MIUB_obs_3_ERA5_temp_to_RAD.py                                   #
+# DWD_obs_to_MIUB_obs_3_ERA5_temp.py                                          #
 #                                                                             #
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
@@ -238,46 +238,11 @@ DATES = [
     "20210620", "20210621",  # case02
     "20210628", "20210629",  # case03
     "20220519", "20220520",  # case04
-    "20220623",
-    "20220624", "20220625",  # case05
-    "20220626",
-    "20220627", "20220628",  # case06+07
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
     "20210714",  # case09
     "20221222",  # case10
-]
-LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
-    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
-    'oft', 'pro', 'ros', 'tur', 'umd',
-]
-ELEVATIONS = np.array([
-    5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
-])
-MODE = [
-    # 'pcp',
-    # 'vol',
-    '90grad',
-]
-overwrite = False
-# --------------------------------------------------------------------------- #
-# START: Loop over cases, dates, and radars:
-for date in DATES:
-    for location in LOCATIONS:
-        for elevation_deg in ELEVATIONS:
-            for mode in MODE:
-                era5_temp(date=date, location=location,
-                          elevation_deg=elevation_deg,
-                          mode=mode, overwrite=overwrite)
-
-# --------------------------------------------------------------------------- #
-# OLD CASES                                                                   #
-# --------------------------------------------------------------------------- #
-# SET PARAMS:
-DATES = [
-    "20170719",
-    "20170725",
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -305,7 +270,40 @@ for date in DATES:
                           mode=mode, overwrite=overwrite)
 
 # --------------------------------------------------------------------------- #
+# OLD CASES                                                                   #
+# --------------------------------------------------------------------------- #
+# SET PARAMS:
+DATES = [
+    "20170719",
+    "20170725",
+]
+LOCATIONS = [
+    'boo', 'drs', 'eis', 'ess', 'fbg',
+    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    'oft', 'pro', 'ros', 'tur', 'umd',
+]
+ELEVATIONS = np.array([
+    5.5,
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
+])
+MODE = [
+    'pcp',
+    'vol',
+    '90grad',
+]
+overwrite = False
+# --------------------------------------------------------------------------- #
+# START: Loop over cases, dates, and radars:
+for date in DATES:
+    for location in LOCATIONS:
+        for elevation_deg in ELEVATIONS:
+            for mode in MODE:
+                era5_temp(date=date, location=location,
+                          elevation_deg=elevation_deg,
+                          mode=mode, overwrite=overwrite)
+
+# --------------------------------------------------------------------------- #
 # CONTINUE?
-# import DWD_obs_to_MIUB_obs_4_correct_kdp_in_ML
+# import DWD_obs_to_MIUB_obs_4_correct_phi_kdp
 
 

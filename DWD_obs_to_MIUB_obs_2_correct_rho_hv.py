@@ -242,8 +242,8 @@ ELEVATIONS = np.array([
     4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    # 'pcp',
-    # 'vol',
+    'pcp',
+    'vol',
 ]
 overwrite = False
 # --------------------------------------------------------------------------- #
@@ -264,7 +264,7 @@ DATES = [
     "20170725",
 ]
 LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'boo', 'drs', 'eis', 'ess', 'fbg',
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
@@ -288,4 +288,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-# import DWD_obs_to_MIUB_obs_3_ERA5_temp_to_RAD
+# import DWD_obs_to_MIUB_obs_3_ERA5_temp

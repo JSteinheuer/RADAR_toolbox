@@ -263,12 +263,12 @@ def load_dwd_raw(filepath, moments, pcp=False):
 
 
 # J. Steinheuer
-def extract_all_moms(date, location, elevation_deg=5.5, mode='vol',
-                     moments=['CMAP', 'DBSNRH', 'DBZH',
+def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
+                  moments=['CMAP', 'DBSNRH', 'DBZH',
                               'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC'],
-                     overwrite=False,
-                     dir_data_obs=header.dir_data_obs,
-                     dir_data_obs_realpep=header.dir_data_obs_realpep):
+                  overwrite=False,
+                  dir_data_obs=header.dir_data_obs,
+                  dir_data_obs_realpep=header.dir_data_obs_realpep):
     """
     Load DWD data of one day and put the moments in one new *all_moms*-file.
 
@@ -403,11 +403,11 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    # 'pcp',
-    # 'vol',
+    'pcp',
+    'vol',
     '90grad',
 ]
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC', ]
@@ -418,8 +418,8 @@ for date in DATES:
     for location in LOCATIONS:
         for elevation_deg in ELEVATIONS:
             for mode in MODE:
-                extract_all_moms(date, location, elevation_deg,
-                                 mode, moments, overwrite)
+                load_all_moms(date, location, elevation_deg,
+                              mode, moments, overwrite)
 
 # --------------------------------------------------------------------------- #
 # OLD CASES                                                                   #
@@ -430,7 +430,7 @@ DATES = [
     "20170725",
 ]
 LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'boo', 'drs', 'eis', 'ess', 'fbg',
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
@@ -451,8 +451,8 @@ for date in DATES:
     for location in LOCATIONS:
         for elevation_deg in ELEVATIONS:
             for mode in MODE:
-                extract_all_moms(date, location, elevation_deg,
-                                 mode, moments, overwrite)
+                load_all_moms(date, location, elevation_deg,
+                              mode, moments, overwrite)
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
