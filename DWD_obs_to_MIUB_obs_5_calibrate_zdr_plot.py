@@ -952,15 +952,14 @@ def calibrate_zdr_with_plot(date, location,
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
+    # "20210714",  # case09
     # "20210604",  # case01
     # "20210620", "20210621",  # case02
     # "20210628", "20210629",  # case03
     # "20220519", "20220520",  # case04
-    # "20220623",
-    "20220624", "20220625",  # case05
+    "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
-    # "20210714",  # case09
     "20221222",  # case10
 ]
 LOCATIONS = [
@@ -970,7 +969,7 @@ LOCATIONS = [
 ]
 overwrite = False
 # ----------------------------------- #
-plot = False
+plot = True
 pdf_or_png = 'png'
 include_sweep = np.array([
     True,
@@ -1029,7 +1028,7 @@ LOCATIONS = [
 ]
 overwrite = False
 # ----------------------------------- #
-plot = False
+plot = True
 pdf_or_png = 'png'
 include_sweep = np.array([
     True,
