@@ -56,9 +56,9 @@ def correct_zh_zdr(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
                        swp_mask.PHI_NC, phi_const)
     zh_ac = swp_mask.DBZH + phi_4ac * alpha
     zdr_ac = swp_mask.ZDR + phi_4ac * beta
-    zdr_ac.attrs["long_name"] = 'reflectivity factor attenuation corrected'
-    zdr_ac.attrs["short_name"] = 'ZH ac'
-    zdr_ac.attrs["units"] = 'dBZ'
+    zh_ac.attrs["long_name"] = 'reflectivity factor attenuation corrected'
+    zh_ac.attrs["short_name"] = 'ZH ac'
+    zh_ac.attrs["units"] = 'dBZ'
     swp_cf = swp_cf.assign(ZH_AC=zh_ac)
     zdr_ac.attrs["long_name"] = 'Log differential reflectivity ' + \
                                 'attenuation corrected'
@@ -136,7 +136,7 @@ def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
         return
 
     path_temp = path_in.replace('_allmoms_', '_ERA5_temp_')
-    if not os.path.exists(path_rho):
+    if not os.path.exists(path_temp):
         print('not exists: ' + path_temp + ' -> continue')
         return
 
@@ -181,14 +181,14 @@ def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20210604",  # case01
-    # "20210620", "20210621",  # case02
-    # "20210628", "20210629",  # case03
-    # "20220519", "20220520",  # case04
-    # "20220623", "20220624", "20220625",  # case05
-    # "20220626", "20220627", "20220628",  # case06+07
-    # "20220630", "20220701",  # case08
-    # "20210714",  # case09
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
+    "20220630", "20220701",  # case08
+    "20210714",  # case09
     "20221222",  # case10
 ]
 LOCATIONS = [
@@ -256,4 +256,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-# import DWD_obs_to_MIUB_obs_7.....
+# import DWD_obs_to_MIUB_obs_7_combine_pol_mom_nc

@@ -952,15 +952,16 @@ def calibrate_zdr_with_plot(date, location,
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20210714",  # case09
     # "20210604",  # case01
     # "20210620", "20210621",  # case02
     # "20210628", "20210629",  # case03
     # "20220519", "20220520",  # case04
-    "20220623", "20220624", "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
-    "20221222",  # case10
+    # "20220623", "20220624", "20220625",  # case05
+    # "20220626", "20220627", "20220628",  # case06+07
+    # "20220630", "20220701",  # case08
+    # "20210714",  # case09
+    # "20221222",  # case10
+    # "20170725",  # old case
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -1014,12 +1015,11 @@ for date in DATES:
                               mode=mode, overwrite=overwrite)
 
 # --------------------------------------------------------------------------- #
-# OLD CASES                                                                   #
+# OLD CASE: NO BB                                                             #
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
     "20170719",  # old case
-    "20170725",  # old case
 ]
 LOCATIONS = [
     'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -1034,7 +1034,7 @@ include_sweep = np.array([
     True,
     True, True, True, True, True, True,
     True, True, True, True,
-    True,
+    False,
 ])
 elevation_degs = np.array([
     5.5,

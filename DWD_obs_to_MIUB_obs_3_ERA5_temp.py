@@ -131,11 +131,19 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
                    lon.transpose(),
                    dict(standard_name='longitude',
                         units='degrees_east'))
-    data['alt'] = (['range'],
-                   alt[0, :],
-                   dict(standard_name='altitude',
-                        comments='height above mean sea level',
-                        units='m'))
+    if mode == 'pcp':
+        data['alt'] = (['azimuth', 'range'],
+                       alt[:],
+                       dict(standard_name='altitude',
+                            comments='height above mean sea level',
+                            units='m'))
+    else:
+        data['alt'] = (['range'],
+                       alt[0, :],
+                       dict(standard_name='altitude',
+                            comments='height above mean sea level',
+                            units='m'))
+
     data['time'] = data_t_era5['time']
     dummy_tra = np.empty(shape=[data.time.size, data.range.size,
                                 data.azimuth.size, ])
@@ -155,8 +163,11 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
         # grid for searching later the closest ERA5 cells
         rad_lon = data['lon'].data.flatten()
         rad_lat = data['lat'].data.flatten()
-        rad_alt = np.repeat(data['alt'].data[:, np.newaxis],
-                            data['azimuth'].shape, axis=1).flatten()
+        if mode == 'pcp':
+            rad_alt = data['alt'].data.flatten()
+        else:
+            rad_alt = np.repeat(data['alt'].data[:, np.newaxis],
+                                data['azimuth'].shape, axis=1).flatten()
 
         era5_lon, era5_lat = np.meshgrid(data_z_era5.lon, data_z_era5.lat)
         era5_alt = data_z_era5.z.isel(time=t_i)/9.81
@@ -182,8 +193,12 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
 
         # temp top
         beamradius = wrl.util.half_power_radius(data.range, bw)
-        rad_alt = np.repeat((data['alt']+beamradius).data[:, np.newaxis],
-                            data['azimuth'].shape, axis=1).flatten()
+        if mode == 'pcp':
+            rad_alt = (data['alt']+beamradius).data.flatten()
+        else:
+            rad_alt = np.repeat((data['alt']+beamradius).data[:, np.newaxis],
+                                data['azimuth'].shape, axis=1).flatten()
+
         func_ipol, mask = ipol_fc_to_radgrid(
             # lon with shape (137, 2013):
             np.repeat(era5_lon[np.newaxis, :], era5_z.shape[0], axis=0),
@@ -200,8 +215,12 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
             [mask]).reshape(shape_ra)
 
         # temp bottom
-        rad_alt = np.repeat((data['alt']-beamradius).data[:, np.newaxis],
-                            data['azimuth'].shape, axis=1).flatten()
+        if mode == 'pcp':
+            rad_alt = (data['alt']+beamradius).data.flatten()
+        else:
+            rad_alt = np.repeat((data['alt']-beamradius).data[:, np.newaxis],
+                                data['azimuth'].shape, axis=1).flatten()
+
         func_ipol, mask = ipol_fc_to_radgrid(
             # lon with shape (137, 2013):
             np.repeat(era5_lon[np.newaxis, :], era5_z.shape[0], axis=0),
@@ -305,5 +324,3 @@ for date in DATES:
 # --------------------------------------------------------------------------- #
 # CONTINUE?
 # import DWD_obs_to_MIUB_obs_4_correct_phi_kdp
-
-

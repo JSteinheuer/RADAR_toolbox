@@ -517,20 +517,20 @@ merge = True
 remove_parts = True
 print('Departing into: ' + str(parts))
 # --------------------------------------------------------------------------- #
-# # START: Loop over cases, dates, and radars:
-# for date in DATES:
-#     for location in LOCATIONS:
-#         for elevation_deg in ELEVATIONS:
-#             for mode in MODE:
-#                 correct_phi_kdp(date=date, location=location,
-#                                 elevation_deg=elevation_deg, mode=mode,
-#                                 overwrite=overwrite,
-#                                 dir_data_obs=header.dir_data_obs,
-#                                 parts=parts, merge=merge,
-#                                 remove_parts=remove_parts, uh_tresh=uh_tresh,
-#                                 rho_tresh=rho_tresh, snr_tresh=snr_tresh,
-#                                 win_r=win_r, win_azi=win_azi, rng=rng,
-#                                 wkdp_light=wkdp_light, wkdp_heavy=wkdp_heavy)
+# START: Loop over cases, dates, and radars:
+for date in DATES:
+    for location in LOCATIONS:
+        for elevation_deg in ELEVATIONS:
+            for mode in MODE:
+                correct_phi_kdp(date=date, location=location,
+                                elevation_deg=elevation_deg, mode=mode,
+                                overwrite=overwrite,
+                                dir_data_obs=header.dir_data_obs,
+                                parts=parts, merge=merge,
+                                remove_parts=remove_parts, uh_tresh=uh_tresh,
+                                rho_tresh=rho_tresh, snr_tresh=snr_tresh,
+                                win_r=win_r, win_azi=win_azi, rng=rng,
+                                wkdp_light=wkdp_light, wkdp_heavy=wkdp_heavy)
 
 # --------------------------------------------------------------------------- #
 # OLD CASES                                                                   #

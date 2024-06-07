@@ -265,7 +265,7 @@ def load_dwd_raw(filepath, moments, pcp=False):
 # J. Steinheuer
 def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                   moments=['CMAP', 'DBSNRH', 'DBZH',
-                              'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC'],
+                           'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC'],
                   overwrite=False,
                   dir_data_obs=header.dir_data_obs,
                   dir_data_obs_realpep=header.dir_data_obs_realpep):
@@ -294,6 +294,9 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
     if mode == 'pcp' and sweep != '00':
         return
 
+    if mode == '90grad' and sweep != '00':
+        return
+
     path_in = "/".join([dir_data_obs + '*',
                         year, year + '-' + mon,
                         year + '-' + mon + '-' + day,
@@ -306,7 +309,9 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                 if 'ERA5' not in file:
                     if 'kdp_nc' not in file:
                         if 'zdr_off' not in file:
-                            files_temp.append(file)
+                            if 'zh_zdr_ac' not in file:
+                                if 'polmoms' not in file:
+                                    files_temp.append(file)
 
     files = files_temp
     if not files:
@@ -339,7 +344,9 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                 if 'ERA5' not in file:
                     if 'kdp_nc' not in file:
                         if 'zdr_off' not in file:
-                            files_temp.append(file)
+                            if 'zh_zdr_ac' not in file:
+                                if 'polmoms' not in file:
+                                    files_temp.append(file)
 
     files = files_temp
     name = files[0].split("/")[-1].split("_")
