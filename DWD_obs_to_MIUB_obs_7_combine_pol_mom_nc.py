@@ -391,8 +391,9 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
     mom_use = [x for x in list(data_combined.keys())]
     for mom in mom_use:
-        data_combined[mom].encoding["coordinates"] = \
-            "time azimuth range"
+        for mom in mom_use:
+            data_combined[mom].encoding["coordinates"] = \
+                "time azimuth range lat lon"
 
     data_combined['alt'].encoding["coordinates"] = "azimuth range"
     data_combined['lat'].encoding["coordinates"] = "azimuth range"
