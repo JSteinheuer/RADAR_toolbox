@@ -326,7 +326,6 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
     overwrite : Bool;, if *allmoms*-output exists, it can be overwritten.
     dir_data_obs : directory to search for input cases
                   (>dir_data_obs</*/yyyy/yyyy-mm/yyyy-mm-dd).
-    dir_data_era5 : directory to search for era5 files.
     [...]
     """
     parts_current = parts

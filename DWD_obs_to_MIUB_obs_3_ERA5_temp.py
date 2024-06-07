@@ -132,8 +132,8 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
                    dict(standard_name='longitude',
                         units='degrees_east'))
     if mode == 'pcp':
-        data['alt'] = (['azimuth', 'range'],
-                       alt[:],
+        data['alt'] = (['range', 'azimuth'],
+                       alt.transpose(),
                        dict(standard_name='altitude',
                             comments='height above mean sea level',
                             units='m'))
@@ -270,14 +270,15 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
+    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
 ])
 MODE = [
     'pcp',
-    'vol',
-    '90grad',
+    # 'vol',  # TODO
+    # '90grad',  # TODO
 ]
-overwrite = False
+# overwrite = False  # TODO
+overwrite = True  # TODO
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -303,14 +304,15 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
+    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
 ])
 MODE = [
     'pcp',
-    'vol',
-    '90grad',
+    # 'vol',  # TODO
+    # '90grad',  # TODO
 ]
-overwrite = False
+# overwrite = False  # TODO
+overwrite = True  # TODO
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -324,3 +326,4 @@ for date in DATES:
 # --------------------------------------------------------------------------- #
 # CONTINUE?
 # import DWD_obs_to_MIUB_obs_4_correct_phi_kdp
+import DWD_obs_to_MIUB_obs_5_calibrate_zdr  # TODO

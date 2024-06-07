@@ -952,15 +952,14 @@ def calibrate_zdr_with_plot(date, location,
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20210604",  # case01
-    # "20210620", "20210621",  # case02
-    # "20210628", "20210629",  # case03
-    # "20220519", "20220520",  # case04
-    # "20220623",
-    "20220624", "20220625",  # case05
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
-    # "20210714",  # case09
+    "20210714",  # case09
     "20221222",  # case10
 ]
 LOCATIONS = [
@@ -968,16 +967,23 @@ LOCATIONS = [
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
-overwrite = False
+# overwrite = False  # TODO
+overwrite = True  # TODO
 # ----------------------------------- #
 plot = False
 pdf_or_png = 'png'
+# include_sweep = np.array([
+#     True,
+#     True, True, True, True, True, True,
+#     True, True, True, True,
+#     True,
+# ])  # TODO
 include_sweep = np.array([
     True,
-    True, True, True, True, True, True,
-    True, True, True, True,
-    True,
-])
+    False, False, False, False, False, False,
+    False, False, False, False,
+    False,
+])  # TODO
 elevation_degs = np.array([
     5.5,
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
@@ -1027,16 +1033,23 @@ LOCATIONS = [
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
-overwrite = False
+# overwrite = False  # TODO
+overwrite = True  # TODO
 # ----------------------------------- #
 plot = False
 pdf_or_png = 'png'
+# include_sweep = np.array([
+#     True,
+#     True, True, True, True, True, True,
+#     True, True, True, True,
+#     True,
+# ])  # TODO
 include_sweep = np.array([
     True,
-    True, True, True, True, True, True,
-    True, True, True, True,
-    True,
-])
+    False, False, False, False, False, False,
+    False, False, False, False,
+    False,
+])  # TODO
 elevation_degs = np.array([
     5.5,
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
@@ -1075,4 +1088,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-# import DWD_obs_to_MIUB_obs_6_attenuation_correction
+import DWD_obs_to_MIUB_obs_6_attenuation_correction # TODO

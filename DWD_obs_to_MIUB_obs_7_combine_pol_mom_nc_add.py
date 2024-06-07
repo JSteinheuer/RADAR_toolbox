@@ -439,13 +439,14 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
+    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
 ])
 MODE = [
-    # 'pcp',  # TODO
-    'vol',
+    'pcp',
+    # 'vol',  # TODO
 ]
-overwrite = False
+# overwrite = False  # TODO
+overwrite = True  # TODO
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -543,13 +544,14 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
+    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
 ])
 MODE = [
-    # 'pcp',  # TODO
-    'vol',
+    'pcp',
+    # 'vol',  # TODO
 ]
-overwrite = False
+# overwrite = False  # TODO
+overwrite = True  # TODO
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
