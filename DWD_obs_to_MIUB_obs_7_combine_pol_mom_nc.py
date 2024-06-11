@@ -442,7 +442,7 @@ ELEVATIONS = np.array([
     4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    # 'pcp',  # TODO
+    'pcp',
     'vol',
 ]
 overwrite = False
@@ -546,7 +546,7 @@ ELEVATIONS = np.array([
     4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
-    # 'pcp',  # TODO
+    'pcp',
     'vol',
 ]
 overwrite = False

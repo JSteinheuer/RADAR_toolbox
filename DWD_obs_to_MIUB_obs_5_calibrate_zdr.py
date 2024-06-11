@@ -967,23 +967,16 @@ LOCATIONS = [
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
-# overwrite = False  # TODO
-overwrite = True  # TODO
+overwrite = False
 # ----------------------------------- #
 plot = False
 pdf_or_png = 'png'
-# include_sweep = np.array([
-#     True,
-#     True, True, True, True, True, True,
-#     True, True, True, True,
-#     True,
-# ])  # TODO
 include_sweep = np.array([
     True,
-    False, False, False, False, False, False,
-    False, False, False, False,
-    False,
-])  # TODO
+    True, True, True, True, True, True,
+    True, True, True, True,
+    True,
+])
 elevation_degs = np.array([
     5.5,
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
@@ -1033,23 +1026,16 @@ LOCATIONS = [
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur', 'umd',
 ]
-# overwrite = False  # TODO
-overwrite = True  # TODO
+overwrite = False
 # ----------------------------------- #
 plot = False
 pdf_or_png = 'png'
-# include_sweep = np.array([
-#     True,
-#     True, True, True, True, True, True,
-#     True, True, True, True,
-#     True,
-# ])  # TODO
 include_sweep = np.array([
     True,
-    False, False, False, False, False, False,
-    False, False, False, False,
-    False,
-])  # TODO
+    True, True, True, True, True, True,
+    True, True, True, True,
+    True,
+])
 elevation_degs = np.array([
     5.5,
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
@@ -1088,4 +1074,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-import DWD_obs_to_MIUB_obs_6_attenuation_correction # TODO
+# import DWD_obs_to_MIUB_obs_6_attenuation_correction

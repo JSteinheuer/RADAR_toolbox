@@ -270,15 +270,15 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',
-    # 'vol',  # TODO
-    # '90grad',  # TODO
+    'vol',
+    '90grad',
 ]
-# overwrite = False  # TODO
-overwrite = True  # TODO
+overwrite = False
+
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -304,15 +304,14 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',
-    # 'vol',  # TODO
-    # '90grad',  # TODO
+    'vol',
+    '90grad',
 ]
-# overwrite = False  # TODO
-overwrite = True  # TODO
+overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -326,4 +325,3 @@ for date in DATES:
 # --------------------------------------------------------------------------- #
 # CONTINUE?
 # import DWD_obs_to_MIUB_obs_4_correct_phi_kdp
-import DWD_obs_to_MIUB_obs_5_calibrate_zdr  # TODO
