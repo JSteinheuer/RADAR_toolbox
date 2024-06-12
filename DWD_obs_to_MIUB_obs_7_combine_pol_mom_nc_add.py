@@ -200,7 +200,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data = dttree.open_datatree(path_in)[
         'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
     data_rho = dttree.open_datatree(path_rho)[
-        'sweep_' + str(int(sweep))].to_dataset()
+        'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
     data_kdp = dttree.open_datatree(path_kdp)[
         'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
     data_ac = dttree.open_datatree(path_zhzdr_ac)[
@@ -400,8 +400,9 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined['alt'].encoding["coordinates"] = "azimuth range"
     data_combined['lat'].encoding["coordinates"] = "azimuth range"
     data_combined['lon'].encoding["coordinates"] = "azimuth range"
-    data_combined['time'].encoding["units"] = "hours since " + \
+    data_combined['time'].encoding["units"] = "seconds since " + \
                                               year + "-" + mon + "-" + day
+    data_combined['time'].attrs["comment"] = "UTC"
     dtree = dttree.DataTree(name="root")
     dttree.DataTree(data_combined, name=f"sweep_{int(sweep)}",
                     parent=dtree)
@@ -422,17 +423,16 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20210604",  # case01
-    # "20210620",
-    # "20210621",  # case02
-    # "20210628", "20210629",  # case03
-    # "20220519", "20220520",  # case04
-    # "20220623", "20220624",
-    "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
-    "20210714",  # case09
-    "20221222",  # case10
+    "20210604",  # case01  # TODO: redo because of time!
+    "20210620", "20210621",  # case02  # TODO: redo because of time!
+    "20210628", "20210629",  # case03  # TODO: redo because of time!
+    "20220519", "20220520",  # case04  # TODO: redo because of time!
+    "20220623", "20220624",   # TODO: redo because of time!
+    # "20220625",  # case05
+    # "20220626", "20220627", "20220628",  # case06+07
+    # "20220630", "20220701",  # case08
+    # "20210714",  # case09
+    # "20221222",  # case10
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -441,13 +441,13 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',
-    # 'vol',  # TODO
+    'vol',  # TODO
 ]
-overwrite = False
+overwrite = True
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -535,8 +535,8 @@ for date in DATES:
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20170719",
-    "20170725",
+    # "20170719",
+    # "20170725",
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -545,11 +545,11 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    # 4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,  # TODO
+    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',
-    # 'vol',  # TODO
+    'vol',
 ]
 overwrite = False
 # --------------------------------------------------------------------------- #
