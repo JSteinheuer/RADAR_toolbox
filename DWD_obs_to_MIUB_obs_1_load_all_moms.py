@@ -311,7 +311,8 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                         if 'zdr_off' not in file:
                             if 'zh_zdr_ac' not in file:
                                 if 'polmoms' not in file:
-                                    files_temp.append(file)
+                                    if 'vradh' not in file:
+                                        files_temp.append(file)
 
     files = files_temp
     if not files:
@@ -346,7 +347,8 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                         if 'zdr_off' not in file:
                             if 'zh_zdr_ac' not in file:
                                 if 'polmoms' not in file:
-                                    files_temp.append(file)
+                                    if 'vradh' not in file:
+                                        files_temp.append(file)
 
     files = files_temp
     name = files[0].split("/")[-1].split("_")
@@ -417,7 +419,8 @@ MODE = [
     'vol',
     '90grad',
 ]
-moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC', ]
+moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC',
+           'VRADH', ]
 overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
@@ -450,7 +453,8 @@ MODE = [
     'vol',
     '90grad',
 ]
-moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC', ]
+moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC',
+           'VRADH', ]
 overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:

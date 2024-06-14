@@ -151,13 +151,14 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     data['temp'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
                     dict(standard_name='air temperature', units='K'))
     data['temp_beamtop'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
-                    dict(standard_name='air temperature', units='K',
+                    dict(standard_name='air temperature at beamtop', units='K',
                          comment='beambroadening induced temperature of '
                                  'bin volume top (approximated for pw=0)'))
     data['temp_beambottom'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
-                    dict(standard_name='air temperature', units='K',
-                         comment='beambroadening induced temperature of '
-                                 'bin volume bottom (approximated for pw=0)'))
+                    dict(standard_name='air temperature at beambottom',
+                         units='K', comment='beambroadening induced '
+                                            'temperature of bin volume '
+                                            'bottom (approximated for pw=0)'))
     shape_ra = (data.range.size, data.azimuth.size)
     for t_i in range(data['time'].size):
         # grid for searching later the closest ERA5 cells
@@ -216,7 +217,7 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
 
         # temp bottom
         if mode == 'pcp':
-            rad_alt = (data['alt']+beamradius).data.flatten()
+            rad_alt = (data['alt']-beamradius).data.flatten()
         else:
             rad_alt = np.repeat((data['alt']-beamradius).data[:, np.newaxis],
                                 data['azimuth'].shape, axis=1).flatten()
@@ -278,7 +279,6 @@ MODE = [
     '90grad',
 ]
 overwrite = False
-
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:

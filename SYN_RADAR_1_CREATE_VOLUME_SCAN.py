@@ -106,23 +106,27 @@ def get_path_syn_volume(date, time, spin_up_mm,
     t_fc = dti_fc - dti_da
 
     # forecast scan
-    dir_of_fc = dir_data + dti_fc.strftime('%Y%m%d') + '/' + \
+    # dir_of_fc = dir_data + dti_fc.strftime('%Y%m%d') + '/' + \
+    #             da_run + '/' + icon_run + '/ICONdata/' + \
+    #             dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
+    #             'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
+    dir_of_fc = dir_data + '*/' + \
                 da_run + '/' + icon_run + '/ICONdata/' + \
                 dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
                 'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
     dir_of_fc = glob.glob(dir_of_fc + '*')
     if len(dir_of_fc) > 0:
         dir_of_fc = dir_of_fc[0] + '/'
-    else:  # previous day folder (if DA at 21:00)?
-        dir_of_fc = dir_data + \
-                    dti_3hda.strftime('%Y%m%d') + '/' + \
-                    da_run + '/' + icon_run + '/ICONdata/' + '/' + \
-                    dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
-                    'main0' + str(int(dti_da.strftime('%H')) % 3) + '00' + \
-                    icon_run + '/'
-        dir_of_fc = glob.glob(dir_of_fc + '*')
-        if len(dir_of_fc) > 0:
-            dir_of_fc = dir_of_fc[0] + '/'
+    # else:  # previous day folder (if DA at 21:00)?
+    #     dir_of_fc = dir_data + \
+    #                 dti_3hda.strftime('%Y%m%d') + '/' + \
+    #                 da_run + '/' + icon_run + '/ICONdata/' + '/' + \
+    #                 dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
+    #                 'main0' + str(int(dti_da.strftime('%H')) % 3) + '00' + \
+    #                 icon_run + '/'
+    #     dir_of_fc = glob.glob(dir_of_fc + '*')
+    #     if len(dir_of_fc) > 0:
+    #         dir_of_fc = dir_of_fc[0] + '/'
 
     if not dir_of_fc:
         dir_of_fc = ''
@@ -138,30 +142,47 @@ def get_path_syn_volume(date, time, spin_up_mm,
             file_fc = 'fc_R19B07.' + dti_da.strftime('%Y%m%d%H%M%S') + \
                       '_' + str(int(t_fc.seconds / 60)) + 'min.nc'  # or nc
             if not os.path.isfile(dir_of_fc + file_fc):
-                dir_of_fc = ''
+                file_fc = 'fc_R19B07.' + dti_da.strftime(
+                    '%Y%m%d%H%M%S') + '_' + fc_time_str + '.RADOLAN'
+                if not os.path.isfile(dir_of_fc + file_fc):
+                    dir_of_fc = ''
 
     # volume scan
-    dir_of_vol = dir_data + dti_fc.strftime('%Y%m%d') + '/' + \
+    # dir_of_vol = dir_data + dti_fc.strftime('%Y%m%d') + '/' + \
+    #              da_run + '/' + icon_emvorado_run + '/' + \
+    #              dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
+    #              'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
+    dir_of_vol = dir_data + '*/' + \
                  da_run + '/' + icon_emvorado_run + '/' + \
                  dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
                  'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
     dir_of_vol = glob.glob(dir_of_vol + '*')
     if len(dir_of_vol) > 0:
-        dir_of_vol = dir_of_vol[0] + '/det' + '/cdfin_volscan_' + \
-                     dti_da.strftime('%Y%m%d%H%M') + '-' + \
-                     (dti_da + pd.Timedelta('2h')).strftime('%Y%m%d%H%M') + '/'
-
-    else:  # previous day folder (if DA at 21:00)?
-        dir_of_vol = dir_data + dti_3hda.strftime('%Y%m%d') + '/' + \
-                     da_run + '/' + icon_emvorado_run + '/' + \
-                     dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
-                     'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
-        dir_of_vol = glob.glob(dir_of_vol + '*')
-        if len(dir_of_vol) > 0:
-            dir_of_vol = dir_of_vol[0] + '/det' + '/cdfin_volscan_' + \
+        dir_of_vol_tmp = dir_of_vol[0] + '/det' + '/cdfin_volscan_' + \
                          dti_da.strftime('%Y%m%d%H%M') + '-' + \
-                         (dti_da + pd.Timedelta('2h')).strftime(
-                             '%Y%m%d%H%M') + '/'
+                         (dti_da +
+                          pd.Timedelta('2h')).strftime('%Y%m%d%H%M') + '/'
+        if not os.path.isdir(dir_of_vol_tmp):
+            dir_of_vol_tmp = dir_of_vol[0] + '/det' + '/cdfin_volscan_' + \
+                             dti_da.strftime('%Y%m%d%H%M') + '-' + \
+                             (dti_da +
+                              pd.Timedelta('3h')).strftime('%Y%m%d%H%M') + '/'
+
+        dir_of_vol = dir_of_vol_tmp
+
+
+
+    # else:  # previous day folder (if DA at 21:00)?
+    #     dir_of_vol = dir_data + dti_3hda.strftime('%Y%m%d') + '/' + \
+    #                  da_run + '/' + icon_emvorado_run + '/' + \
+    #                  dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
+    #                  'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
+    #     dir_of_vol = glob.glob(dir_of_vol + '*')
+    #     if len(dir_of_vol) > 0:
+    #         dir_of_vol = dir_of_vol[0] + '/det' + '/cdfin_volscan_' + \
+    #                      dti_da.strftime('%Y%m%d%H%M') + '-' + \
+    #                      (dti_da + pd.Timedelta('2h')).strftime(
+    #                          '%Y%m%d%H%M') + '/'
 
     if not dir_of_vol:
         dir_of_vol = ''

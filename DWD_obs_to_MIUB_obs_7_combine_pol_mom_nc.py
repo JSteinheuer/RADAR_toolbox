@@ -217,6 +217,9 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     remo_var.remove('PHI_NC')
     remo_var.remove('KDP_NC')
     data_combined = data_kdp.drop_vars(remo_var)
+    if 'VRADH' in data.variables.keys():
+        data_combined = data_combined.assign({'VRADH': data.VRADH})
+
     data_combined = data_combined.assign({'RHOHV_NC2P': data_rho.RHOHV_NC2P})
     data_combined = data_combined.assign({'ZH_AC': data_ac.ZH_AC.reindex_like(
         other=data_rho.RHOHV_NC2P, method='nearest')})
@@ -380,8 +383,12 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined = data_combined.assign({'temp': data_temp2.temp})
     data_combined = data_combined.assign({'temp_beambottom':
                                               data_temp2.temp_beambottom})
+    data_combined.temp_beambottom.attrs["long_name"] = \
+        'air temperature at beambottom'
     data_combined = data_combined.assign({'temp_beamtop':
                                               data_temp2.temp_beamtop})
+    data_combined.temp_beambottom.attrs["long_name"] = \
+        'air temperature at beamtop'
     data_combined = data_combined.assign({'lat': data_temp.lat})
     data_combined = data_combined.assign({'lon': data_temp.lon})
     data_combined = data_combined.assign({'alt': data_temp.alt})
@@ -397,7 +404,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
         data_combined[mom].encoding["coordinates"] = \
             "time azimuth range lat lon"
 
-    data_combined['alt'].encoding["coordinates"] = "azimuth range"
+    data_combined['alt'].encoding["coordinates"] = "azimuth range lat lon"
     data_combined['lat'].encoding["coordinates"] = "azimuth range"
     data_combined['lon'].encoding["coordinates"] = "azimuth range"
     data_combined['time'].encoding["units"] = "seconds since " + \
@@ -423,17 +430,15 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    # "20210604",  # case01  # TODO: redo because of time!
-    # "20210620", "20210621",  # case02  # TODO: redo because of time!
-    # "20210628", "20210629",  # case03  # TODO: redo because of time!
-    # "20220519", "20220520",  # case04  # TODO: redo because of time!
-    # "20220623",  # TODO: redo because of time!
-    # "20220624",   # TODO: redo because of time!
-    "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
-    "20210714",  # case09
-    "20221222",  # case10
+    "20210604",  # case01  # TODO: redo because of time and temp!
+    "20210620", "20210621",  # case02  # TODO: redo because of time and temp!
+    "20210628", "20210629",  # case03  # TODO: redo because of time and temp!
+    "20220519",  # "20220520",  # case04  # TODO: redo because of time and temp!
+    "20220623", "20220624", "20220625",  # case05 # TODO: redo because of tnt!
+    "20220626", "20220627", "20220628",  # case06+07  # TODO: redo because of t
+    "20220630", "20220701",  # case08  # TODO: redo because of temp!
+    "20210714",  # case09 # TODO: redo because of temp!
+    "20221222",  # case10 # TODO: redo because of temp!
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -449,7 +454,7 @@ MODE = [
     'pcp',
     'vol',
 ]
-overwrite = False
+overwrite = True
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -537,7 +542,7 @@ for date in DATES:
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20170719",
+    # "20170719",
     "20170725",
 ]
 LOCATIONS = [
@@ -553,7 +558,7 @@ MODE = [
     'pcp',
     'vol',
 ]
-overwrite = False
+overwrite = True
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:

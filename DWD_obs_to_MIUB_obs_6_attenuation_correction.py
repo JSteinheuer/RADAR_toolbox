@@ -28,32 +28,35 @@ warnings.filterwarnings("ignore")
 
 
 # J. Steinheuer
-def correct_zh_zdr(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
+def correct_zh_zdr(swp_cf, uh_tresh=0,
                    alpha=0.08, beta=0.02,
-                   until_temp_beambottom=273.15+4):
+                   # until_temp_beamtop=273.15+4,# TODO if diff in ML is need
+                   ML_until_temp_beambottom=273.15+0,
+                   # alpha_ML_multipl=1,  # TODO if alpha in ML is to change
+                   # beta_ML_multipl=1,  # TODO if beta in ML is to change
+                   ):
     """
     ...
     """
     # 1: thresholding
-    swp_mask = swp_cf.where(#(swp_cf.PHI_NC >= 0) &
-                            (swp_cf.DBZH > uh_tresh) &
-                            # (swp_cf.RHOHV > rho_tresh) &
-                            # (swp_cf.SNRH > snr_tresh) &
+    swp_mask = swp_cf.where((swp_cf.DBZH > uh_tresh) &
                             np.isnan(swp_cf.CMAP)
                             )
     swp_mask['PHI_NC'] = xr.where(swp_mask.PHI_NC < 0, 0, swp_mask.PHI_NC)
     swp_last_l = swp_mask.where(
-        (swp_mask.temp_beambottom >= until_temp_beambottom) &
-        (swp_mask.temp_beambottom < until_temp_beambottom + 1))  # TODO
+        (swp_mask.temp_beambottom >= ML_until_temp_beambottom) &
+        (swp_mask.temp_beambottom < ML_until_temp_beambottom + 1))
     phi_const = swp_last_l.PHI_NC.median(dim="range", skipna=True)
     phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
-        swp_mask.temp_beambottom >= until_temp_beambottom).PHI_NC.max(
+        swp_mask.temp_beambottom >= ML_until_temp_beambottom).PHI_NC.max(
         dim="range", skipna=True), phi_const)
     phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
-        swp_mask.temp_beambottom < until_temp_beambottom).PHI_NC.min(
+        swp_mask.temp_beambottom < ML_until_temp_beambottom).PHI_NC.min(
         dim="range", skipna=True), phi_const)
-    phi_4ac = xr.where(swp_mask.temp_beambottom >= until_temp_beambottom,
+
+    phi_4ac = xr.where(swp_mask.temp_beambottom >= ML_until_temp_beambottom,
                        swp_mask.PHI_NC, phi_const)
+
     zh_ac = swp_mask.DBZH + phi_4ac * alpha
     zdr_ac = swp_mask.ZDR + phi_4ac * beta
     zh_ac.attrs["long_name"] = 'reflectivity factor attenuation corrected'

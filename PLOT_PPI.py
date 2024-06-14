@@ -45,35 +45,40 @@ def plot_PPI(nc_file,
                 break
 
     # get colour conventions from header:
-    if moment in ['KDP_NC', 'kdp']:
+    # if moment in ['KDP_NC', 'kdp']:
+    if 'kdp' in moment.lower():
         if levels is None:
             levels = header.levels_kdp
         if norm is None:
             norm = header.norm_kdp
         if cmap is None:
             cmap = header.cmap_radar
-    elif moment in ['rho', 'RHOHV', 'RHOHV_NC', 'RHOHV_NC2P']:
+    # elif moment in ['rho', 'RHOHV', 'RHOHV_NC', 'RHOHV_NC2P']:
+    elif 'rho' in moment.lower():
         if levels is None:
             levels = header.levels_rhohv
         if norm is None:
             norm = header.norm_rhohv
         if cmap is None:
             cmap = header.cmap_radar
-    elif moment in ['DBZH', 'zh']:
+    # elif moment in ['DBZH', 'zh']:
+    elif 'zh' in moment.lower():
         if levels is None:
             levels = header.levels_zh
         if norm is None:
             norm = header.norm_zh
         if cmap is None:
             cmap = header.cmap_radar
-    elif moment in ['ZDR']:
+    # elif moment in ['ZDR']:
+    elif 'zdr' in moment.lower():
         if levels is None:
             levels = header.levels_zdr
         if norm is None:
             norm = header.norm_zdr
         if cmap is None:
             cmap = header.cmap_radar
-    elif moment in ['PHI_NC', 'phi_c', 'UPHIDP', 'PHI_C']:
+    # elif moment in ['PHI_NC', 'phi_c', 'UPHIDP', 'PHI_C']:
+    elif 'phi' in moment.lower():
         if levels is None:
             levels = header.levels_phi
         if norm is None:
@@ -95,6 +100,13 @@ def plot_PPI(nc_file,
         #     norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         # if cmap is None:
         #     cmap = header.cmap_radar
+    elif 'vrad' in moment.lower():
+        if levels is None:
+            levels = np.arange(-20, 21, 0.1)
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar_smooth
     else:
         if cmap is None:
             cmap = 'jet'
