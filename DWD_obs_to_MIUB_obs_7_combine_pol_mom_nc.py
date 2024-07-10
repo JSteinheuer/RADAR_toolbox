@@ -430,15 +430,15 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20210604",  # case01  # TODO: redo because of time and temp!
-    "20210620", "20210621",  # case02  # TODO: redo because of time and temp!
-    "20210628", "20210629",  # case03  # TODO: redo because of time and temp!
-    "20220519",  # "20220520",  # case04  # TODO: redo because of time and temp!
-    "20220623", "20220624", "20220625",  # case05 # TODO: redo because of tnt!
-    "20220626", "20220627", "20220628",  # case06+07  # TODO: redo because of t
-    "20220630", "20220701",  # case08  # TODO: redo because of temp!
-    "20210714",  # case09 # TODO: redo because of temp!
-    "20221222",  # case10 # TODO: redo because of temp!
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
+    "20220630", "20220701",  # case08
+    "20210714",  # case09
+    "20221222",  # case10
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -454,7 +454,7 @@ MODE = [
     'pcp',
     'vol',
 ]
-overwrite = True
+overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -558,7 +558,7 @@ MODE = [
     'pcp',
     'vol',
 ]
-overwrite = True
+overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:

@@ -518,7 +518,7 @@ def calibrate_zdr(date, location, elevation_deg=5.5, mode='pcp',
         if mode == '90grad':
             data = dttree.open_datatree(nc_file_mom)[
                 'sweep_' + str(int(sweep))].to_dataset()
-            bb_off, bb_nm, bb_sd = cal_zdr_birdbath(data, plot=False,
+            bb_off, bb_nm, bb_sd = cal_zdr_birdbath(data, plot=[False, False],
                                                     ax=None)
             path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
             if not overwrite and os.path.exists(path_out_nc):
@@ -828,7 +828,7 @@ def calibrate_zdr_with_plot(date, location,
                                               plot=[True, False],
                                               axes=axes,
                                               colorbar=colorbar)
-            if mode == 'pcp0':
+            if mode == 'pcp':
                 axes[0].set_title('PCP ' + location.upper() + ' ' +
                                   date + '    ')
             else:

@@ -52,6 +52,7 @@ if getpass.getuser() == 's6justei':  # Bonner tower/network
     folder_plot = '/automount/data02/agradar/operation_hydrometeors/plots/'
     folder_qvp_plot = '/automount/data02/agradar/operation_hydrometeors/plots/QVPs/'
     folder_ppi_plot = '/automount/data02/agradar/operation_hydrometeors/plots/PPIs/'
+    folder_rhi_plot = '/automount/data02/agradar/operation_hydrometeors/plots/RHIs/'
 
 
 # elif getpass.getuser() == 'julian':  # personal notebook

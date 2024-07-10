@@ -8,8 +8,6 @@
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
 # STEP 4: correct KDP in ML.                                                  #
-#         Adapted from Julian Giles:                                          #
-#         radar_processing_scripts/build_radar_database/correct_rhohv.py      #
 # --------------------------------------------------------------------------- #
 
 import datatree as dttree

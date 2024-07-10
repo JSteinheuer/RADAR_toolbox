@@ -38,7 +38,8 @@ for folder in dir_icon:
         os.rename(folder, folder.replace('MAIN_old', 'MAIN_2203.0'))
     elif 'MAIN_newer_new2mom-MP' in folder:  # TODO
         print(folder)
-        os.rename(folder, folder.replace('MAIN_newer_new2mom-MP', 'MAIN_2308.1'))
+        os.rename(folder, folder.replace('MAIN_newer_new2mom-MP',
+                                         'MAIN_2308.1'))
     elif 'MAIN_newer' in folder:  # TODO
         print(folder)
         os.rename(folder, folder.replace('MAIN_newer', 'MAIN_2308.0'))
@@ -52,41 +53,57 @@ dir_data_in = '/automount/agradar/operation_hydrometeors/data/mod/'
 dir_emvorado = glob.glob(dir_data_in + '*/*/*/*')
 for folder in dir_emvorado:
     if 'EMVO_att-no_BBold.Xband' in folder:
-        print(folder, folder.replace('EMVO_att-no_BBold.Xband', 'EMVO_00000000.X'))
-        os.rename(folder, folder.replace('EMVO_att-no_BBold.Xband', 'EMVO_00000000.X'))
+        print(folder, folder.replace('EMVO_att-no_BBold.Xband',
+                                     'EMVO_00000000.X'))
+        os.rename(folder, folder.replace('EMVO_att-no_BBold.Xband',
+                                         'EMVO_00000000.X'))
     elif 'EMVO_att-yes_BBold.Xband' in folder:
-        print(folder, folder.replace('EMVO_att-yes_BBold.Xband', 'EMVO_10000000.X'))
-        os.rename(folder, folder.replace('EMVO_att-yes_BBold.Xband', 'EMVO_10000000.X'))
+        print(folder, folder.replace('EMVO_att-yes_BBold.Xband',
+                                     'EMVO_10000000.X'))
+        os.rename(folder, folder.replace('EMVO_att-yes_BBold.Xband',
+                                         'EMVO_10000000.X'))
     elif 'EMVO_BBold' in folder:
         print(folder, folder.replace('EMVO_BBold', 'EMVO_00000000.2'))
         os.rename(folder, folder.replace('EMVO_BBold', 'EMVO_00000000.2'))
     elif 'EMVO_att-no_BB-ML.Xband' in folder:
-        print(folder, folder.replace('EMVO_att-no_BB-ML.Xband', 'EMVO_00200000.X'))
-        os.rename(folder, folder.replace('EMVO_att-no_BB-ML.Xband', 'EMVO_00200000.X'))
+        print(folder, folder.replace('EMVO_att-no_BB-ML.Xband',
+                                     'EMVO_00200000.X'))
+        os.rename(folder, folder.replace('EMVO_att-no_BB-ML.Xband',
+                                         'EMVO_00200000.X'))
     elif 'EMVO_att-yes_BB-ML.Xband' in folder:
-        print(folder, folder.replace('MVO_att-yes_BB-ML.Xband', 'EMVO_10200000.X'))
-        os.rename(folder, folder.replace('MVO_att-yes_BB-ML.Xband', 'EMVO_10200000.X'))
+        print(folder, folder.replace('MVO_att-yes_BB-ML.Xband',
+                                     'EMVO_10200000.X'))
+        os.rename(folder, folder.replace('MVO_att-yes_BB-ML.Xband',
+                                         'EMVO_10200000.X'))
     elif 'EMVO_BB-ML' in folder:
         print(folder, folder.replace('EMVO_BB-ML', 'EMVO_00200000.2'))
         os.rename(folder, folder.replace('EMVO_BB-ML', 'EMVO_00200000.2'))
     elif 'EMVO_att-no_BBnew.Xband' in folder:
-        print(folder, folder.replace('EMVO_att-no_BBnew.Xband', 'EMVO_00100000.X'))
-        os.rename(folder, folder.replace('EMVO_att-no_BBnew.Xband', 'EMVO_00100000.X'))
+        print(folder, folder.replace('EMVO_att-no_BBnew.Xband',
+                                     'EMVO_00100000.X'))
+        os.rename(folder, folder.replace('EMVO_att-no_BBnew.Xband',
+                                         'EMVO_00100000.X'))
     elif 'EMVO_att-yes_BBnew.Xband' in folder:
-        print(folder, folder.replace('MVO_att-yes_BBnew.Xband', 'EMVO_10100000.X'))
-        os.rename(folder, folder.replace('MVO_att-yes_BBnew.Xband', 'EMVO_10100000.X'))
+        print(folder, folder.replace('MVO_att-yes_BBnew.Xband',
+                                     'EMVO_10100000.X'))
+        os.rename(folder, folder.replace('MVO_att-yes_BBnew.Xband',
+                                         'EMVO_10100000.X'))
     elif 'EMVO_no-melt.Xband' in folder:
         print(folder, folder.replace('EMVO_no-melt.Xband', 'EMVO_00300000.X'))
-        os.rename(folder, folder.replace('EMVO_no-melt.Xband', 'EMVO_00300000.X'))
+        os.rename(folder, folder.replace('EMVO_no-melt.Xband',
+                                         'EMVO_00300000.X'))
     elif 'EMVO_no-melt' in folder:
         print(folder, folder.replace('EMVO_no-melt', 'EMVO_00300000.2'))
         os.rename(folder, folder.replace('EMVO_no-melt', 'EMVO_00300000.2'))
     elif 'EMVO_BBnew2momMP_SSDB' in folder:  # TODO
-        print(folder, folder.replace('EMVO_BBnew2momMP_SSDB', 'EMVO_00401000.2'))
-        os.rename(folder, folder.replace('EMVO_BBnew2momMP_SSDB', 'EMVO_00401000.2'))
+        print(folder, folder.replace('EMVO_BBnew2momMP_SSDB',
+                                     'EMVO_00401000.2'))
+        os.rename(folder, folder.replace('EMVO_BBnew2momMP_SSDB',
+                                         'EMVO_00401000.2'))
     elif 'EMVO_BBnew2momMP' in folder:  # TODO
         print(folder, folder.replace('EMVO_BBnew2momMP', 'EMVO_00400000.2'))
-        os.rename(folder, folder.replace('EMVO_BBnew2momMP', 'EMVO_00400000.2'))
+        os.rename(folder, folder.replace('EMVO_BBnew2momMP',
+                                         'EMVO_00400000.2'))
     elif 'EMVO_BBnew' in folder:  # TODO
         print(folder, folder.replace('EMVO_BBnew', 'EMVO_00100000.2'))
         os.rename(folder, folder.replace('EMVO_BBnew', 'EMVO_00100000.2'))

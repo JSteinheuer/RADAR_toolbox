@@ -8,7 +8,7 @@
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
 # STEP 3: write hourly temperature values to each radar and its grid. ERA5 3D #
-#         temperature fields from download_ERA5_data_DE.py                    #
+#         temperature fields from ERA5_download_data_DE.py                    #
 # --------------------------------------------------------------------------- #
 
 import datatree as dttree
@@ -18,7 +18,7 @@ import glob
 import HEADER_RADAR_toolbox as header
 import os
 import xarray as xr
-from SYN_RADAR_1_CREATE_VOLUME_SCAN import get_lon_lat_alt, ipol_fc_to_radgrid
+from SET_SYN_RADAR import get_lon_lat_alt, ipol_fc_to_radgrid
 import wradlib as wrl
 
 sys.path.insert(0, header.dir_projects +
