@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 25.03.24                                                 #
-# plot_SYN_RADAR_CFTDs.py                                                     #
+# plot_syn_RADAR_CFTDs.py                                                     #
 #                                                                             #
 # Run the function in PLOT_SYN_RADAR.py for generating specific CFTD.         #
 # --------------------------------------------------------------------------- #

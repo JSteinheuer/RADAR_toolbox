@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 25.03.24                                                 #
-# plot_SYN_RADAR_CFTDs.py                                                     #
+# plot_syn_RADAR_CFTDs.py                                                     #
 #                                                                             #
 # Run the function in PLOT_SYN_RADAR.py for generating specific CFTD.         #
 # --------------------------------------------------------------------------- #
@@ -208,7 +208,7 @@ plot_CFAD_or_CFTD_from_QVP(
 # CBAND SYN 1 row 2
 
 da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2401.5/EMVO_00500000.2'
+icon_emvorado_run = 'MAIN_2401.1/EMVO_00510000.2'
 spin_up_mm = '60'
 folder_syn = header.dir_data_qvp
 current_row = 2
@@ -343,9 +343,9 @@ plot_CFAD_or_CFTD_from_QVP(
 )
 
 # --------------------------------------------------------------------------- #
-# CBAND SYN 2: no rain row 3
+# CBAND SYN 2:
 da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2401.5/EMVO_00500002.2'
+icon_emvorado_run = 'MAIN_2401.1/EMVO_00500000.2'
 spin_up_mm = '60'
 folder_syn = header.dir_data_qvp
 current_row = 3
@@ -480,9 +480,9 @@ plot_CFAD_or_CFTD_from_QVP(
 )
 
 # --------------------------------------------------------------------------- #
-# CBAND SYN 3: no graupel row 4
+# CBAND SYN 3:
 da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2401.5/EMVO_00500005.2'
+icon_emvorado_run = 'MAIN_2308.1/EMVO_00500000.2'
 spin_up_mm = '60'
 folder_syn = header.dir_data_qvp
 current_row = 4

@@ -225,7 +225,7 @@ plot_syn_PPI(nc_file_comb, ax, time_i, moment, title=title,
 # --------------------------------------------------------------------------- #
 # SAVE                                                                        #
 # --------------------------------------------------------------------------- #
-str_mod = '_'.join(path.split('/')[-5:-2]) + '_' + str(spin_up_mm) + 'min.'
+str_mod = '_'.join(path.split('/')[-5:-2]) + '_' + str(spin_up_mm) + 'min_JM.'
 str_location = '_'.join([location.upper(), date + str(time_utc).zfill(4)])
 if sum(include_sweep) == 1:
     file_out = folder_plot + 'SYN_PPI_' + str(elevation_deg) + \

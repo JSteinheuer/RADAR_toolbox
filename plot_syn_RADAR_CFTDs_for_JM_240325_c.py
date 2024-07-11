@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 25.03.24                                                 #
-# plot_SYN_RADAR_CFTDs.py                                                     #
+# plot_syn_RADAR_CFTDs.py                                                     #
 #                                                                             #
 # Run the function in PLOT_SYN_RADAR.py for generating specific CFTD.         #
 # --------------------------------------------------------------------------- #
@@ -23,15 +23,13 @@ from SET_SYN_RADAR import rad_dict
 # --------------------------------------------------------------------------- #
 # PARAMS
 
-n_rows = 3
+n_rows = 4
 n_cols = 4
 plt.figure(figsize=(n_cols * 5, n_rows * 4))
 n_i = 0
-current_row = 0
-current_col = 0
+current_row = 1
+current_col = 1
 mod_names = ''
-filter_entr_ML = True
-# filter_entr_ML = False
 
 # All
 date = '20170725'
@@ -58,7 +56,7 @@ bins_temp = 18
 height_min = 0  # in km
 height_max = 10  # in km
 bins_height = 20
-# location = 'PRO'
+location = 'PRO'
 locations = list(rad_dict().keys())
 locations.remove('FLD')
 elevation_deg = 12
@@ -74,7 +72,7 @@ bins_mom_1 = 40
 moment_2s = 'zdrsim'
 moment_2o = 'zdr'
 mom_min_2 = -0.5
-mom_max_2 = 3
+mom_max_2 = 1.5
 bins_mom_2 = 40
 
 moment_3s = 'kdpsim_ml_corrected'
@@ -92,11 +90,11 @@ bins_mom_4 = 40
 # Obs row 1
 folder_obs = '/automount/realpep/upload/s6toscha/Statistik/' + \
              'CBAND_OBS_FERTIG_BRINGI_BUCH/NEU_PHI_NEU_TIME/'
-# path_in = folder_obs + 'fin_qvp_' + location.lower() + date + '.nc'
+path_in = folder_obs + 'fin_qvp_' + location.lower() + date + '.nc'
 paths_in = [folder_obs + 'fin_qvp_' + location.lower() + date + '.nc'
             for location in locations]
 title = 'C-band observation'
-current_row = current_row + 1
+current_row = 1
 
 # Obs 1
 current_col = 1
@@ -121,7 +119,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -148,7 +146,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -175,7 +173,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -202,7 +200,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -210,10 +208,10 @@ plot_CFAD_or_CFTD_from_QVP(
 # CBAND SYN 1 row 2
 
 da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2211.0/EMVO_00000000.2'
+icon_emvorado_run = 'MAIN_2401.5/EMVO_00500000.2'
 spin_up_mm = '60'
 folder_syn = header.dir_data_qvp
-current_row = current_row + 1
+current_row = 2
 model_name = '-'.join([da_run[4:],
                        icon_emvorado_run.split('/')[0][5:],
                        icon_emvorado_run.split('/')[1][5:],
@@ -247,7 +245,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -278,7 +276,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -309,7 +307,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -340,18 +338,17 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
 # --------------------------------------------------------------------------- #
-# CBAND SYN 2 row 2
-
+# CBAND SYN 2: no rain row 3
 da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2401.1/EMVO_00510000.2'
+icon_emvorado_run = 'MAIN_2401.5/EMVO_00500002.2'
 spin_up_mm = '60'
 folder_syn = header.dir_data_qvp
-current_row = current_row + 1
+current_row = 3
 model_name = '-'.join([da_run[4:],
                        icon_emvorado_run.split('/')[0][5:],
                        icon_emvorado_run.split('/')[1][5:],
@@ -385,7 +382,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -416,7 +413,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -447,7 +444,7 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -478,7 +475,145 @@ plot_CFAD_or_CFTD_from_QVP(
     height_max=height_max,  # in km
     bins_height=bins_height,
     vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
+    filter_entr_ML=True,
+    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+)
+
+# --------------------------------------------------------------------------- #
+# CBAND SYN 3: no graupel row 4
+da_run = 'ASS_2211'
+icon_emvorado_run = 'MAIN_2401.5/EMVO_00500005.2'
+spin_up_mm = '60'
+folder_syn = header.dir_data_qvp
+current_row = 4
+model_name = '-'.join([da_run[4:],
+                       icon_emvorado_run.split('/')[0][5:],
+                       icon_emvorado_run.split('/')[1][5:],
+                       spin_up_mm + 'min'])
+mod_names = '-'.join([mod_names, model_name])
+# --------------------------------------------------------------------------- #
+
+# Syn 1
+current_col = 1
+plot_CFAD_or_CFTD_from_QVP(
+    dates=dates,
+    hhmm_start=hhmm_start,
+    hhmm_end=hhmm_end,
+    locations=locations,
+    elevation_deg=elevation_deg,
+    folder_syn=folder_syn,
+    da_run=da_run,
+    icon_emvorado_run=icon_emvorado_run,
+    spin_up_mm=spin_up_mm,
+    # paths_in=paths_in,
+    # title=title,
+    # moment=moment_1o,
+    moment=moment_1s,
+    vert_temp=vert_temp,  # CFTD
+    mom_max=mom_max_1,
+    mom_min=mom_min_1,
+    bins_mom=bins_mom_1,
+    temp_min=temp_min,
+    temp_max=temp_max,
+    bins_temp=bins_temp,
+    height_min=height_min,  # in km
+    height_max=height_max,  # in km
+    bins_height=bins_height,
+    vmax=vmax,
+    filter_entr_ML=True,
+    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+)
+
+# Syn 2
+current_col = 2
+plot_CFAD_or_CFTD_from_QVP(
+    dates=dates,
+    hhmm_start=hhmm_start,
+    hhmm_end=hhmm_end,
+    locations=locations,
+    elevation_deg=elevation_deg,
+    folder_syn=folder_syn,
+    da_run=da_run,
+    icon_emvorado_run=icon_emvorado_run,
+    spin_up_mm=spin_up_mm,
+    # paths_in=paths_in,
+    # title=title,
+    # moment=moment_2o,
+    moment=moment_2s,
+    vert_temp=vert_temp,  # CFTD
+    mom_max=mom_max_2,
+    mom_min=mom_min_2,
+    bins_mom=bins_mom_2,
+    temp_min=temp_min,
+    temp_max=temp_max,
+    bins_temp=bins_temp,
+    height_min=height_min,  # in km
+    height_max=height_max,  # in km
+    bins_height=bins_height,
+    vmax=vmax,
+    filter_entr_ML=True,
+    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+)
+
+# Syn 3
+current_col = 3
+plot_CFAD_or_CFTD_from_QVP(
+    dates=dates,
+    hhmm_start=hhmm_start,
+    hhmm_end=hhmm_end,
+    locations=locations,
+    elevation_deg=elevation_deg,
+    folder_syn=folder_syn,
+    da_run=da_run,
+    icon_emvorado_run=icon_emvorado_run,
+    spin_up_mm=spin_up_mm,
+    # paths_in=paths_in,
+    # title=title,
+    # moment=moment_3o,
+    moment=moment_3s,
+    vert_temp=vert_temp,  # CFTD
+    mom_max=mom_max_3,
+    mom_min=mom_min_3,
+    bins_mom=bins_mom_3,
+    temp_min=temp_min,
+    temp_max=temp_max,
+    bins_temp=bins_temp,
+    height_min=height_min,  # in km
+    height_max=height_max,  # in km
+    bins_height=bins_height,
+    vmax=vmax,
+    filter_entr_ML=True,
+    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+)
+
+# Syn 4
+current_col = 4
+plot_CFAD_or_CFTD_from_QVP(
+    dates=dates,
+    hhmm_start=hhmm_start,
+    hhmm_end=hhmm_end,
+    locations=locations,
+    elevation_deg=elevation_deg,
+    folder_syn=folder_syn,
+    da_run=da_run,
+    icon_emvorado_run=icon_emvorado_run,
+    spin_up_mm=spin_up_mm,
+    # paths_in=paths_in,
+    # title=title,
+    # moment=moment_4o,
+    moment=moment_4s,
+    vert_temp=vert_temp,  # CFTD
+    mom_max=mom_max_4,
+    mom_min=mom_min_4,
+    bins_mom=bins_mom_4,
+    temp_min=temp_min,
+    temp_max=temp_max,
+    bins_temp=bins_temp,
+    height_min=height_min,  # in km
+    height_max=height_max,  # in km
+    bins_height=bins_height,
+    vmax=vmax,
+    filter_entr_ML=True,
     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 )
 
@@ -498,6 +633,5 @@ plt.savefig(
     save_path + save_name + str(elevation_deg) + '_' +
     date + '_' + hhmm_start + '-' + hhmm_end + '_all' +
     mod_names +
-    ['', '_filtered'][filter_entr_ML]
-    + '.pdf', format='pdf', transparent=True)
+    '_filtered.pdf', format='pdf', transparent=True)
 plt.close()

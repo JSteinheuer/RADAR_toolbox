@@ -4,53 +4,60 @@
 
 This repository contains code to process RADAR data.
 
-**How to use**:
+**How to use:**
 
-_HEADER_RADAR_toolbox.py_
+- Capital letter scripts _RADAR_SCRIPT.py_ shall contain the functions
+- similar named scripts in lower case shall use that functions for specific cases with some name extensions for hints, as _radar_script_ess_210714_pcp.py_
+- hard coded paths which are regular used shall be set in _HEADER_RADAR_toolbox.py_
+- workflows, i.e. for processing radar observations step by steps, have different scripts with numbers indicating the step, as _radar_script_1_load_all_moments.py_, *radar_script_2_correct_rho_hv.py*
+
 <br>
-header for hard coded paths, colors, etc, ...
+**Workflows:**
 
-_SYN_RADAR_VOLUME_SCAN.py_
+_DWD_OBS_TO_MIUB_OBS.py_
 <br>
-functions to create synthetic volume scans from ICON/EMVORADO
+take raw DWD Cband radar data and process them in 'miub style' towards rho_hv corrected, phi_dp smoothed and offset corrected, k_dp smoothed, zdr calibrated, attenuation corrected with help of ERA5 temperatures, combined polarimetric moments netcdfs.
 
-_syn_RADAR_volume_scan.py_
+_ERA5....py_
 <br>
-call the functions
+download ERA5 temperatures for broad Germany (Radolan domain) from ECMWF climate data store
 
-_QVP_FROM_VOLUME_SCAN.py_
+_PLOT_RADAR.py_
 <br>
-functions to calculate Quasi vertical profiles from volume scans
+functions to plot the real DWD radar observations: PPIs, pseudoRHIs, CFTDs, CFADs, QVPs
 
-_QVP_from_volume_scan.py_
+_PLOT_SYN_RADAR.py_
 <br>
-call the functions
+functions to plot the synthetic ICON/EMVORADO radar data: PPIs, pseudoRHIs, CFTDs, CFADs, QVPs
 
-
-_PLOT_QVP.py_
+_PROCESS_SYN_RADAR.py_
 <br>
-functions to plot QVPs
+functions to process ready synthetic radar data: QVPs,
 
-_plot_QVP.py_
+_SET_SYN_RADAR.py_
 <br>
-call the functions
+rearrange synthetic radar data from EMVORADO and ICON
 
-**Side-scripts**
+
+
+<br>
+**some Side-scripts**
 
 _change_folder_structure.py_
 <br>
 mv and cp commands moving TS into JS structure
 
-_extract_sort_obs_data.py_
-<br>
-script from KM for extracting ftp files to _change_folder_structure
-
 _rename_ass_icon_emv.py_
 <br>
  new convention from JM: meaningful names for the old runs
 
- 
-_January 5, 2024_
+_Z_scrap_sheet.py_
+<br>
+play around!
+
+
+<br>
+_July 11, 2024_
 
 This program is a free software distributed under the terms of the GNU General 
 Public License as published by the Free Software Foundation, version 3 
