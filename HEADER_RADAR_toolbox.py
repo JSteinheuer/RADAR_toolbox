@@ -93,7 +93,8 @@ levels_phi = np.arange(-7, 30, step)
 # levels_phi = np.arange(-4, 20, step)
 # step=2
 # levels_phi = np.arange(-step * 2, (n_color - 4) * step + 1, step)
-cmap_radar_smooth = LinearSegmentedColormap.from_list('my_list', colors_radar, N=levels_phi.size)
+cmap_radar_smooth = LinearSegmentedColormap.from_list('my_list', colors_radar,
+                                                      N=levels_phi.size)
 norm_phi = mpl.colors.BoundaryNorm(levels_phi, len(levels_phi) - 1)
 
 # levels_kdp = [-2, -1, 0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9,
@@ -108,6 +109,37 @@ norm_rhohv = mpl.colors.BoundaryNorm(levels_rhohv, len(levels_rhohv) - 1)
 # D0
 levels_d0 = np.arange(0.2, 2.8, .2)
 norm_d0 = mpl.colors.BoundaryNorm(levels_d0, len(levels_d0) - 1)
+
+# --------------------------------------------------------------------------- #
+# Colors DWD JM                                                               #
+# --------------------------------------------------------------------------- #
+#
+# colors_radar = np.array(
+#     [[1.00, 1.00, 1.00], [0.70, 1.00, 1.00],  # white, light cyan
+#     [0.00, 1.00, 1.00],  # cyan
+#      [0.50, 1.00, 0.00], [0.40, 0.80, 0.00], [0.27, 0.55, 0.00],  # greens
+#      [1.00, 1.00, 0.00], [0.80, 0.80, 0.00], [1.00, 0.65, 0.00],  # yellows
+#      [1.00, 0.27, 0.00], [0.80, 0.22, 0.00], [0.55, 0.15, 0.00],  # reds
+#      [0.00, 0.70, 0.93], [0.00, 0.00, 1.00],  # blues
+#      [1.00, 0.00, 1.00], [0.58, 0.44, 0.86]])  # pinks
+# cmap_radar = mpl.colors.ListedColormap(colors_radar)
+#
+# # Zh
+# levels_zh = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80]
+# norm_zh = mpl.colors.BoundaryNorm(levels_zh, len(levels_zh) - 1)
+#
+# # ZDR
+# levels_zdr = [-.2, -.1, 0, .1, .2, .3, .4, .6, .8, 1.2, 1.6, 2.3, 3, 4.5, 6]
+# norm_zdr = mpl.colors.BoundaryNorm(levels_zdr, len(levels_zdr) - 1)
+#
+# # KDP
+# levels_kdp = [-.4, -.2, 0, .05, .1, .2, .3, .45, .6, .8, 1, 2, 3, 4, 7]
+# norm_kdp = mpl.colors.BoundaryNorm(levels_kdp, len(levels_kdp) - 1)
+#
+# # RHOHV
+# levels_rhohv = [.7, .8, .9, .92, .94, .95,
+#                 .96, .97, .98, .985, .99, .9925,.995, .9975, 1]
+# norm_rhohv = mpl.colors.BoundaryNorm(levels_rhohv, len(levels_rhohv) - 1)
 
 # --------------------------------------------------------------------------- #
 ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,

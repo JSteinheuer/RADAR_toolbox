@@ -21,6 +21,45 @@ import os
 import matplotlib as mpl
 from PLOT_RADAR import plot_PPI, plot_PPI_temp_ring
 
+
+# --------------------------------------------------------------------------- #
+# Colors DWD JM                                                               #
+# --------------------------------------------------------------------------- #
+
+header.colors_radar = np.array(
+    [[1.00, 1.00, 1.00], [0.70, 1.00, 1.00],  # white, light cyan,
+     [0.00, 1.00, 1.00],  # cyan
+     [0.50, 1.00, 0.00], [0.40, 0.80, 0.00], [0.27, 0.55, 0.00],  # greens
+     [1.00, 1.00, 0.00], [0.80, 0.80, 0.00], [1.00, 0.65, 0.00],  # yellows
+     [1.00, 0.27, 0.00], [0.80, 0.22, 0.00], [0.55, 0.15, 0.00],  # reds
+     [0.00, 0.70, 0.93], [0.00, 0.00, 1.00],  # blues
+     [1.00, 0.00, 1.00], [0.58, 0.44, 0.86]])  # pinks
+header.cmap_radar = mpl.colors.ListedColormap(header.colors_radar)
+
+# Zh
+header.levels_zh = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80]
+header.norm_zh = mpl.colors.BoundaryNorm(header.levels_zh,
+                                         len(header.levels_zh) - 1)
+
+# ZDR
+header.levels_zdr = [-.2, -.1, 0, .1, .2, .3, .4,
+                     .6, .8, 1.2, 1.6, 2.3, 3, 4.5, 6]
+header.norm_zdr = mpl.colors.BoundaryNorm(header.levels_zdr,
+                                          len(header.levels_zdr) - 1)
+
+# KDP
+header.levels_kdp = [-.4, -.2, 0, .05, .1, .2, .3, .45, .6, .8, 1, 2, 3, 4, 7]
+header.norm_kdp = mpl.colors.BoundaryNorm(header.levels_kdp,
+                                          len(header.levels_kdp) - 1)
+
+# RHOHV
+header.levels_rhohv = [.7, .8, .9, .92, .94, .95,
+                .96, .97, .98, .985, .99, .9925, .995, .9975, 1]
+header.norm_rhohv = mpl.colors.BoundaryNorm(header.levels_rhohv,
+                                            len(header.levels_rhohv) - 1)
+
+# --------------------------------------------------------------------------- #
+
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 # case (adjust!):
@@ -239,14 +278,14 @@ if not os.path.exists(folder_plot):
 
 if sum(include_sweep) == 1:
     file_out = file_in.replace('.hd5', '_' + time_UTC.replace(' ', '_') +
-                               '_' + str(n_rows) + 'x' + str(n_cols) +
+                               '_' + str(n_rows) + 'x' + str(n_cols) + '_JM' +
                                '.' + pdf_or_png
                                )
     plt.savefig(folder_plot + 'PPI_' + '_' +
                 file_out, format=pdf_or_png, transparent=True)
 else:
     file_out = file_in.replace('.hd5', '_' + time_UTC.replace(' ', '_') +
-                               '_' + str(n_rows) + 'x' + str(n_cols) +
+                               '_' + str(n_rows) + 'x' + str(n_cols) + '_JM' +
                                '.' + pdf_or_png
                                ).replace('_' + sweep, '_all')
     plt.savefig(folder_plot + 'VOL_' + str(n_rows) + 'x' + str(n_cols) + '_' +
