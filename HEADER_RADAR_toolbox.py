@@ -54,7 +54,6 @@ if getpass.getuser() == 's6justei':  # Bonner tower/network
     folder_ppi_plot = '/automount/data02/agradar/operation_hydrometeors/plots/PPIs/'
     folder_rhi_plot = '/automount/data02/agradar/operation_hydrometeors/plots/RHIs/'
 
-
 # elif getpass.getuser() == 'julian':  # personal notebook
 #   [...]
 
@@ -113,7 +112,7 @@ norm_d0 = mpl.colors.BoundaryNorm(levels_d0, len(levels_d0) - 1)
 # --------------------------------------------------------------------------- #
 # Colors DWD JM                                                               #
 # --------------------------------------------------------------------------- #
-#
+
 # colors_radar = np.array(
 #     [[1.00, 1.00, 1.00], [0.70, 1.00, 1.00],  # white, light cyan
 #     [0.00, 1.00, 1.00],  # cyan
@@ -142,10 +141,59 @@ norm_d0 = mpl.colors.BoundaryNorm(levels_d0, len(levels_d0) - 1)
 # norm_rhohv = mpl.colors.BoundaryNorm(levels_rhohv, len(levels_rhohv) - 1)
 
 # --------------------------------------------------------------------------- #
+# Colors NINJO DWD JM                                                         #
+# --------------------------------------------------------------------------- #
+
+# colors_radar = np.array(
+#     [[1.00, 1.00, 1.00, 1],
+#      [0.6, 1.0, 1.0, 1.],
+#      [0.2, 1.0, 1.0, 1.],
+#      [0.0, 0.7921569, 0.7921569, 1.],
+#      [0.0, 0.6, 0.20392157, 1.],
+#      [0.3019608, 0.7490196, 0.101960786, 1.],
+#      [0.6, 0.8, 0.0, 1.],
+#      [0.8, 0.9019608, 0.0, 1.],
+#      [1.0, 1.0, 0.0, 1.],
+#      [1.0, 0.76862746, 0.0, 1.],
+#      [1.0, 0.5372549, 0.0, 1.],
+#      [1.0, 0.0, 0.0, 1.],
+#      [0.7058824, 0.0, 0.0, 1.],
+#      [0.28235295, 0.28235295, 1.0, 1.],
+#      [0.0, 0.0, 0.7921569, 1.],
+#      [0.6, 0.0, 0.6, 1.],
+#      [1.0, 0.2, 1.0, 1.],
+#      [1.0, 0.8, 1.0, 1.],
+#      ])
+# cmap_radar = mpl.colors.ListedColormap(colors_radar)
+#
+# # Zh
+# levels_zh = np.append(np.arange(1., 56., 4.5), np.array([60., 65., 75., 85.]))
+# norm_zh = mpl.colors.BoundaryNorm(levels_zh, len(levels_zh) - 1)
+#
+# # ZDR
+# levels_zdr = np.append(np.append([-10, -1], np.arange(-0.1, 0.5, 0.1)),
+#                        [0.6, 0.8, 1., 1.5, 2., 3., 4.5, 6, 8])
+# norm_zdr = mpl.colors.BoundaryNorm(levels_zdr, len(levels_zdr) - 1)
+#
+# # KDP
+# levels_kdp = [-.2, -.1, 0,
+#               .05, .1, .15,
+#               .2, .3, .4,
+#               .6, .8, 1,
+#               2, 3, 4, 5, 6]
+# norm_kdp = mpl.colors.BoundaryNorm(levels_kdp, len(levels_kdp) - 1)
+#
+# # RHOHV
+# levels_rhohv = [.7, .8, .9,
+#                 .92, .94,
+#                 .95, .96, .97, .98,
+#                 .985, .99,
+#                 .9925, .995,
+#                 .997, .999,
+#                 .9995, 1]
+# norm_rhohv = mpl.colors.BoundaryNorm(levels_rhohv, len(levels_rhohv) - 1)
+
+# --------------------------------------------------------------------------- #
 ELEVATIONS_ALL = np.array([5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
                            8.0, 12.0, 17.0, 25.0])
 # --------------------------------------------------------------------------- #
-
-
-
-

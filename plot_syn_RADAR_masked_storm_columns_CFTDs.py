@@ -242,29 +242,29 @@ def mask_storm_columns_syn(date="20220520", location='fld',
 # --------------------------------------------------------------------------- #
 # NEW CASES                                                                   #
 # --------------------------------------------------------------------------- #
-# SET PARAMS:
-DATES = [
-    "20210604",  # case01
-    "20210620", "20210621",  # case02
-    "20210628", "20210629",  # case03
-    "20220519", "20220520",  # case04
-    "20220623", "20220624", "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
-    "20210714",  # case09
-    "20221222",  # case10
-]
-LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
-    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
-    'oft', 'pro', 'ros', 'tur', 'umd',
-]
-ELEVATIONS = np.array([
-    5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0,
-    25.0,
-])
-overwrite = False
+# # SET PARAMS:
+# DATES = [
+#     "20210604",  # case01
+#     "20210620", "20210621",  # case02
+#     "20210628", "20210629",  # case03
+#     "20220519", "20220520",  # case04
+#     "20220623", "20220624", "20220625",  # case05
+#     "20220626", "20220627", "20220628",  # case06+07
+#     "20220630", "20220701",  # case08
+#     "20210714",  # case09
+#     "20221222",  # case10
+# ]
+# LOCATIONS = [
+#     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+#     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+#     'oft', 'pro', 'ros', 'tur', 'umd',
+# ]
+# ELEVATIONS = np.array([
+#     5.5,
+#     4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0,
+#     25.0,
+# ])
+# overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 # for date in DATES:
@@ -315,16 +315,24 @@ height_max = 10
 bins_height = 20
 vmax = None
 vmax = 10
-ax = None
-save = True
+# ax = None
+save = False
+save_name = 'dummy'
 save_path = header.folder_plot + 'CFADs/'
+# --------------------------------------------------------------------------- #
+n_rows = 3
+n_cols = 4
+n_i = 0
+fig = plt.figure(figsize=(5 * n_cols, 4 * n_rows))
 # --------------------------------------------------------------------------- #
 mom_min = 0
 mom_max = 60
 bins_mom = 60
 # --------------------------------------------------------------------------- #
-title = 'ZH [dBZ]'
-save_name = 'EMV_storm_core_zh'
+n_i = 2 * n_cols + 1
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm core ZH [dBZ]'
+# save_name = 'EMV_storm_core_zh'
 x = masked_storm['mask_zh'][masked_storm['column_type'] == 3]
 y = masked_storm['mask_temp'][masked_storm['column_type'] == 3]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -336,8 +344,10 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'ZH [dBZ]'
-save_name = 'EMV_all_data_zh'
+n_i = 0 * n_cols + 1
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'all ZH [dBZ]'
+# save_name = 'EMV_all_data_zh'
 x = masked_storm['mask_zh']
 y = masked_storm['mask_temp']
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -349,8 +359,10 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'ZH [dBZ]'
-save_name = 'EMV_storm_envelope_zh'
+n_i = 1 * n_cols + 1
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm envelope ZH [dBZ]'
+# save_name = 'EMV_storm_envelope_zh'
 x=masked_storm['mask_zh'][masked_storm['column_type'] == 2]
 y=masked_storm['mask_temp'][masked_storm['column_type'] == 2]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -366,8 +378,10 @@ mom_min = -0.5
 mom_max = 3
 bins_mom = 70
 # --------------------------------------------------------------------------- #
-title = 'ZDR [dB]'
-save_name = 'EMV_storm_core_zdr'
+n_i = 2 * n_cols + 2
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm core ZDR [dB]'
+# save_name = 'EMV_storm_core_zdr'
 x = masked_storm['mask_zdr'][masked_storm['column_type'] == 3]
 y = masked_storm['mask_temp'][masked_storm['column_type'] == 3]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -379,8 +393,10 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'ZDR [dB]'
-save_name = 'EMV_all_data_zdr'
+n_i = 0 * n_cols + 2
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'all ZDR [dB]'
+# save_name = 'EMV_all_data_zdr'
 x = masked_storm['mask_zdr']
 y = masked_storm['mask_temp']
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -392,8 +408,10 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'ZDR [db]'
-save_name = 'EMV_storm_envelope_zdr'
+n_i = 1 * n_cols + 2
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm envelope ZDR [db]'
+# save_name = 'EMV_storm_envelope_zdr'
 x = masked_storm['mask_zdr'][masked_storm['column_type'] == 2]
 y = masked_storm['mask_temp'][masked_storm['column_type'] == 2]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -405,12 +423,17 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-mom_min = -.2
-mom_max = .6
-bins_mom = 80
+# mom_min = -.2
+# mom_max = .6
+# bins_mom = 80
+mom_min = -.1
+mom_max = .5
+bins_mom = 60
 # --------------------------------------------------------------------------- #
-title = 'KDP [°]'
-save_name = 'EMV_storm_core_kdp'
+n_i = 2 * n_cols + 3
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm core KDP [°]'
+# save_name = 'EMV_storm_core_kdp'
 x = masked_storm['mask_kdp'][masked_storm['column_type'] == 3]
 y = masked_storm['mask_temp'][masked_storm['column_type'] == 3]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -422,8 +445,10 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'KDP [°]'
-save_name = 'EMV_all_data_kdp'
+n_i = 0 * n_cols + 3
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'all KDP [°]'
+# save_name = 'EMV_all_data_kdp'
 x = masked_storm['mask_kdp']
 y = masked_storm['mask_temp']
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -435,8 +460,10 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'KDP [°]'
-save_name = 'EMV_storm_envelope_kdp'
+n_i = 1 * n_cols + 3
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm envelope KDP [°]'
+# save_name = 'EMV_storm_envelope_kdp'
 x = masked_storm['mask_kdp'][masked_storm['column_type'] == 2]
 y = masked_storm['mask_temp'][masked_storm['column_type'] == 2]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -451,12 +478,17 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
 # mom_min = .8
 # mom_max = 1.05
 # bins_mom = 82
-mom_min = .9
+# mom_min = .9
+# mom_max = 1.01
+# bins_mom = 55
+mom_min = .931
 mom_max = 1.01
-bins_mom = 55
+bins_mom = 70
 # --------------------------------------------------------------------------- #
-title = 'RHO [1]'
-save_name = 'EMV_storm_core_rho'
+n_i = 2 * n_cols + 4
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm core RHO [1]'
+# save_name = 'EMV_storm_core_rho'
 x = masked_storm['mask_rho'][masked_storm['column_type'] == 3]
 y = masked_storm['mask_temp'][masked_storm['column_type'] == 3]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -468,8 +500,10 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'RHO [1]'
-save_name = 'EMV_all_data_rho'
+n_i = 0 * n_cols + 4
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'all RHO [1]'
+# save_name = 'EMV_all_data_rho'
 x = masked_storm['mask_rho']
 y = masked_storm['mask_temp']
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
@@ -481,8 +515,13 @@ plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,
                                 save=save, save_path=save_path,
                                 save_name=save_name)
 # --------------------------------------------------------------------------- #
-title = 'RHO [1]'
-save_name = 'EMV_storm_envelope_rho'
+save = True
+save_name = 'Syn_Vol_CFTDs_' + location.upper() + '_' + date + '_storm'
+# --------------------------------------------------------------------------- #
+n_i = 1 * n_cols + 4
+ax = plt.subplot(n_rows, n_cols, n_i)
+title = 'storm envelope RHO [1]'
+# save_name = 'EMV_storm_envelope_rho'
 x = masked_storm['mask_rho'][masked_storm['column_type'] == 2]
 y = masked_storm['mask_temp'][masked_storm['column_type'] == 2]
 plot_CFAD_or_CFTD_from_2_arrays(x, y, title=title, mom_min=mom_min,

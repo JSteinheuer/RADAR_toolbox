@@ -242,7 +242,7 @@ if sum(include_sweep) == 1:
                                '_' + str(n_rows) + 'x' + str(n_cols) +
                                '.' + pdf_or_png
                                )
-    plt.savefig(folder_plot + 'PPI_' + '_' +
+    plt.savefig(folder_plot + 'PPI_' + str(elevation_deg) + '_' +
                 file_out, format=pdf_or_png, transparent=True)
 else:
     file_out = file_in.replace('.hd5', '_' + time_UTC.replace(' ', '_') +

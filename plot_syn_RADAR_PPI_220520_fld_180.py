@@ -34,6 +34,7 @@ folder_plot = header.folder_ppi_plot
 da_run = 'ASS_2405'
 icon_emvorado_run = 'MAIN_2405.1/EMVO_00400000.2'
 spin_up_mm = '60'
+spin_up_mm = '120'
 # --------------------------------------------------------------------------- #
 # folder and file search
 year = date[0:4]
@@ -67,11 +68,11 @@ include_sweep = np.array([
 #     False, False, False, False
 # ])
 #
-# include_sweep = np.array([
-#     False,
-#     False, False, False, False, True, False,
-#     False, False, False, False
-# ])
+include_sweep = np.array([
+    False,
+    False, False, False, False, True, False,
+    False, False, False, False
+])
 elevation_degs = np.array([
     5.5,
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,

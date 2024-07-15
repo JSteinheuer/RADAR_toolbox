@@ -14,6 +14,7 @@ import datatree as dttree
 import glob
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import os
 import pandas as pd
@@ -23,6 +24,7 @@ import warnings
 warnings.simplefilter('ignore')
 import wradlib as wrl
 import xarray as xr
+
 xr.set_options(keep_attrs=True)
 
 
@@ -220,11 +222,13 @@ def plot_syn_pseudoRHI(nc_file,
         plt.figure(figsize=(5, 4))
         ax = plt.gca()
 
-    rec_rhi = wrl.util.cross_section_ppi(vol, azimuth, method="nearest", bw=1.0)
-    rec_rhi[moment].plot(x="gr", y="z", ax=ax, cmap=cmap, levels=levels, norm=norm,
+    rec_rhi = wrl.util.cross_section_ppi(vol, azimuth, method="nearest",
+                                         bw=1.0)
+    rec_rhi[moment].plot(x="gr", y="z", ax=ax, cmap=cmap, levels=levels,
+                         norm=norm,
                          extend='both',
                          ylim=[0, 15000],
-                         xlim=[0, range_max*1000],
+                         xlim=[0, range_max * 1000],
                          )
     # img = wrl.georef.create_xarray_dataarray(data=ppi[moment],
     #                                          r=ppi.range.values / 1000,
@@ -236,7 +240,6 @@ def plot_syn_pseudoRHI(nc_file,
     #                                                ppi.station_height.values]
     #                                          )
     # img = img.wrl.georef.georeference()
-
 
     # if range_max:
     #     img.wrl.vis.plot(ax=ax, cmap=cmap, levels=levels, norm=norm,
@@ -254,6 +257,11 @@ def plot_syn_pseudoRHI(nc_file,
     # ax.set_ylabel("northing [km]")
 
 
+def fmt(x, pos):
+    a, b = '{:.2e}'.format(x).split('e')
+    b = int(b)
+    return r'${} \times 10^{{{}}}$'.format(a, b)
+
 def plot_syn_PPI(nc_file,
                  ax=None,
                  time_i=0,
@@ -265,6 +273,7 @@ def plot_syn_PPI(nc_file,
                  range_max=None,
                  # func='contourf',
                  func='pcolormesh',
+                 extend='both'
                  ):
     # sweep = nc_file.split('/')[-2]
     vol = nc_file
@@ -277,6 +286,8 @@ def plot_syn_PPI(nc_file,
                 moment = moment_i
                 break
 
+    format = None
+    log=False
     # get colour conventions from header:
     # if moment in ['KDP_NC', 'kdp']:
     if 'kdp' in moment.lower():
@@ -340,6 +351,37 @@ def plot_syn_PPI(nc_file,
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
             cmap = header.cmap_radar_smooth
+    elif 'w' in moment.lower():
+        if levels is None:
+            levels = np.arange(-16, 16.1, 2)
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar_smooth
+    elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
+            'qng' in moment.lower() or 'qnh' in moment.lower() or \
+            'qni' in moment.lower() or 'qns' in moment.lower():
+        if levels is None:
+            # levels = [10.0**i for i in np.arange(-4, 8, 1)]
+            levels = [i for i in np.arange(-4, 16, 1)]
+            ppi[moment] = np.log(ppi[moment])
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar_smooth
+        log=True
+    elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
+            'qg' in moment.lower() or 'qh' in moment.lower() or \
+            'qi' in moment.lower() or 'qs' in moment.lower():
+        if levels is None:
+            # levels = [10.0**i for i in np.arange(-11, 3, 1)]
+            levels = [i for i in np.arange(-23, -3, 1)]
+            ppi[moment] = np.log(ppi[moment])
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar_smooth
+        log=True
     else:
         if cmap is None:
             cmap = 'jet'
@@ -356,7 +398,7 @@ def plot_syn_PPI(nc_file,
                                              site=[
                                                  ppi.station_longitude.values,
                                                  ppi.station_latitude.values,
-                                                 ppi.station_height.values]
+                                                 ppi.station_height.values], format = format
                                              )
     img = img.wrl.georef.georeference()
     if ax is None:
@@ -365,18 +407,21 @@ def plot_syn_PPI(nc_file,
 
     if range_max:
         img.wrl.vis.plot(ax=ax, cmap=cmap, levels=levels, norm=norm,
-                         extend='both', func=func,
+                         extend=extend, func=func,
                          ylim=[-range_max, range_max],
                          xlim=[-range_max, range_max])
     else:
         img.wrl.vis.plot(ax=ax, cmap=cmap, levels=levels, norm=norm,
-                         extend='both', func=func, )
+                         extend=extend, func=func)
 
     if title:
         plt.title(title)
 
     ax.set_xlabel("easting [km]")
     ax.set_ylabel("northing [km]")
+    if log:
+        plt.text(1.1, -.05, '1e^',
+                 transform=ax.transAxes)
 
 
 # not working yet
@@ -433,7 +478,6 @@ def plot_syn_PPI_temp_ring(nc_file,
     ax.set_ylabel("northing [km]")
 
 
-
 def plot_CFAD_or_CFTD_from_QVP(
         dates=['20170725'],
         hhmm_start='00:00',
@@ -476,7 +520,7 @@ def plot_CFAD_or_CFTD_from_QVP(
     mom_all = np.array([], )
     y_all = np.array([], )
     weights_all = np.array([], )
-    n_cases=0
+    n_cases = 0
     for j, location in enumerate(locations):
         for i, date in enumerate(dates):
             year = date[0:4]
@@ -485,7 +529,7 @@ def plot_CFAD_or_CFTD_from_QVP(
             date_start = '-'.join([year, mon, day, hhmm_start])
             date_end = '-'.join([year, mon, day, hhmm_end])
             if paths_in:
-                path_in = paths_in[j*len(dates)+i]
+                path_in = paths_in[j * len(dates) + i]
                 if not title:
                     title = path_in.split('/')[-1]
             else:
@@ -503,7 +547,7 @@ def plot_CFAD_or_CFTD_from_QVP(
             if not os.path.exists(path_in):
                 continue
 
-            n_cases=n_cases+1
+            n_cases = n_cases + 1
             # OPEN
             syn_nc = xr.open_dataset(path_in)
             syn_nc = syn_nc.sel(time=slice(date_start, date_end))
@@ -576,8 +620,8 @@ def plot_CFAD_or_CFTD_from_QVP(
                     if syn_nc.height.units == 'km':
                         y = y * 1000
 
-            mom_min_outer=2*mom_min-mom_max # TODO
-            mom_max_outer=2*mom_max-mom_min # TODO
+            mom_min_outer = 2 * mom_min - mom_max  # TODO
+            mom_max_outer = 2 * mom_max - mom_min  # TODO
             # bins_y_3=bins_y*3 # TODO
             # mask = (y >= y_min) & (y <= y_max) & \
             #        (mom >= mom_min) & (mom <= mom_max)
@@ -594,7 +638,7 @@ def plot_CFAD_or_CFTD_from_QVP(
             if ax is None:
                 plt.figure(figsize=(6, 5))
 
-            a = plt.hist(y, bins=bins_y, range=(y_min,y_max)) # TODO
+            a = plt.hist(y, bins=bins_y, range=(y_min, y_max))  # TODO
             # a = plt.hist(y, bins=bins_y-1, range=(y_min,y_max)) # TODO
             # a = plt.hist(y, bins=bins_y_3-1, )
             weights = np.repeat(100 / a[0], np.int16(a[0]))
@@ -602,7 +646,7 @@ def plot_CFAD_or_CFTD_from_QVP(
             y_all = np.append(y_all, y)
             weights_all = np.append(weights_all, weights)
 
-    weights_all = weights_all/(n_cases)
+    weights_all = weights_all / (n_cases)
     # PLOT
     if vmax:
         extend = 'max'
@@ -611,8 +655,10 @@ def plot_CFAD_or_CFTD_from_QVP(
 
     # h2d, mom2d, y2d, fg = plt.hist2d(mom_all, y_all, bins=[bins_mom, bins_y],
     #                                  range=[[mom_min, mom_max],
-    h2d, mom2d, y2d, fg = plt.hist2d(mom_all, y_all, bins=[bins_mom*3, bins_y], # TODO
-                                     range=[[mom_min_outer, mom_max_outer], # TODO
+    h2d, mom2d, y2d, fg = plt.hist2d(mom_all, y_all,
+                                     bins=[bins_mom * 3, bins_y],  # TODO
+                                     range=[[mom_min_outer, mom_max_outer],
+                                            # TODO
                                             [y_min, y_max]], vmax=vmax,
                                      weights=weights_all, cmap='YlGnBu')
     plt.colorbar(label='frequency [%]', extend=extend)
@@ -639,16 +685,16 @@ def plot_CFAD_or_CFTD_from_QVP(
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-    plt.plot(quant_prof[0, ], y_mid, color='red', ls='dashed',
+    plt.plot(quant_prof[0,], y_mid, color='red', ls='dashed',
              linewidth=1, label='$Q_{0.2}$')
-    plt.plot(quant_prof[1, ], y_mid, color='red', ls='solid',
+    plt.plot(quant_prof[1,], y_mid, color='red', ls='solid',
              linewidth=2, label='$Q_{0.5}$')
-    plt.plot(quant_prof[2, ], y_mid, color='red', ls='dashed',
+    plt.plot(quant_prof[2,], y_mid, color='red', ls='dashed',
              linewidth=1, label='$Q_{0.8}$')
     plt.plot(mean_prof, y_mid, color='orange', ls='solid',
              linewidth=2, label='$\mu$')
     plt.legend()
-    plt.xlim([mom_min, mom_max]) # TODO
+    plt.xlim([mom_min, mom_max])  # TODO
     if vmax and np.max(h2d) > vmax:
         if np.max(h2d) > 100:
             print('above 100% :' + str(np.max(h2d)))

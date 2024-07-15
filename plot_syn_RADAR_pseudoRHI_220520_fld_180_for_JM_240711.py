@@ -24,38 +24,95 @@ from PLOT_SYN_RADAR import plot_syn_pseudoRHI
 # Colors DWD JM                                                               #
 # --------------------------------------------------------------------------- #
 
+# header.colors_radar = np.array(
+#     [[1.00, 1.00, 1.00], [0.70, 1.00, 1.00],  # white, light cyan,
+#      [0.00, 1.00, 1.00],  # cyan
+#      [0.50, 1.00, 0.00], [0.40, 0.80, 0.00], [0.27, 0.55, 0.00],  # greens
+#      [1.00, 1.00, 0.00], [0.80, 0.80, 0.00], [1.00, 0.65, 0.00],  # yellows
+#      [1.00, 0.27, 0.00], [0.80, 0.22, 0.00], [0.55, 0.15, 0.00],  # reds
+#      [0.00, 0.70, 0.93], [0.00, 0.00, 1.00],  # blues
+#      [1.00, 0.00, 1.00], [0.58, 0.44, 0.86]])  # pinks
+# header.cmap_radar = mpl.colors.ListedColormap(header.colors_radar)
+#
+# # Zh
+# header.levels_zh = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80]
+# header.norm_zh = mpl.colors.BoundaryNorm(header.levels_zh,
+#                                          len(header.levels_zh) - 1)
+#
+# # ZDR
+# header.levels_zdr = [-.2, -.1, 0, .1, .2, .3, .4,
+#                      .6, .8, 1.2, 1.6, 2.3, 3, 4.5, 6]
+# header.norm_zdr = mpl.colors.BoundaryNorm(header.levels_zdr,
+#                                           len(header.levels_zdr) - 1)
+#
+# # KDP
+# header.levels_kdp = [-.4, -.2, 0, .05, .1, .2, .3, .45, .6, .8, 1, 2, 3, 4, 7]
+# header.norm_kdp = mpl.colors.BoundaryNorm(header.levels_kdp,
+#                                           len(header.levels_kdp) - 1)
+#
+# # RHOHV
+# header.levels_rhohv = [.7, .8, .9, .92, .94, .95,
+#                 .96, .97, .98, .985, .99, .9925, .995, .9975, 1]
+# header.norm_rhohv = mpl.colors.BoundaryNorm(header.levels_rhohv,
+#                                             len(header.levels_rhohv) - 1)
+
+# --------------------------------------------------------------------------- #
+# Colors NINJO DWD JM                                                         #
+# --------------------------------------------------------------------------- #
+
 header.colors_radar = np.array(
-    [[1.00, 1.00, 1.00], [0.70, 1.00, 1.00],  # white, light cyan,
-     [0.00, 1.00, 1.00],  # cyan
-     [0.50, 1.00, 0.00], [0.40, 0.80, 0.00], [0.27, 0.55, 0.00],  # greens
-     [1.00, 1.00, 0.00], [0.80, 0.80, 0.00], [1.00, 0.65, 0.00],  # yellows
-     [1.00, 0.27, 0.00], [0.80, 0.22, 0.00], [0.55, 0.15, 0.00],  # reds
-     [0.00, 0.70, 0.93], [0.00, 0.00, 1.00],  # blues
-     [1.00, 0.00, 1.00], [0.58, 0.44, 0.86]])  # pinks
+    [[1.00, 1.00, 1.00, 1],
+     [0.6, 1.0, 1.0, 1.],
+     [0.2, 1.0, 1.0, 1.],
+     [0.0, 0.7921569, 0.7921569, 1.],
+     [0.0, 0.6, 0.20392157, 1.],
+     [0.3019608, 0.7490196, 0.101960786, 1.],
+     [0.6, 0.8, 0.0, 1.],
+     [0.8, 0.9019608, 0.0, 1.],
+     [1.0, 1.0, 0.0, 1.],
+     [1.0, 0.76862746, 0.0, 1.],
+     [1.0, 0.5372549, 0.0, 1.],
+     [1.0, 0.0, 0.0, 1.],
+     [0.7058824, 0.0, 0.0, 1.],
+     [0.28235295, 0.28235295, 1.0, 1.],
+     [0.0, 0.0, 0.7921569, 1.],
+     [0.6, 0.0, 0.6, 1.],
+     [1.0, 0.2, 1.0, 1.],
+     [1.0, 0.8, 1.0, 1.],
+     ])
 header.cmap_radar = mpl.colors.ListedColormap(header.colors_radar)
 
 # Zh
-header.levels_zh = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80]
+header.levels_zh = np.append(np.arange(1., 56., 4.5),
+                             np.array([60., 65., 75., 85.]))
 header.norm_zh = mpl.colors.BoundaryNorm(header.levels_zh,
                                          len(header.levels_zh) - 1)
 
 # ZDR
-header.levels_zdr = [-.2, -.1, 0, .1, .2, .3, .4,
-                     .6, .8, 1.2, 1.6, 2.3, 3, 4.5, 6]
+header.levels_zdr = np.append(np.append([-10, -1], np.arange(-0.1, 0.5, 0.1)),
+                       [0.6, 0.8, 1., 1.5, 2., 3., 4.5, 6, 8])
 header.norm_zdr = mpl.colors.BoundaryNorm(header.levels_zdr,
                                           len(header.levels_zdr) - 1)
 
 # KDP
-header.levels_kdp = [-.4, -.2, 0, .05, .1, .2, .3, .45, .6, .8, 1, 2, 3, 4, 7]
+header.levels_kdp = [-.2, -.1, 0,
+                     .05, .1, .15,
+                     .2, .3, .4,
+                     .6, .8, 1,
+                     2, 3, 4, 5, 6]
 header.norm_kdp = mpl.colors.BoundaryNorm(header.levels_kdp,
                                           len(header.levels_kdp) - 1)
 
 # RHOHV
-header.levels_rhohv = [.7, .8, .9, .92, .94, .95,
-                .96, .97, .98, .985, .99, .9925, .995, .9975, 1]
+header.levels_rhohv = [.7, .8, .9,
+                       .92, .94,
+                       .95, .96, .97, .98,
+                       .985, .99,
+                       .9925, .995,
+                       .997, .999,
+                       .9995, 1]
 header.norm_rhohv = mpl.colors.BoundaryNorm(header.levels_rhohv,
                                             len(header.levels_rhohv) - 1)
-
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -63,13 +120,13 @@ header.norm_rhohv = mpl.colors.BoundaryNorm(header.levels_rhohv,
 date = "20220520"
 location = 'fld'
 # time_i = 180
-time_utc = 1455
+# time_utc = 1455
 time_utc = 1500
 # time_utc = 1505
-azimuth_deg = 315
-azimuth_deg = 305
-azimuth_deg = 303.5  # c1
-# azimuth_deg = 230.5  # c2
+# azimuth_deg = 315
+# azimuth_deg = 305
+# azimuth_deg = 303.5  # c1
+azimuth_deg = 230.5  # c2
 pdf_or_png = 'png'
 folder_plot = header.folder_rhi_plot
 da_run = 'ASS_2405'
