@@ -151,6 +151,7 @@ def plot_syn_pseudoRHI(nc_file,
                 moment = moment_i
                 break
 
+    log=False
     # get colour conventions from header:
     # if moment in ['KDP_NC', 'kdp']:
     if 'kdp' in moment.lower():
@@ -214,6 +215,52 @@ def plot_syn_pseudoRHI(nc_file,
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
             cmap = header.cmap_radar_smooth
+    elif 'w' == moment.lower():
+        if levels is None:
+            levels = np.arange(-16, 16.1, 2)
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar#_smooth
+    elif 'dm_' in moment.lower() :
+        if levels is None:
+            levels = [i for i in np.arange(0, 8.5, .5)]
+        if moment == 'Dm_cloud':
+            levels = [i for i in np.arange(0, 0.17, 0.01)]
+        if moment == 'Dm_hail':
+            levels = [i for i in np.arange(0, 33, 2)]
+        if moment == 'Dm_ice':
+            levels = [i for i in np.arange(0, 1.7, .1)]
+        if moment == 'Dm_graupel':
+            levels = [i for i in np.arange(0, 17, 1)]
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar#_smooth
+    elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
+            'qng' in moment.lower() or 'qnh' in moment.lower() or \
+            'qni' in moment.lower() or 'qns' in moment.lower():
+        if levels is None:
+            # levels = [10.0**i for i in np.arange(-4, 8, 1)]
+            levels = [i for i in np.arange(-2, 15, 1)]
+            vol[moment] = np.log(vol[moment])
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar#_smooth
+        log = True
+    elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
+            'qg' in moment.lower() or 'qh' in moment.lower() or \
+            'qi' in moment.lower() or 'qs' in moment.lower():
+        if levels is None:
+            # levels = [10.0**i for i in np.arange(-11, 3, 1)]
+            levels = [i for i in np.arange(-20, -3, 1)]
+            vol[moment] = np.log(vol[moment])
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar#_smooth
+        log = True
     else:
         if cmap is None:
             cmap = 'jet'
@@ -252,6 +299,10 @@ def plot_syn_pseudoRHI(nc_file,
 
     if title:
         plt.title(title)
+
+    if log:
+        plt.text(1.1, -.05, '1e^',
+                 transform=ax.transAxes)
     #
     # ax.set_xlabel("easting [km]")
     # ax.set_ylabel("northing [km]")
@@ -261,6 +312,7 @@ def fmt(x, pos):
     a, b = '{:.2e}'.format(x).split('e')
     b = int(b)
     return r'${} \times 10^{{{}}}$'.format(a, b)
+
 
 def plot_syn_PPI(nc_file,
                  ax=None,
@@ -351,37 +403,83 @@ def plot_syn_PPI(nc_file,
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
             cmap = header.cmap_radar_smooth
-    elif 'w' in moment.lower():
+    elif 'w' == moment.lower():
         if levels is None:
             levels = np.arange(-16, 16.1, 2)
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar_smooth
+            cmap = header.cmap_radar#_smooth
+    elif 'dm_' in moment.lower() :
+        if levels is None:
+            levels = [i for i in np.arange(0, 8.5, .5)]
+        if moment == 'Dm_cloud':
+            levels = [i for i in np.arange(0, 0.17, 0.01)]
+        if moment == 'Dm_hail':
+            levels = [i for i in np.arange(0, 33, 2)]
+        if moment == 'Dm_ice':
+            levels = [i for i in np.arange(0, 1.7, .1)]
+        if moment == 'Dm_graupel':
+            levels = [i for i in np.arange(0, 17, 1)]
+        if norm is None:
+            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+        if cmap is None:
+            cmap = header.cmap_radar#_smooth
     elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
             'qng' in moment.lower() or 'qnh' in moment.lower() or \
             'qni' in moment.lower() or 'qns' in moment.lower():
         if levels is None:
             # levels = [10.0**i for i in np.arange(-4, 8, 1)]
-            levels = [i for i in np.arange(-4, 16, 1)]
+            levels = [i for i in np.arange(-2, 15, 1)]
             ppi[moment] = np.log(ppi[moment])
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar_smooth
-        log=True
+            cmap = header.cmap_radar#_smooth
+        log = True
     elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
             'qg' in moment.lower() or 'qh' in moment.lower() or \
             'qi' in moment.lower() or 'qs' in moment.lower():
         if levels is None:
             # levels = [10.0**i for i in np.arange(-11, 3, 1)]
-            levels = [i for i in np.arange(-23, -3, 1)]
+            levels = [i for i in np.arange(-20, -3, 1)]
             ppi[moment] = np.log(ppi[moment])
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar_smooth
-        log=True
+            cmap = header.cmap_radar#_smooth
+        log = True
+    # elif 'w' == moment.lower():
+    #     if levels is None:
+    #         levels = np.arange(-16, 16.1, 2)
+    #     if norm is None:
+    #         norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+    #     if cmap is None:
+    #         cmap = header.cmap_radar_smooth
+    # elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
+    #         'qng' in moment.lower() or 'qnh' in moment.lower() or \
+    #         'qni' in moment.lower() or 'qns' in moment.lower():
+    #     if levels is None:
+    #         # levels = [10.0**i for i in np.arange(-4, 8, 1)]
+    #         levels = [i for i in np.arange(-4, 16, 1)]
+    #         ppi[moment] = np.log(ppi[moment])
+    #     if norm is None:
+    #         norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+    #     if cmap is None:
+    #         cmap = header.cmap_radar_smooth
+    #     log=True
+    # elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
+    #         'qg' in moment.lower() or 'qh' in moment.lower() or \
+    #         'qi' in moment.lower() or 'qs' in moment.lower():
+    #     if levels is None:
+    #         # levels = [10.0**i for i in np.arange(-11, 3, 1)]
+    #         levels = [i for i in np.arange(-23, -3, 1)]
+    #         ppi[moment] = np.log(ppi[moment])
+    #     if norm is None:
+    #         norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+    #     if cmap is None:
+    #         cmap = header.cmap_radar_smooth
+    #     log=True
     else:
         if cmap is None:
             cmap = 'jet'
@@ -514,6 +612,18 @@ def plot_CFAD_or_CFTD_from_QVP(
     if not isinstance(locations, list):
         locations = [locations]
 
+    if not isinstance(da_run, list):
+        da_run = [da_run]
+
+    if len(da_run) == 1:
+        da_run = [da_run[0] for i in range(len(dates))]
+
+    if not isinstance(icon_emvorado_run, list):
+        icon_emvorado_run = [icon_emvorado_run]
+
+    if len(icon_emvorado_run) == 1:
+        icon_emvorado_run = [icon_emvorado_run[0] for i in range(len(dates))]
+
     if paths_in is not None and not isinstance(paths_in, list):
         paths_in = [paths_in]
 
@@ -533,18 +643,19 @@ def plot_CFAD_or_CFTD_from_QVP(
                 if not title:
                     title = path_in.split('/')[-1]
             else:
-                path_in = '/'.join([folder_syn, date, da_run,
-                                    icon_emvorado_run,
+                path_in = '/'.join([folder_syn + date, da_run[i],
+                                    icon_emvorado_run[i],
                                     str(spin_up_mm) + 'min_spinup', 'QVP_' +
                                     str(elevation_deg) + '_Syn_' + location +
                                     '_' + date + '0000_' + date + '2355.nc'])
                 if not title:
-                    title = '-'.join([da_run[4:],
-                                      icon_emvorado_run.split('/')[0][5:],
-                                      icon_emvorado_run.split('/')[1][5:],
+                    title = '-'.join([da_run[i][4:],
+                                      icon_emvorado_run[i].split('/')[0][5:],
+                                      icon_emvorado_run[i].split('/')[1][5:],
                                       spin_up_mm + 'min'])
 
             if not os.path.exists(path_in):
+                print('Missing: ' + path_in)
                 continue
 
             n_cases = n_cases + 1

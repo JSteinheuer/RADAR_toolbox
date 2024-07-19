@@ -170,8 +170,6 @@ def get_path_syn_volume(date, time, spin_up_mm,
 
         dir_of_vol = dir_of_vol_tmp
 
-
-
     # else:  # previous day folder (if DA at 21:00)?
     #     dir_of_vol = dir_data + dti_3hda.strftime('%Y%m%d') + '/' + \
     #                  da_run + '/' + icon_emvorado_run + '/' + \
@@ -218,7 +216,7 @@ def get_lon_lat_alt(r, az, el, sitecoords):
 
     proj_wgs84 = wrl.georef.epsg_to_osr(4326)
     cent_coords = wrl.georef.spherical_to_centroids(r, az, el, sitecoords,
-                                                crs=proj_wgs84)
+                                                    crs=proj_wgs84)
     cent_coords = np.squeeze(cent_coords)
     lon = cent_coords[..., 0]
     lat = cent_coords[..., 1]
@@ -246,6 +244,8 @@ def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt,
         rad_lon: radar longitude array [flattened n_lo x n_la x n_al].
         rad_lat: radar latitude array [flattened n_lo x n_la x n_al].
         rad_alt: altitude array of [flattened n_lo x n_la x n_al].
+        method: 'Nearest' or 'Linear' for method to interpolate mod fields to
+                rad grid.
 
     Returns:
         func_ipol: wradlib.inpol.Nearest class that is initialized and
@@ -278,10 +278,10 @@ def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt,
     upper_z = 2000
     mask = (mod_x >= rad_x.min() - outer_x) & (
             mod_x <= rad_x.max() + outer_x) & (
-            mod_y >= rad_y.min() - outer_y) & (
-            mod_y <= rad_y.max() + outer_y) & (
-            mod_z >= rad_alt.min() - lower_z) & (
-            mod_z <= rad_alt.max() + upper_z)
+                   mod_y >= rad_y.min() - outer_y) & (
+                   mod_y <= rad_y.max() + outer_y) & (
+                   mod_z >= rad_alt.min() - lower_z) & (
+                   mod_z <= rad_alt.max() + upper_z)
     mod_x = mod_x[mask]
     mod_y = mod_y[mask]
     mod_alt = mod_z[mask]
@@ -306,7 +306,8 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
                   dir_data_out=header.dir_data_vol,
                   radar_loc='PRO', radar_id='010392', spin_up_mm=30,
                   da_run='', icon_run='', icon_emvorado_run='',
-                  overwrite=False, include_icon=True, include_emv=True):
+                  overwrite=False, include_icon=True, include_emv=True,
+                  method='Nearest'):
     """
     Create a synthetic volume scan from EMVORADO and ICON data.
 
@@ -325,6 +326,8 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
         overwrite: If True, then process only if output is not existing.
         include_icon: If True, ICON variables are included.
         include_emv: If True, synthetic pol. var from EVMORADO are included.
+        method: 'Nearest' or 'Linear' for method to interpolate mod fields to
+                rad grid.
 
     Returns:
     """
@@ -365,7 +368,10 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
             get_path_syn_volume(date, time, spin_up_mm, radar_id, dir_data_in,
                                 da_run, icon_run, icon_emvorado_run).values()
 
-        if 'vol_scan' not in locals() and not dir_of_fc + dir_of_vol == '':
+        if ('vol_scan' not in locals() and include_icon
+            and not dir_of_fc + file_fc == '') or \
+                ('vol_scan' not in locals() and include_emv
+                 and not dir_of_vol + file_vol == ''):
             if not os.path.isfile(dir_of_vol + file_vol):
                 print('No EMVORADO input for time')
                 continue
@@ -672,7 +678,7 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
                     np.repeat(fc_lon[np.newaxis, :], fc_alt.shape[0], axis=0),
                     # lat with shape (65,258775)
                     np.repeat(fc_lat[np.newaxis, :], fc_alt.shape[0], axis=0),
-                    fc_alt, rad_lon, rad_lat, rad_alt
+                    fc_alt, rad_lon, rad_lat, rad_alt, method
                 )
                 shape_rae = vol_scan['lon'].shape
 
@@ -680,62 +686,65 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
             vol_scan['temp'][t_i, :, :, :] = \
                 func_ipol(single_fc['temp'].data[0, :, :][mask]).reshape(
                     shape_rae)
-            vol_scan['pres'][t_i, :, :, :] = \
-                func_ipol(single_fc['pres'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qv'][t_i, :, :, :] = \
-                func_ipol(single_fc['qv'].data[0, :, :][mask]).reshape(
-                    shape_rae)
+            try:
+                vol_scan['pres'][t_i, :, :, :] = \
+                    func_ipol(single_fc['pres'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qv'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qv'].data[0, :, :][mask]).reshape(
+                        shape_rae)
 
-            vol_scan['qc'][t_i, :, :, :] = \
-                func_ipol(single_fc['qc'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qr'][t_i, :, :, :] = \
-                func_ipol(single_fc['qr'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qi'][t_i, :, :, :] = \
-                func_ipol(single_fc['qi'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qs'][t_i, :, :, :] = \
-                func_ipol(single_fc['qs'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qg'][t_i, :, :, :] = \
-                func_ipol(single_fc['qg'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qh'][t_i, :, :, :] = \
-                func_ipol(single_fc['qh'].data[0, :, :][mask]).reshape(
-                    shape_rae)
+                vol_scan['qc'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qc'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qr'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qr'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qi'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qi'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qs'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qs'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qg'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qg'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qh'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qh'].data[0, :, :][mask]).reshape(
+                        shape_rae)
 
-            vol_scan['qnc'][t_i, :, :, :] = \
-                func_ipol(single_fc['qnc'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qnr'][t_i, :, :, :] = \
-                func_ipol(single_fc['qnr'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qni'][t_i, :, :, :] = \
-                func_ipol(single_fc['qni'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qns'][t_i, :, :, :] = \
-                func_ipol(single_fc['qns'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qng'][t_i, :, :, :] = \
-                func_ipol(single_fc['qng'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['qnh'][t_i, :, :, :] = \
-                func_ipol(single_fc['qnh'].data[0, :, :][mask]).reshape(
-                    shape_rae)
+                vol_scan['qnc'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qnc'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qnr'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qnr'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qni'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qni'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qns'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qns'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qng'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qng'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['qnh'][t_i, :, :, :] = \
+                    func_ipol(single_fc['qnh'].data[0, :, :][mask]).reshape(
+                        shape_rae)
 
-            vol_scan['u'][t_i, :, :, :] = \
-                func_ipol(single_fc['u'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['v'][t_i, :, :, :] = \
-                func_ipol(single_fc['v'].data[0, :, :][mask]).reshape(
-                    shape_rae)
-            vol_scan['w'][t_i, :, :, :] = \
-                ((func_ipol(single_fc['w'].data[0, 1:, :][mask]) +
-                  func_ipol(single_fc['w'].data[0, :-1, :][mask])) / 2
-                 ).reshape(
-                    shape_rae)
+                vol_scan['u'][t_i, :, :, :] = \
+                    func_ipol(single_fc['u'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['v'][t_i, :, :, :] = \
+                    func_ipol(single_fc['v'].data[0, :, :][mask]).reshape(
+                        shape_rae)
+                vol_scan['w'][t_i, :, :, :] = \
+                    ((func_ipol(single_fc['w'].data[0, 1:, :][mask]) +
+                      func_ipol(single_fc['w'].data[0, :-1, :][mask])) / 2
+                     ).reshape(
+                        shape_rae)
+            except:
+                print('some variable not in ICON fc')
 
             # single_fc done!
             single_fc.close()
@@ -747,8 +756,15 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
         print('    ! Case done now !      ')
         print('___________________________')
     else:
-        print('   ! No data for case !    ')
-        print('___________________________')
+        if include_icon and not include_emv:
+            print('   ! No ICON for case !    ')
+            print('___________________________')
+        elif not include_icon and include_emv:
+            print('   ! No EMVO for case !    ')
+            print('___________________________')
+        else:
+            print('   ! No data for case !    ')
+            print('___________________________')
 
 
 def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
@@ -758,6 +774,7 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                            radar_locs=list(rad_dict().keys()),
                            dir_data_in=header.dir_data_mod,
                            dir_data_out=header.dir_data_vol,
+                           method='Nearest',
                            ):
     """
     Create for day 8 synthetic volume scans from EMVORADO and ICON data.
@@ -772,6 +789,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
         radar_locs: list of strings  >RRR< naming the radars.
         dir_data_in: directory with folder >yyyymmdd< of the day outputs.
         dir_data_out: directory for the output.
+        method: 'Nearest' or 'Linear' for method to interpolate mod fields to
+                rad grid.
 
     Returns:
     """
@@ -790,7 +809,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                           dir_data_in=dir_data_in,
                           dir_data_out=dir_data_out,
                           radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
-                          include_icon=True, include_emv=False)
+                          include_icon=True, include_emv=False,
+                          method=method)
             print('________________________________________')
             print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
                   str(spin_up_mm) + '_spinup/')
@@ -802,7 +822,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                           dir_data_in=dir_data_in,
                           dir_data_out=dir_data_out,
                           radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
-                          include_icon=False, include_emv=True)
+                          include_icon=False, include_emv=True,
+                          method=method)
             time_start = time_end
 
 
@@ -814,6 +835,7 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                                     radar_locs=list(rad_dict().keys()),
                                     dir_data_in=header.dir_data_mod,
                                     dir_data_out=header.dir_data_vol,
+                                    method='Nearest'
                                     ):
     """
     Create for day 8 synthetic volume scans from EMVORADO and ICON data.
@@ -829,6 +851,8 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
         radar_locs: list of strings  >RRR< naming the radars.
         dir_data_in: directory with folder >yyyymmdd< of the day outputs.
         dir_data_out: directory for the output.
+        method: 'Nearest' or 'Linear' for method to interpolate mod fields to
+                rad grid.
 
     Returns:
     """
@@ -856,7 +880,8 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(icon_emvorado_run, 4),
                          np.repeat(False, 4),
                          np.repeat(True, 4),
-                         np.repeat(False, 4))
+                         np.repeat(False, 4),
+                         np.repeat(method, 4))
                      )
         print('________________________________________')
         print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
@@ -874,6 +899,6 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(icon_emvorado_run, 4),
                          np.repeat(False, 4),
                          np.repeat(False, 4),
-                         np.repeat(True, 4))
+                         np.repeat(True, 4),
+                         np.repeat(method, 4))
                      )
-

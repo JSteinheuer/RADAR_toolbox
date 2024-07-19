@@ -106,7 +106,7 @@ for day in [
     '20170720',
     '20170724',
     '20170726',
-    '20170727',
+    '20170727',  # TODO!
     '20170810',
     '20180728',
     '20180809',
@@ -115,9 +115,11 @@ for day in [
 ]:
     for da_run in [
         'ASS_2111',  # ASS_old,
+        'ASS_2211',
     ]:
         for icon_run in [
             'MAIN_2203.0',  # MAIN_old,
+            'MAIN_2211.0',
         ]:
             for emvorado_run in [
                 'EMVO_00000000.2',  # 'EMVO_BBold',

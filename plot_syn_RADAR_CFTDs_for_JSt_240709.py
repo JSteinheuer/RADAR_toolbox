@@ -13,12 +13,13 @@
 
 import HEADER_RADAR_toolbox as header
 import matplotlib.pyplot as plt
+import numpy as np
 import warnings
 from pathlib import Path
+
 warnings.simplefilter('ignore')
 from PLOT_SYN_RADAR import plot_CFAD_or_CFTD_from_QVP
 from SET_SYN_RADAR import rad_dict
-
 
 # --------------------------------------------------------------------------- #
 # PARAMS
@@ -29,22 +30,23 @@ plt.figure(figsize=(n_cols * 5, n_rows * 4))
 n_i = 0
 current_row = 0
 current_col = 0
-mod_names = ''
+mod_names1 = ''
+mod_names2 = ''
 filter_entr_ML = True
-filter_entr_ML = False
+# filter_entr_ML = False
 
 # All
 # date = '20170725'
 dates = [
     '20170725',  # start this day
+    '20170810',
+    '20180809',
     '20170719',
     '20170720',
     '20170724',
     '20170726',
     '20170727',
-    '20170810',
     '20180728',
-    '20180809',
     '20180923',
     '20181202',
 ]
@@ -62,8 +64,8 @@ bins_height = 20
 locations = list(rad_dict().keys())
 locations.remove('FLD')
 elevation_deg = 12
-vmax=20
-vmax=15
+vmax = 20
+vmax = 15
 # vmax=1
 
 # MOMENTS
@@ -214,16 +216,27 @@ plot_CFAD_or_CFTD_from_QVP(
 # --------------------------------------------------------------------------- #
 # CBAND SYN 1 row 2
 
-da_run = 'ASS_2211'
-icon_emvorado_run = 'MAIN_2211.0/EMVO_00000000.2'
-spin_up_mm = '60'
+da_run1 = 'ASS_2211'
+icon_emvorado_run1 = 'MAIN_2211.0/EMVO_00000000.2'
+
+da_run2 = 'ASS_2111'
+icon_emvorado_run2 = 'MAIN_2203.0/EMVO_00000000.2'
+
+spin_up_mm = '30'
 folder_syn = header.dir_data_qvp
 current_row = current_row + 1
-model_name = '-'.join([da_run[4:],
-                       icon_emvorado_run.split('/')[0][5:],
-                       icon_emvorado_run.split('/')[1][5:],
-                       spin_up_mm + 'min'])
-mod_names = '-'.join([mod_names, model_name])
+
+model_name1 = '-'.join([da_run1[4:],
+                        icon_emvorado_run1.split('/')[0][5:],
+                        icon_emvorado_run1.split('/')[1][5:],
+                        spin_up_mm + 'min'])
+mod_names1 = '-'.join([mod_names1, model_name1])
+
+model_name2 = '-'.join([da_run2[4:],
+                        icon_emvorado_run2.split('/')[0][5:],
+                        icon_emvorado_run2.split('/')[1][5:],
+                        spin_up_mm + 'min'])
+mod_names2 = '-'.join([mod_names2, model_name2])
 # --------------------------------------------------------------------------- #
 # Syn 1
 current_col = 1
@@ -234,8 +247,9 @@ plot_CFAD_or_CFTD_from_QVP(
     locations=locations,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
-    da_run=da_run,
-    icon_emvorado_run=icon_emvorado_run,
+    da_run=list(np.repeat(da_run1, 3)) + list(np.repeat(da_run2, 8)),
+    icon_emvorado_run=list(np.repeat(icon_emvorado_run1, 3)) +
+                      list(np.repeat(icon_emvorado_run2, 8)),
     spin_up_mm=spin_up_mm,
     # paths_in=paths_in,
     # title=title,
@@ -265,8 +279,9 @@ plot_CFAD_or_CFTD_from_QVP(
     locations=locations,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
-    da_run=da_run,
-    icon_emvorado_run=icon_emvorado_run,
+    da_run=list(np.repeat(da_run1, 3)) + list(np.repeat(da_run2, 8)),
+    icon_emvorado_run=list(np.repeat(icon_emvorado_run1, 3)) +
+                      list(np.repeat(icon_emvorado_run2, 8)),
     spin_up_mm=spin_up_mm,
     # paths_in=paths_in,
     # title=title,
@@ -296,8 +311,9 @@ plot_CFAD_or_CFTD_from_QVP(
     locations=locations,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
-    da_run=da_run,
-    icon_emvorado_run=icon_emvorado_run,
+    da_run=list(np.repeat(da_run1, 3)) + list(np.repeat(da_run2, 8)),
+    icon_emvorado_run=list(np.repeat(icon_emvorado_run1, 3)) +
+                      list(np.repeat(icon_emvorado_run2, 8)),
     spin_up_mm=spin_up_mm,
     # paths_in=paths_in,
     # title=title,
@@ -327,8 +343,9 @@ plot_CFAD_or_CFTD_from_QVP(
     locations=locations,
     elevation_deg=elevation_deg,
     folder_syn=folder_syn,
-    da_run=da_run,
-    icon_emvorado_run=icon_emvorado_run,
+    da_run=list(np.repeat(da_run1, 3)) + list(np.repeat(da_run2, 8)),
+    icon_emvorado_run=list(np.repeat(icon_emvorado_run1, 3)) +
+                      list(np.repeat(icon_emvorado_run2, 8)),
     spin_up_mm=spin_up_mm,
     # paths_in=paths_in,
     # title=title,
@@ -502,7 +519,7 @@ else:
 plt.savefig(
     save_path + save_name + str(elevation_deg) + '_all' +
     '_' + hhmm_start + '-' + hhmm_end + '_all' +
-    mod_names +
+    mod_names1 +
     ['', '_filtered'][filter_entr_ML]
     + '.pdf', format='pdf', transparent=True)
 plt.close()

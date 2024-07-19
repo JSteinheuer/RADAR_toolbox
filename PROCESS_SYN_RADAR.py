@@ -278,7 +278,6 @@ def calc_Dmean(Mk, meantype='vol'):
                              (1. / (k_needed[meantype][0] -
                                     k_needed[meantype][1])), 0)
 
-    #
     return Dmean
 
 
@@ -817,7 +816,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                            xr.open_dataset(dir_qvp + files_qvp[1]),
                            xr.open_dataset(dir_qvp + files_qvp[2]),
                            xr.open_dataset(dir_qvp + files_qvp[3]),
-                           ])
+                           ])#, compat='override')
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc.to_netcdf(dir_qvp + file_qvp_4, unlimited_dims='time')
         qvp_nc.close()

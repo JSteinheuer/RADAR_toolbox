@@ -81,18 +81,16 @@ header.norm_rhohv = mpl.colors.BoundaryNorm(header.levels_rhohv,
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 # case (adjust!):
-date = "20220520"
-location = 'fld'
+date = "20170725"
+location = 'pro'
 # time_i = 180
-time_utc = 1455
-time_utc = 1500
-# time_utc = 1505
+time_utc = 500
 pdf_or_png = 'png'
 # pdf_or_png = 'pdf'
 folder_plot = header.folder_ppi_plot
-da_run = 'ASS_2405'
-icon_run = 'MAIN_2405.1'
-icon_emvorado_run = 'MAIN_2405.1/EMVO_00400000.2'
+da_run = 'ASS_2211'
+icon_run = 'MAIN_2308.0'
+icon_emvorado_run = 'MAIN_2401.1/EMVO_00510000.2'
 spin_up_mm = '60'
 # --------------------------------------------------------------------------- #
 # folder and file search
@@ -132,10 +130,10 @@ range_max = 180
 temp_thickness = .3
 mode = 'vol'
 
-elevation_deg = 12
-range_max = 50
-temp_thickness = .3
-mode = 'vol'
+# elevation_deg = 12
+# range_max = 50
+# temp_thickness = .3
+# mode = 'vol'
 
 # case (adjust!):
 # --------------------------------------------------------------------------- #
