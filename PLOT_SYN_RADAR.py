@@ -221,8 +221,8 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
-    elif 'dm_' in moment.lower() :
+            cmap = header.cmap_radar2#_smooth
+    elif 'dm_' in moment.lower():
         if levels is None:
             levels = [i for i in np.arange(0, 8.5, .5)]
         if moment == 'Dm_cloud':
@@ -236,7 +236,7 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
+            cmap = header.cmap_radar2#_smooth
     elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
             'qng' in moment.lower() or 'qnh' in moment.lower() or \
             'qni' in moment.lower() or 'qns' in moment.lower():
@@ -247,7 +247,7 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
+            cmap = header.cmap_radar2#_smooth
         log = True
     elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
             'qg' in moment.lower() or 'qh' in moment.lower() or \
@@ -259,7 +259,7 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
+            cmap = header.cmap_radar2#_smooth
         log = True
     else:
         if cmap is None:
@@ -601,6 +601,7 @@ def plot_CFAD_or_CFTD_from_QVP(
         bins_height=20,
         vmax=None,
         filter_entr_ML=False,
+        filter_ML=None,
         ax=None,
         save=False,
         save_path=header.folder_plot + 'CFADs/',
@@ -663,6 +664,12 @@ def plot_CFAD_or_CFTD_from_QVP(
             syn_nc = xr.open_dataset(path_in)
             syn_nc = syn_nc.sel(time=slice(date_start, date_end))
             if filter_entr_ML:
+                min_entropy = syn_nc['min_entropy'].transpose('time', ...)
+                syn_nc = xr.where(min_entropy > 0.8, syn_nc, np.nan)
+                if filter_ML==None:
+                    filter_ML=True
+
+            if filter_ML:
                 if 'mlh_top' in list(syn_nc.keys()):
                     ml_top = syn_nc['mlh_top'].transpose('time', ...)
                 # elif 'height_ml' in list(syn_nc.keys()):
@@ -673,13 +680,13 @@ def plot_CFAD_or_CFTD_from_QVP(
                     continue
 
                 syn_nc = xr.where(ml_top > 0, syn_nc, np.nan)
-                min_entropy = syn_nc['min_entropy'].transpose('time', ...)
-                syn_nc = xr.where(min_entropy > 0.8, syn_nc, np.nan)
 
             if 'zh' in list(syn_nc.keys()):
                 zh = syn_nc['zh'].transpose('time', ...)
             elif 'zrsim' in list(syn_nc.keys()):
                 zh = syn_nc['zrsim'].transpose('time', ...)
+            elif 'ZH_AC' in list(syn_nc.keys()):
+                zh = syn_nc['ZH_AC'].transpose('time', ...)
             else:
                 print('no zh found')
                 continue
@@ -688,6 +695,8 @@ def plot_CFAD_or_CFTD_from_QVP(
                 zdr = syn_nc['zdr'].transpose('time', ...)
             elif 'zdrsim' in list(syn_nc.keys()):
                 zdr = syn_nc['zdrsim'].transpose('time', ...)
+            elif 'ZDR_AC_OC' in list(syn_nc.keys()):
+                zdr = syn_nc['ZDR_AC_OC'].transpose('time', ...)
             else:
                 print('no zdr found')
                 continue
@@ -696,6 +705,8 @@ def plot_CFAD_or_CFTD_from_QVP(
                 kdp = syn_nc['kdp'].transpose('time', ...)
             elif 'kdpsim' in list(syn_nc.keys()):
                 kdp = syn_nc['kdpsim'].transpose('time', ...)
+            elif 'KDP_NC' in list(syn_nc.keys()):
+                kdp = syn_nc['KDP_NC'].transpose('time', ...)
             else:
                 print('no kdp found')
                 continue
@@ -704,6 +715,8 @@ def plot_CFAD_or_CFTD_from_QVP(
                 rho = syn_nc['rho'].transpose('time', ...)
             elif 'rhvsim' in list(syn_nc.keys()):
                 rho = syn_nc['rhvsim'].transpose('time', ...)
+            elif 'RHOHV_NC2P' in list(syn_nc.keys()):
+                rho = syn_nc['RHOHV_NC2P'].transpose('time', ...)
             else:
                 print('no rho found')
                 continue
@@ -818,3 +831,4 @@ def plot_CFAD_or_CFTD_from_QVP(
         Path(save_path).mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path + save_name + '.pdf',
                     format='pdf', transparent=True)
+

@@ -245,10 +245,10 @@ for day in [
 ]:
     da_run = 'ASS_2407'
     icon_run = 'MAIN_2405.3'
-    emvorado_run = 'EMVO_00510000.2'
+    emvorado_run = 'EMVO_00510200.2'
     icon_emvorado_run = 'MAIN_2405.3/' + emvorado_run
     spin_up_mm = 120
-    radar_locs = ['ESS', 'NHB']
+    radar_locs = ['EIS', 'FBG', 'ISN', 'MEM', 'OFT', 'ROS', 'UMD']
     create_8_vol_nc_of_day_paralell(day=day, da_run=da_run,
                                     icon_run=icon_run,
                                     icon_emvorado_run=icon_emvorado_run,

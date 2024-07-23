@@ -657,7 +657,9 @@ def download_ERA5_temp(date, overwrite=False, dir_out=header.dir_data_era5):
     elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
         print('exists: ' + file_out3.replace('grib', 'nc' + ' -> continue'))
     else:
-        os.system('python ERA5_compute_geopotential_on_ml.py ' + file_out1 +
+        os.system('python /user/s6justei/PyCharm/PyCharmProjects/' +
+                  'RADAR_toolbox/ERA5_compute_geopotential_on_ml.py ' +
+                  file_out1 +
                   ' ' + file_out2 + ' -o ' + file_out3)
 
     if not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
@@ -853,6 +855,8 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     else:
         path_in = files[0]
         path_out = path_in.replace('_allmoms_', '_ERA5_temp_')
+        if len(files) > 1:
+            print('More than 1 input -> take files[0]: ' + path_in)
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')
@@ -871,11 +875,19 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
             bw = 1
         else:
             path_in_any = files_any[0]
-            bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+            try:
+                bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+            except:
+                print('nothing in *any* found -> bw=1')
+                bw = 1
 
     else:
         path_in_any = files_any[0]
-        bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+        try:
+            bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+        except:
+            print('nothing in *any* found -> bw=1')
+            bw = 1
 
     bw = round(bw, 3)
     print(date + ' ' + location + ' bw=' + str(bw))
@@ -2669,7 +2681,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
         files = sorted(glob.glob(path_zdr_off))
     if not files:
         print('no pcp input data *_zdr_off_*')
-        return
+        # return
     else:
         paths_zdr_off.append(files[0])
         if sweep == '00' and mode == 'pcp':
@@ -2692,7 +2704,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             files = sorted(glob.glob(path_zdr_off_i))
         if not files:
             print('no ' + swe + ' input data *_zdr_off_*')
-            return
+            # return
         else:
             paths_zdr_off.append(files[0])
             if swe == sweep and mode == 'vol':

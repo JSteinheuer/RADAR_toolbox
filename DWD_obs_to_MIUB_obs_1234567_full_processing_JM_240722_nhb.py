@@ -2,8 +2,8 @@
 # #!/automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python3.11
 
 # --------------------------------------------------------------------------- #
-# Julian Steinheuer; 04.07.24                                                 #
-# DWD_obs_to_MIUB_obs_1234567_full_processing.py                              #
+# Julian Steinheuer; 22.07.24                                                 #
+# DWD_obs_to_MIUB_obs_1234567_full_processing_JM_240722.py                    #
 #                                                                             #
 # run DWD_OBS_TO_MIUB.py                                                      #
 # --------------------------------------------------------------------------- #
@@ -37,12 +37,15 @@ DATES = [
     # "20221222",  # case10
     # "20170719",  # caseX -> old OP HM 1 case
     # "20170725",  # caseX -> old OP HM 1 case
-    "20181223",  # case -> PRISTINE
+    "20181223",  "20181224",  # case -> PRISTINE
 ]
 LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
-    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
-    'oft', 'pro', 'ros', 'tur', 'umd',
+    # 'asb', 'boo', 'drs', 'eis',
+    # 'ess',
+    # 'fbg',
+    # 'fld', 'hnr', 'isn', 'mem', 'neu',
+    'nhb',
+    # 'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,  # for pcp
@@ -56,6 +59,8 @@ MODE = [
     'vol', 'vol', 'vol', 'vol',
     '90grad',
 ]
+ELEVATIONS = [12]
+MODE = ['vol']
 overwrite = False
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 1
@@ -74,6 +79,11 @@ wkdp_heavy = 25  # PARK: heavy filtering
 parts = 6
 merge = True
 remove_parts = True
+# --------------------------------------------------------------------------- #
+
+# OSError: [Errno -51] NetCDF: Unknown file format: b'/automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20181223/2018/2018-12/2018-12-23/nhb/vol5minng01/04/ras11-vol5minng01_sweeph5allm_rhohv_nc_04-201812230102-201812232357-nhb-10605.hd5'
+# s6justei@sv47:~$ /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_1234567_full_processing_JM_240722_nhb.py
+
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 7
 other_zdr_off_day = ''
@@ -135,8 +145,6 @@ for date in DATES:
                                        overwrite=overwrite,
                                        dir_data_obs=header.dir_data_obs)
 
-for date in DATES:
-    for location in LOCATIONS:
         for elevation_deg, mode in zip(ELEVATIONS, MODE):  # for Vol zdr calib.
             # STEP 7
             if mode != '90grad':
@@ -144,71 +152,6 @@ for date in DATES:
                 n_zdr_lowest = 1000
                 std_zdr_highest = 2
                 method_zdr_priorities = ['BB', 'SD_V', 'LR_V' 'SD_I', 'LR_I']
-                if (date == '20210604') & (location in ['asb']):
-                    other_zdr_off_day = '20210621'
-                if (date == '20210604') & (location in ['boo']):
-                    method_zdr_priorities = ['LR_V']
-                if (date == '20210620') & \
-                        (location in ['asb', 'boo', 'hnr', 'ros']):
-                    other_zdr_off_day = '20210621'
-                if (date == '20210621') & \
-                        (location in ['isn', 'tur']):
-                    other_zdr_off_day = '20210620'
-                if (date == '20210628') & \
-                        (location in ['boo']):
-                    method_zdr_priorities = ['SD_V']
-                if (date == '20210628') & \
-                        (location in ['drs', 'neu']):
-                    other_zdr_off_day = '20210629'
-                if (date == '20210628') & \
-                        (location in ['pro']):
-                    std_zdr_highest = 4.1
-                if (date == '20210629') & \
-                        (location in ['boo']):
-                    method_zdr_priorities = ['SD_V']
-                    other_zdr_off_day = '20210628'
-                if (date == '20210629') & \
-                        (location in ['pro']):
-                    other_zdr_off_day = '20210628'
-                    std_zdr_highest = 4.1
-                if (date == '20220519') & \
-                        (location in ['pro', 'mem']):
-                    other_zdr_off_day = '20220520'
-                if (date == '20220623') & \
-                        (location in ['asb', 'boo', 'drs', 'eis', 'fld',
-                                      'hnr', 'neu', 'oft', 'pro', 'umd']):
-                    other_zdr_off_day = '20220624'
-                if (date in ['20220623', '20220625']) & (location == 'ros'):
-                    other_zdr_off_day = '20220624'
-                    std_zdr_highest = 2.5
-                if (date in ['20220624']) & (location == 'ros'):
-                    std_zdr_highest = 2.5
-                if (date == '20220625') & \
-                        (location in ['asb', 'boo', 'ess', 'fbg', 'fld', 'hnr',
-                                      'mem', 'nhb', 'oft', 'tur', 'umd']):
-                    other_zdr_off_day = '20220624'
-                if (date == '20220626') & \
-                        (location in ['boo', 'drs', 'eis', 'isn',
-                                      'mem', 'neu', 'umd']):
-                    other_zdr_off_day = '20220627'
-                if (date == '20220626') & \
-                        (location in ['pro']):
-                    other_zdr_off_day = '20220627'
-                    std_zdr_highest = 2.1
-                if (date == '20220627') & \
-                        (location in ['pro']):
-                    std_zdr_highest = 2.1
-                if (date == '20220628') & \
-                        (location in ['asb', 'boo', 'ess', 'fld',
-                                      'hnr', 'isn', 'nhb', 'oft']):
-                    other_zdr_off_day = '20220627'
-                if (date == '20220630') & \
-                        (location in ['boo', 'drs', 'eis', 'neu',
-                                      'pro', 'ros', 'umd']):
-                    other_zdr_off_day = '20220701'
-                if date == '20170719':
-                    method_zdr_priorities = ['SD_V', 'LR_V' 'SD_I', 'LR_I']
-
                 combine_pol_mom_nc(date=date, location=location,
                                    elevation_deg=elevation_deg, mode=mode,
                                    overwrite=overwrite,

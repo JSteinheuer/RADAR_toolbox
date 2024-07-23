@@ -33,7 +33,7 @@ current_col = 0
 mod_names1 = ''
 mod_names2 = ''
 filter_entr_ML = True
-# filter_entr_ML = False
+filter_entr_ML = False
 
 # All
 # date = '20170725'

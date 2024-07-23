@@ -97,7 +97,9 @@ for date in DATES:
     elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
         print('exists: ' + file_out3.replace('grib', 'nc' + ' -> continue'))
     else:
-        os.system('python ERA5_compute_geopotential_on_ml.py ' + file_out1 +
+        os.system('python /user/s6justei/PyCharm/PyCharmProjects/' +
+                  'RADAR_toolbox/ERA5_compute_geopotential_on_ml.py ' +
+                  file_out1 +
                   ' ' + file_out2 + ' -o ' + file_out3)
 
     if not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):

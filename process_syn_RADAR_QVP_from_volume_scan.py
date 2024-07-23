@@ -26,6 +26,7 @@ from SET_SYN_RADAR import rad_dict
 # radar_loc = 'ESS'
 # qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                  icon_emvorado_run=icon_emvorado_run,
+#                  spin_up_mm=spin_up_mm,
 #                  elevation_deg=elevation_deg, radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -41,12 +42,14 @@ from SET_SYN_RADAR import rad_dict
 # radar_loc = 'PRO'
 # qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                  icon_emvorado_run=icon_emvorado_run,
+#                  spin_up_mm=spin_up_mm,
 #                  elevation_deg=elevation_deg, radar_loc=radar_loc)
 #
 # emvorado_run = 'EMVO_00600000.2'
 # icon_emvorado_run = 'MAIN_2308.1' + '/' + emvorado_run
 # qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                  icon_emvorado_run=icon_emvorado_run,
+#                  spin_up_mm=spin_up_mm,
 #                  elevation_deg=elevation_deg, radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -94,6 +97,7 @@ from SET_SYN_RADAR import rad_dict
 #                 qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                                  icon_emvorado_run=icon_emvorado_run,
 #                                  elevation_deg=elevation_deg,
+#                                  spin_up_mm=spin_up_mm,
 #                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -133,6 +137,7 @@ for day in [
                     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
                                      icon_emvorado_run=icon_emvorado_run,
                                      elevation_deg=elevation_deg,
+                                     spin_up_mm=spin_up_mm,
                                      radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -151,6 +156,7 @@ for day in [
 #     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                      icon_emvorado_run=icon_emvorado_run,
 #                      elevation_deg=elevation_deg,
+#                      spin_up_mm=spin_up_mm,
 #                      radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -169,6 +175,7 @@ for day in [
 #     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                      icon_emvorado_run=icon_emvorado_run,
 #                      elevation_deg=elevation_deg,
+#                      spin_up_mm=spin_up_mm,
 #                      radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -187,6 +194,7 @@ for day in [
 #     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                      icon_emvorado_run=icon_emvorado_run,
 #                      elevation_deg=elevation_deg,
+#                      spin_up_mm=spin_up_mm,
 #                      radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -205,6 +213,7 @@ for day in [
 #     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                      icon_emvorado_run=icon_emvorado_run,
 #                      elevation_deg=elevation_deg,
+#                      spin_up_mm=spin_up_mm,
 #                      radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -226,6 +235,7 @@ for day in [
 #     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                      icon_emvorado_run=icon_emvorado_run,
 #                      elevation_deg=elevation_deg,
+#                      spin_up_mm=spin_up_mm,
 #                      radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -250,6 +260,7 @@ for day in [
 #         qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                          icon_emvorado_run=icon_emvorado_run,
 #                          elevation_deg=elevation_deg,
+#                          spin_up_mm=spin_up_mm,
 #                          radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -272,6 +283,7 @@ for day in [
 #         qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                          icon_emvorado_run=icon_emvorado_run,
 #                          elevation_deg=elevation_deg,
+#                          spin_up_mm=spin_up_mm,
 #                          radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -294,6 +306,7 @@ for day in [
 #         qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                          icon_emvorado_run=icon_emvorado_run,
 #                          elevation_deg=elevation_deg,
+#                          spin_up_mm=spin_up_mm,
 #                          radar_loc=radar_loc)
 #
 # --------------------------------------------------------------------------- #
@@ -315,6 +328,7 @@ for day in [
 #         qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
 #                          icon_emvorado_run=icon_emvorado_run,
 #                          elevation_deg=elevation_deg,
+#                          spin_up_mm=spin_up_mm,
 #                          radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #

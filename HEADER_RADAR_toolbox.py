@@ -48,6 +48,7 @@ if getpass.getuser() == 's6justei':  # Bonner tower/network
     dir_data_era5 = '/automount/data02/agradar/operation_hydrometeors/data/ERA5/'
     dir_projects = '/automount/user/s6justei/PyCharm/PyCharmProjects/'
     dir_data_obs = '/automount/data02/agradar/operation_hydrometeors/data/obs/'
+    dir_obs_qvp = '/automount/data02/agradar/operation_hydrometeors/data/obs_qvp/'
     dir_data_obs_realpep = '/automount/realpep/upload/RealPEP-SPP/DWD-CBand/'
     folder_plot = '/automount/data02/agradar/operation_hydrometeors/plots/'
     folder_qvp_plot = '/automount/data02/agradar/operation_hydrometeors/plots/QVPs/'
@@ -166,6 +167,28 @@ norm_d0 = mpl.colors.BoundaryNorm(levels_d0, len(levels_d0) - 1)
 #      ])
 # cmap_radar = mpl.colors.ListedColormap(colors_radar)
 #
+colors_radar2 = np.array(
+    [[1.00, 1.00, 1.00, 1],
+     [0.6, 1.0, 1.0, 1.],
+     [0.2, 1.0, 1.0, 1.],
+     [0.0, 0.7921569, 0.7921569, 1.],
+     [0.0, 0.6, 0.20392157, 1.],
+     [0.3019608, 0.7490196, 0.101960786, 1.],
+     [0.6, 0.8, 0.0, 1.],
+     [0.8, 0.9019608, 0.0, 1.],
+     [1.0, 1.0, 0.0, 1.],
+     [1.0, 0.76862746, 0.0, 1.],
+     [1.0, 0.5372549, 0.0, 1.],
+     [1.0, 0.0, 0.0, 1.],
+     [0.7058824, 0.0, 0.0, 1.],
+     [0.28235295, 0.28235295, 1.0, 1.],
+     [0.0, 0.0, 0.7921569, 1.],
+     [0.6, 0.0, 0.6, 1.],
+     [1.0, 0.2, 1.0, 1.],
+     [1.0, 0.8, 1.0, 1.],
+     ])
+cmap_radar2 = mpl.colors.ListedColormap(colors_radar2)
+
 # # Zh
 # levels_zh = np.append(np.arange(1., 56., 4.5), np.array([60., 65., 75., 85.]))
 # norm_zh = mpl.colors.BoundaryNorm(levels_zh, len(levels_zh) - 1)

@@ -190,3 +190,7 @@ if __name__ == "__main__":
 # DONE:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/BB_20210714 -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case09-20210714 -d "%Y/%Y-%m/%Y-%m-%d" -v
 # DONE:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/BB_20221222 -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case10-20221222 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
+# 240722
+# TODO:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/181223_BB -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20181223 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# TODO:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/181223_PPI -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20181223 -d "%Y/%Y-%m/%Y-%m-%d" -v
+

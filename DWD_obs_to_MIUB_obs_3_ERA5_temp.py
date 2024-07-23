@@ -74,6 +74,8 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     else:
         path_in = files[0]
         path_out = path_in.replace('_allmoms_', '_ERA5_temp_')
+        if len(files) > 1:
+            print('More than 1 input -> take files[0]: ' + path_in)
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')
@@ -92,11 +94,19 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
             bw = 1
         else:
             path_in_any = files_any[0]
-            bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+            try:
+                bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+            except:
+                print('nothing in *any* found -> bw=1')
+                bw = 1
 
     else:
         path_in_any = files_any[0]
-        bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+        try:
+            bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+        except:
+            print('nothing in *any* found -> bw=1')
+            bw = 1
 
     bw = round(bw, 3)
     print(date + ' ' + location + ' bw=' + str(bw))
