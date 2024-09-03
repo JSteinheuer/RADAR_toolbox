@@ -10,6 +10,7 @@
 # --------------------------------------------------------------------------- #
 
 import HEADER_RADAR_toolbox as header
+from PLOT_RADAR import d0_bringi, ice_retrieval_carlin
 import datatree as dttree
 import glob
 import matplotlib as mpl
@@ -21,6 +22,7 @@ import pandas as pd
 from pathlib import Path
 from statsmodels.stats.weightstats import DescrStatsW
 import warnings
+
 warnings.simplefilter('ignore')
 import wradlib as wrl
 import xarray as xr
@@ -30,21 +32,21 @@ xr.set_options(keep_attrs=True)
 
 # --------------------------------------------------------------------------- #
 
-def d0_bringi(
-        zdr
-):
-    d0 = np.full(zdr.shape, np.nan)
-    mask_thresh = zdr < 1.25
-    d0[mask_thresh] = \
-        0.0203 * zdr[mask_thresh] ** 4 - \
-        0.149 * zdr[mask_thresh] ** 3 + \
-        0.221 * zdr[mask_thresh] ** 2 + \
-        0.557 * zdr[mask_thresh] + 0.801
-    d0[~mask_thresh] = \
-        0.0355 * zdr[~mask_thresh] ** 3 - \
-        0.302 * zdr[~mask_thresh] ** 2 + \
-        1.06 * zdr[~mask_thresh] + 0.684
-    return d0
+# def d0_bringi(
+#         zdr
+# ):
+#     d0 = np.full(zdr.shape, np.nan)
+#     mask_thresh = zdr < 1.25
+#     d0[mask_thresh] = \
+#         0.0203 * zdr[mask_thresh] ** 4 - \
+#         0.149 * zdr[mask_thresh] ** 3 + \
+#         0.221 * zdr[mask_thresh] ** 2 + \
+#         0.557 * zdr[mask_thresh] + 0.801
+#     d0[~mask_thresh] = \
+#         0.0355 * zdr[~mask_thresh] ** 3 - \
+#         0.302 * zdr[~mask_thresh] ** 2 + \
+#         1.06 * zdr[~mask_thresh] + 0.684
+#     return d0
 
 
 def plot_qvp_of_polarimetric_variable(
@@ -151,7 +153,7 @@ def plot_syn_pseudoRHI(nc_file,
                 moment = moment_i
                 break
 
-    log=False
+    log = False
     # get colour conventions from header:
     # if moment in ['KDP_NC', 'kdp']:
     if 'kdp' in moment.lower():
@@ -221,7 +223,7 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar2#_smooth
+            cmap = header.cmap_radar2  # _smooth
     elif 'dm_' in moment.lower():
         if levels is None:
             levels = [i for i in np.arange(0, 8.5, .5)]
@@ -236,7 +238,7 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar2#_smooth
+            cmap = header.cmap_radar2  # _smooth
     elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
             'qng' in moment.lower() or 'qnh' in moment.lower() or \
             'qni' in moment.lower() or 'qns' in moment.lower():
@@ -247,7 +249,7 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar2#_smooth
+            cmap = header.cmap_radar2  # _smooth
         log = True
     elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
             'qg' in moment.lower() or 'qh' in moment.lower() or \
@@ -259,7 +261,7 @@ def plot_syn_pseudoRHI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar2#_smooth
+            cmap = header.cmap_radar2  # _smooth
         log = True
     else:
         if cmap is None:
@@ -339,7 +341,7 @@ def plot_syn_PPI(nc_file,
                 break
 
     format = None
-    log=False
+    log = False
     # get colour conventions from header:
     # if moment in ['KDP_NC', 'kdp']:
     if 'kdp' in moment.lower():
@@ -409,8 +411,8 @@ def plot_syn_PPI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
-    elif 'dm_' in moment.lower() :
+            cmap = header.cmap_radar  # _smooth
+    elif 'dm_' in moment.lower():
         if levels is None:
             levels = [i for i in np.arange(0, 8.5, .5)]
         if moment == 'Dm_cloud':
@@ -424,7 +426,7 @@ def plot_syn_PPI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
+            cmap = header.cmap_radar  # _smooth
     elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
             'qng' in moment.lower() or 'qnh' in moment.lower() or \
             'qni' in moment.lower() or 'qns' in moment.lower():
@@ -435,7 +437,7 @@ def plot_syn_PPI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
+            cmap = header.cmap_radar  # _smooth
         log = True
     elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
             'qg' in moment.lower() or 'qh' in moment.lower() or \
@@ -447,7 +449,7 @@ def plot_syn_PPI(nc_file,
         if norm is None:
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
-            cmap = header.cmap_radar#_smooth
+            cmap = header.cmap_radar  # _smooth
         log = True
     # elif 'w' == moment.lower():
     #     if levels is None:
@@ -496,7 +498,8 @@ def plot_syn_PPI(nc_file,
                                              site=[
                                                  ppi.station_longitude.values,
                                                  ppi.station_latitude.values,
-                                                 ppi.station_height.values], format = format
+                                                 ppi.station_height.values],
+                                             format=format
                                              )
     img = img.wrl.georef.georeference()
     if ax is None:
@@ -602,6 +605,7 @@ def plot_CFAD_or_CFTD_from_QVP(
         vmax=None,
         filter_entr_ML=False,
         filter_ML=None,
+        filter2=False,
         ax=None,
         save=False,
         save_path=header.folder_plot + 'CFADs/',
@@ -666,8 +670,8 @@ def plot_CFAD_or_CFTD_from_QVP(
             if filter_entr_ML:
                 min_entropy = syn_nc['min_entropy'].transpose('time', ...)
                 syn_nc = xr.where(min_entropy > 0.8, syn_nc, np.nan)
-                if filter_ML==None:
-                    filter_ML=True
+                if filter_ML == None:
+                    filter_ML = True
 
             if filter_ML:
                 if 'mlh_top' in list(syn_nc.keys()):
@@ -730,7 +734,44 @@ def plot_CFAD_or_CFTD_from_QVP(
             syn_nc = xr.where(kdp > -1, syn_nc, np.nan)
             syn_nc = xr.where(kdp < 8, syn_nc, np.nan)
 
-            mom = syn_nc[moment].transpose('time', ...).values
+            if moment == 'D0_r_Bringi_obs':
+                mom = d0_bringi(syn_nc['zdr'].transpose('time', ...))[
+                    'dm'].values
+            elif moment == 'iwc_obs':
+                mom = ice_retrieval_carlin(
+                    syn_nc['zh'].transpose('time', ...),
+                    syn_nc['zdr'].transpose('time', ...),
+                    syn_nc['kdp'].transpose('time', ...))['iwc'].values
+            elif moment == 'nt_obs':
+                mom = ice_retrieval_carlin(
+                    syn_nc['zh'].transpose('time', ...),
+                    syn_nc['zdr'].transpose('time', ...),
+                    syn_nc['kdp'].transpose('time', ...))['nt'].values
+            elif moment == 'dm_obs':
+                mom = ice_retrieval_carlin(
+                    syn_nc['zh'].transpose('time', ...),
+                    syn_nc['zdr'].transpose('time', ...),
+                    syn_nc['kdp'].transpose('time', ...))['dm'].values
+            elif moment == 'qtotice':
+                mom = syn_nc['qg'].transpose('time', ...).values + \
+                      syn_nc['qs'].transpose('time', ...).values + \
+                      syn_nc['qi'].transpose('time', ...).values + \
+                      syn_nc['qh'].transpose('time', ...).values
+                mom = mom * 1000
+            elif moment == 'D0_r_Bringi_syn':
+                mom = d0_bringi(syn_nc['zdrsim'].transpose('time', ...))[
+                    'dm'].values
+                if filter2:
+                    qvp_d0q_syn = syn_nc['D0_g'].transpose('time', ...).values
+                    qvp_d0r_syn = syn_nc['D0_r'].transpose('time', ...).values
+                    mom = np.where(qvp_d0q_syn < 1, mom, np.nan)
+                    mom = np.where(qvp_d0r_syn > 0, mom, np.nan)
+            else:
+                mom = syn_nc[moment].transpose('time', ...).values
+
+            if moment == 'vol_qntotice' or moment == 'nt_obs':
+                mom = np.log10(mom) - 3
+
             if vert_temp:
                 y = syn_nc.temp.transpose('time', ...).values
                 y_min, y_max, bins_y = temp_min, temp_max, bins_temp
@@ -792,11 +833,25 @@ def plot_CFAD_or_CFTD_from_QVP(
     else:
         plt.ylabel(r'height (km)')
 
-    if 'standard_name' in syn_nc[moment].attrs:  # else: TS without any
-        plt.xlabel(
-            syn_nc[moment].standard_name + ' (' + syn_nc[moment].units + ')')
+    if 'D0_r_Bringi' in moment:
+        plt.xlabel('D0_r (mm)')
+    elif 'vol_qntotice' in moment:
+        plt.xlabel('$N_t\,(log_{10}(L^{-1}))$')
+    elif 'qtotice' == moment:
+        plt.xlabel('IWC$\,(g/m^{3})$')
+    elif 'iwc_obs' in moment:
+        plt.xlabel('IWC$\,(g/m^{3})$')
+    elif 'dm_obs' in moment:
+        plt.xlabel('$D_m$ (mm)')
+    elif 'nt_obs' in moment:
+        plt.xlabel('$N_t\,(log_{10}(L^{-1}))$')
     else:
-        plt.xlabel(moment)
+        if 'standard_name' in syn_nc[moment].attrs:  # else: TS without any
+            plt.xlabel(
+                syn_nc[moment].standard_name + ' (' + syn_nc[
+                    moment].units + ')')
+        else:
+            plt.xlabel(moment)
 
     plt.title(title)
     y_mid = y2d[1:] / 2 + y2d[:-1] / 2
@@ -831,4 +886,3 @@ def plot_CFAD_or_CFTD_from_QVP(
         Path(save_path).mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path + save_name + '.pdf',
                     format='pdf', transparent=True)
-

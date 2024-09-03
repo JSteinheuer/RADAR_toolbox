@@ -15,12 +15,15 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from PLOT_SYN_RADAR import plot_qvp_of_polarimetric_variable
+from PLOT_RADAR import d0_bringi
 
 # --------------------------------------------------------------------------- #
 
 location = 'PRO'
 date = '20170725'
 filter = False
+# filter2 = True
+filter2 = False
 hhmm_start = '00:00'
 # hhmm_end = '23:55'
 hhmm_end = '10:00'
@@ -51,8 +54,9 @@ folder_obs = '/automount/realpep/upload/s6toscha/Statistik/' + \
 path = folder_obs + 'fin_qvp_' + location.lower() + date + '.nc'
 obs_nc = xr.open_dataset(path)
 
-top_height = 10000
+# top_height = 10000
 top_height = 8000
+top_height = 3500
 
 h_obs = obs_nc['height']
 if filter:
@@ -83,6 +87,8 @@ qvp_rho_obs = obs_nc['rho'].sel(
     time=slice(date_start, date_end)).transpose(..., 'time')
 qvp_temp_obs = obs_nc['temp'].sel(
     time=slice(date_start, date_end)).transpose(..., 'time')
+qvp_dm_obs = d0_bringi(obs_nc['zdr'].sel(
+    time=slice(date_start, date_end)).transpose(..., 'time'))['dm']
 # --------------------------------------------------------------------------- #
 current_row = current_row + 1
 n_i = n_cols * (current_row - 1)
@@ -121,35 +127,52 @@ plot_qvp_of_polarimetric_variable(
     scale_numbers=2,
     top_height=top_height,
 )
+# n_i = n_i + 1
+# plot_qvp_of_polarimetric_variable(
+#     mom=qvp_kdp_obs,
+#     cmap=header.cmap_radar,
+#     norm=header.norm_kdp,
+#     levels=header.levels_kdp,
+#     mom_cs=qvp_zh_obs,
+#     levels_cs=np.arange(-50, 60, 5),
+#     mom_cf=qvp_temp_obs,
+#     levels_cf=np.arange(-50, 60, 5),
+#     cbar_title=r'Specific differential Phase [°/km]',
+#     title='K$_{DP}$ (C-band Obs. at ' + location + ')',
+#     ax=plt.subplot(n_rows, n_cols, n_i),
+#     scale_font=2.6,
+#     scale_numbers=2,
+#     top_height=top_height,
+# )
+# n_i = n_i + 1
+# plot_qvp_of_polarimetric_variable(
+#     mom=qvp_rho_obs,
+#     cmap=header.cmap_radar,
+#     norm=header.norm_rhohv,
+#     levels=header.levels_rhohv,
+#     mom_cs=qvp_zh_obs,
+#     levels_cs=np.arange(-50, 60, 5),
+#     mom_cf=qvp_temp_obs,
+#     levels_cf=np.arange(-50, 60, 5),
+#     cbar_title=r'Crosscorrelation Coefficient [1]',
+#     title='$\u03C1_{hv}$ (C-band Obs. at ' + location + ')',
+#     ax=plt.subplot(n_rows, n_cols, n_i),
+#     scale_font=2.6,
+#     scale_numbers=2,
+#     top_height=top_height,
+# )
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
-    mom=qvp_kdp_obs,
+    mom=qvp_dm_obs,
     cmap=header.cmap_radar,
-    norm=header.norm_kdp,
-    levels=header.levels_kdp,
+    norm=header.norm_d0,
+    levels=header.levels_d0,
     mom_cs=qvp_zh_obs,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title=r'Specific differential Phase [°/km]',
-    title='K$_{DP}$ (C-band Obs. at ' + location + ')',
-    ax=plt.subplot(n_rows, n_cols, n_i),
-    scale_font=2.6,
-    scale_numbers=2,
-    top_height=top_height,
-)
-n_i = n_i + 1
-plot_qvp_of_polarimetric_variable(
-    mom=qvp_rho_obs,
-    cmap=header.cmap_radar,
-    norm=header.norm_rhohv,
-    levels=header.levels_rhohv,
-    mom_cs=qvp_zh_obs,
-    levels_cs=np.arange(-50, 60, 5),
-    mom_cf=qvp_temp_obs,
-    levels_cf=np.arange(-50, 60, 5),
-    cbar_title=r'Crosscorrelation Coefficient [1]',
-    title='$\u03C1_{hv}$ (C-band Obs. at ' + location + ')',
+    cbar_title=r'mean volume diameter [mm]',
+    title='$D_{0}$ (C-band Obs. at ' + location + ')',
     ax=plt.subplot(n_rows, n_cols, n_i),
     scale_font=2.6,
     scale_numbers=2,
@@ -176,6 +199,7 @@ syn_nc = xr.open_dataset(path)
 
 top_height = 10
 top_height = 8
+top_height = 3.5
 h_syn = syn_nc['height']
 if filter:
     min_entropy_syn = syn_nc['min_entropy']
@@ -202,9 +226,20 @@ qvp_rho_syn = syn_nc['rhvsim'].sel(
 qvp_kdp_syn = syn_nc['kdpsim'].sel(
     time=slice(date_start, date_end)) \
     .transpose(..., 'time')
-qvp_d0q_syn = syn_nc['D0_r'].sel(
+qvp_d0r_syn = syn_nc['D0_r'].sel(
     time=slice(date_start, date_end)) \
     .transpose(..., 'time')  # * 1000
+qvp_d0r_syn = xr.where(qvp_d0r_syn > 0, qvp_d0r_syn, np.nan)
+qvp_d0r_pol_syn = d0_bringi(syn_nc['zdrsim'].sel(
+    time=slice(date_start, date_end)) \
+                            .transpose(..., 'time'))['dm']
+if filter2:
+    qvp_d0q_syn = syn_nc['D0_g'].sel(
+        time=slice(date_start, date_end)) \
+        .transpose(..., 'time')  # * 1000
+    qvp_d0r_pol_syn = xr.where(qvp_d0q_syn < 1, qvp_d0r_pol_syn, np.nan)
+    qvp_d0r_pol_syn = xr.where(qvp_d0r_syn > 0, qvp_d0r_pol_syn, np.nan)
+
 qvp_temp_syn = syn_nc['temp'].sel(
     time=slice(date_start, date_end)) \
                    .transpose(..., 'time') - 273.15
@@ -213,7 +248,8 @@ model_name = '-'.join([da_run[4:],
                        icon_emvorado_run.split('/')[0][5:],
                        icon_emvorado_run.split('/')[1][5:],
                        spin_up_mm + 'min'])
-mod_names = '-'.join([mod_names, model_name + ['', 'ML'][filter]])
+mod_names = '-'.join([mod_names,
+                      model_name + ['', 'ML'][filter] + ['', '_g1'][filter2]])
 # --------------------------------------------------------------------------- #
 current_row = current_row + 1
 n_i = n_cols * (current_row - 1)
@@ -254,18 +290,54 @@ plot_qvp_of_polarimetric_variable(
     top_height=top_height,
     mom_height_unit='km',
 )
+# n_i = n_i + 1
+# plot_qvp_of_polarimetric_variable(
+#     mom=qvp_kdp_syn,
+#     cmap=header.cmap_radar,
+#     norm=header.norm_kdp,
+#     levels=header.levels_kdp,
+#     mom_cs=qvp_zh_syn,
+#     levels_cs=np.arange(-50, 60, 5),
+#     mom_cf=qvp_temp_syn,
+#     levels_cf=np.arange(-50, 60, 5),
+#     cbar_title=r'Specific differential Phase [°/km]',
+#     title='K$_{DP}$ (%s)' % model_name,
+#     ax=plt.subplot(n_rows, n_cols, n_i),
+#     scale_font=2.6,
+#     scale_numbers=2,
+#     top_height=top_height,
+#     mom_height_unit='km',
+# )
+# n_i = n_i + 1
+# plot_qvp_of_polarimetric_variable(
+#     mom=qvp_rho_syn,
+#     cmap=header.cmap_radar,
+#     norm=header.norm_rhohv,
+#     levels=header.levels_rhohv,
+#     mom_cs=qvp_zh_syn,
+#     levels_cs=np.arange(-50, 60, 5),
+#     mom_cf=qvp_temp_syn,
+#     levels_cf=np.arange(-50, 60, 5),
+#     cbar_title=r'Crosscorrelation Coefficient [1]',
+#     title='$\u03C1_{hv}$ (%s)' % model_name,
+#     ax=plt.subplot(n_rows, n_cols, n_i),
+#     scale_font=2.6,
+#     scale_numbers=2,
+#     top_height=top_height,
+#     mom_height_unit='km',
+# )
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
-    mom=qvp_kdp_syn,
+    mom=qvp_d0r_pol_syn,
     cmap=header.cmap_radar,
-    norm=header.norm_kdp,
-    levels=header.levels_kdp,
+    norm=header.norm_d0,
+    levels=header.levels_d0,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title=r'Specific differential Phase [°/km]',
-    title='K$_{DP}$ (%s)' % model_name,
+    cbar_title=r'mean volume diameter [mm]',
+    title='$D_{0}$ (pol. based) (%s)' % model_name,
     ax=plt.subplot(n_rows, n_cols, n_i),
     scale_font=2.6,
     scale_numbers=2,
@@ -274,16 +346,16 @@ plot_qvp_of_polarimetric_variable(
 )
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
-    mom=qvp_rho_syn,
+    mom=qvp_d0r_syn,
     cmap=header.cmap_radar,
-    norm=header.norm_rhohv,
-    levels=header.levels_rhohv,
+    norm=header.norm_d0,
+    levels=header.levels_d0,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title=r'Crosscorrelation Coefficient [1]',
-    title='$\u03C1_{hv}$ (%s)' % model_name,
+    cbar_title=r'mean volume diameter [mm]',
+    title='$D_{0}$ (q-based) (%s)' % model_name,
     ax=plt.subplot(n_rows, n_cols, n_i),
     scale_font=2.6,
     scale_numbers=2,
@@ -291,7 +363,6 @@ plot_qvp_of_polarimetric_variable(
     mom_height_unit='km',
 )
 syn_nc.close()
-
 
 # --------------------------------------------------------------------------- #
 # CBAND SYN 2:                                                                #
@@ -312,6 +383,7 @@ syn_nc = xr.open_dataset(path)
 
 top_height = 10
 top_height = 8
+top_height = 3.5
 h_syn = syn_nc['height']
 if filter:
     min_entropy_syn = syn_nc['min_entropy']
@@ -338,9 +410,20 @@ qvp_rho_syn = syn_nc['rhvsim'].sel(
 qvp_kdp_syn = syn_nc['kdpsim'].sel(
     time=slice(date_start, date_end)) \
     .transpose(..., 'time')
-qvp_d0q_syn = syn_nc['D0_r'].sel(
+qvp_d0r_syn = syn_nc['D0_r'].sel(
     time=slice(date_start, date_end)) \
     .transpose(..., 'time')  # * 1000
+qvp_d0r_syn = xr.where(qvp_d0r_syn > 0, qvp_d0r_syn, np.nan)
+qvp_d0r_pol_syn = d0_bringi(syn_nc['zdrsim'].sel(
+    time=slice(date_start, date_end)) \
+                            .transpose(..., 'time'))['dm']
+if filter2:
+    qvp_d0q_syn = syn_nc['D0_g'].sel(
+        time=slice(date_start, date_end)) \
+        .transpose(..., 'time')  # * 1000
+    qvp_d0r_pol_syn = xr.where(qvp_d0q_syn < 1, qvp_d0r_pol_syn, np.nan)
+    qvp_d0r_pol_syn = xr.where(qvp_d0r_syn > 0, qvp_d0r_pol_syn, np.nan)
+
 qvp_temp_syn = syn_nc['temp'].sel(
     time=slice(date_start, date_end)) \
                    .transpose(..., 'time') - 273.15
@@ -349,7 +432,8 @@ model_name = '-'.join([da_run[4:],
                        icon_emvorado_run.split('/')[0][5:],
                        icon_emvorado_run.split('/')[1][5:],
                        spin_up_mm + 'min'])
-mod_names = '-'.join([mod_names, model_name + ['', 'ML'][filter]])
+mod_names = '-'.join([mod_names,
+                      model_name + ['', 'ML'][filter] + ['', '_g1'][filter2]])
 # --------------------------------------------------------------------------- #
 current_row = current_row + 1
 n_i = n_cols * (current_row - 1)
@@ -390,18 +474,54 @@ plot_qvp_of_polarimetric_variable(
     top_height=top_height,
     mom_height_unit='km',
 )
+# n_i = n_i + 1
+# plot_qvp_of_polarimetric_variable(
+#     mom=qvp_kdp_syn,
+#     cmap=header.cmap_radar,
+#     norm=header.norm_kdp,
+#     levels=header.levels_kdp,
+#     mom_cs=qvp_zh_syn,
+#     levels_cs=np.arange(-50, 60, 5),
+#     mom_cf=qvp_temp_syn,
+#     levels_cf=np.arange(-50, 60, 5),
+#     cbar_title=r'Specific differential Phase [°/km]',
+#     title='K$_{DP}$ (%s)' % model_name,
+#     ax=plt.subplot(n_rows, n_cols, n_i),
+#     scale_font=2.6,
+#     scale_numbers=2,
+#     top_height=top_height,
+#     mom_height_unit='km',
+# )
+# n_i = n_i + 1
+# plot_qvp_of_polarimetric_variable(
+#     mom=qvp_rho_syn,
+#     cmap=header.cmap_radar,
+#     norm=header.norm_rhohv,
+#     levels=header.levels_rhohv,
+#     mom_cs=qvp_zh_syn,
+#     levels_cs=np.arange(-50, 60, 5),
+#     mom_cf=qvp_temp_syn,
+#     levels_cf=np.arange(-50, 60, 5),
+#     cbar_title=r'Crosscorrelation Coefficient [1]',
+#     title='$\u03C1_{hv}$ (%s)' % model_name,
+#     ax=plt.subplot(n_rows, n_cols, n_i),
+#     scale_font=2.6,
+#     scale_numbers=2,
+#     top_height=top_height,
+#     mom_height_unit='km',
+# )
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
-    mom=qvp_kdp_syn,
+    mom=qvp_d0r_pol_syn,
     cmap=header.cmap_radar,
-    norm=header.norm_kdp,
-    levels=header.levels_kdp,
+    norm=header.norm_d0,
+    levels=header.levels_d0,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title=r'Specific differential Phase [°/km]',
-    title='K$_{DP}$ (%s)' % model_name,
+    cbar_title=r'mean volume diameter [mm]',
+    title='$D_{0}$ (pol. based) (%s)' % model_name,
     ax=plt.subplot(n_rows, n_cols, n_i),
     scale_font=2.6,
     scale_numbers=2,
@@ -410,16 +530,16 @@ plot_qvp_of_polarimetric_variable(
 )
 n_i = n_i + 1
 plot_qvp_of_polarimetric_variable(
-    mom=qvp_rho_syn,
+    mom=qvp_d0r_syn,
     cmap=header.cmap_radar,
-    norm=header.norm_rhohv,
-    levels=header.levels_rhohv,
+    norm=header.norm_d0,
+    levels=header.levels_d0,
     mom_cs=qvp_zh_syn,
     levels_cs=np.arange(-50, 60, 5),
     mom_cf=qvp_temp_syn,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title=r'Crosscorrelation Coefficient [1]',
-    title='$\u03C1_{hv}$ (%s)' % model_name,
+    cbar_title=r'mean volume diameter [mm]',
+    title='$D_{0}$ (q-based) (%s)' % model_name,
     ax=plt.subplot(n_rows, n_cols, n_i),
     scale_font=2.6,
     scale_numbers=2,
@@ -440,5 +560,5 @@ plt.savefig(
     folder_plot + 'QVP_' + str(elevation_deg) + '_' +
     date + '_' + hhmm_start + '-' + hhmm_end + '_' +
     location + mod_names +
-    '.pdf', format='pdf', transparent=True)
+    '_D0.pdf', format='pdf', transparent=True)
 plt.close()

@@ -470,6 +470,27 @@ for day in [
 #                            dir_data_out=header.dir_data_vol)
 
 # --------------------------------------------------------------------------- #
+# processing: 28.08.24
+# icon + emvorado mixtures
+
+day = '20170725'
+da_run = 'ASS_2211'
+icon_run = 'MAIN_2308.0'
+emvorado_runs = ['EMVO_00500000.2',
+                 'EMVO_00510000.2']
+for emvorado_run in emvorado_runs:
+    icon_emvorado_run = 'MAIN_2401.1/' + emvorado_run
+    spin_up_mm = 120
+    radar_locs = list(rad_dict().keys())
+    radar_locs = ['PRO']
+    create_8_vol_nc_of_day(day=day, da_run=da_run, icon_run=icon_run,
+                           icon_emvorado_run=icon_emvorado_run,
+                           spin_up_mm=spin_up_mm,
+                           radar_locs=radar_locs,
+                           dir_data_in=header.dir_data_mod,
+                           dir_data_out=header.dir_data_vol)
+
+# --------------------------------------------------------------------------- #
 # # processing: 27.06.24
 # # icon + emvorado mixtures
 #

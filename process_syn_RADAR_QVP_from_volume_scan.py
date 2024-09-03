@@ -101,44 +101,44 @@ from SET_SYN_RADAR import rad_dict
 #                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
-# 10.7.24
-# all days, Bringi Book runs
-
-for day in [
-    '20170725',  # start this day
-    '20170719',
-    '20170720',
-    '20170724',
-    '20170726',
-    '20170727',  # TODO!
-    '20170810',
-    '20180728',
-    '20180809',
-    '20180923',
-    '20181202',
-]:
-    for da_run in [
-        'ASS_2111',  # ASS_old,
-        'ASS_2211',
-    ]:
-        for icon_run in [
-            'MAIN_2203.0',  # MAIN_old,
-            'MAIN_2211.0',
-        ]:
-            for emvorado_run in [
-                'EMVO_00000000.2',  # 'EMVO_BBold',
-
-            ]:
-                icon_emvorado_run = icon_run + '/' + emvorado_run
-                spin_up_mm = 30
-                elevation_deg = 12
-                radar_locs = list(rad_dict().keys())
-                for radar_loc in radar_locs:
-                    qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
-                                     icon_emvorado_run=icon_emvorado_run,
-                                     elevation_deg=elevation_deg,
-                                     spin_up_mm=spin_up_mm,
-                                     radar_loc=radar_loc)
+# # 10.7.24
+# # all days, Bringi Book runs
+#
+# for day in [
+#     '20170725',  # start this day
+#     '20170719',
+#     '20170720',
+#     '20170724',
+#     '20170726',
+#     '20170727',  # TODO!
+#     '20170810',
+#     '20180728',
+#     '20180809',
+#     '20180923',
+#     '20181202',
+# ]:
+#     for da_run in [
+#         'ASS_2111',  # ASS_old,
+#         'ASS_2211',
+#     ]:
+#         for icon_run in [
+#             'MAIN_2203.0',  # MAIN_old,
+#             'MAIN_2211.0',
+#         ]:
+#             for emvorado_run in [
+#                 'EMVO_00000000.2',  # 'EMVO_BBold',
+#
+#             ]:
+#                 icon_emvorado_run = icon_run + '/' + emvorado_run
+#                 spin_up_mm = 30
+#                 elevation_deg = 12
+#                 radar_locs = list(rad_dict().keys())
+#                 for radar_loc in radar_locs:
+#                     qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+#                                      icon_emvorado_run=icon_emvorado_run,
+#                                      elevation_deg=elevation_deg,
+#                                      spin_up_mm=spin_up_mm,
+#                                      radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
 # # processing: 31.1.24
@@ -330,6 +330,28 @@ for day in [
 #                          elevation_deg=elevation_deg,
 #                          spin_up_mm=spin_up_mm,
 #                          radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
+# processing: 26.8.24
+# icon + emvorado mixtures
+
+day = '20170725'
+da_run = 'ASS_2211'
+icon_run = 'MAIN_2308.0'
+emvorado_runs = ['EMVO_00500000.2',
+                 'EMVO_00510000.2']
+for emvorado_run in emvorado_runs:
+    icon_emvorado_run = 'MAIN_2401.1' + '/' + emvorado_run
+    spin_up_mm = 120
+    elevation_deg = 12
+    # radar_locs = list(rad_dict().keys())
+    radar_locs = ['PRO']
+    for radar_loc in radar_locs:
+        qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                         icon_emvorado_run=icon_emvorado_run,
+                         elevation_deg=elevation_deg,
+                         spin_up_mm=spin_up_mm,
+                         radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
 # # processing: 17.06.24

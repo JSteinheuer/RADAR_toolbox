@@ -247,7 +247,7 @@ def plot_CFAD_or_CFTD_from_2_arrays(x, y,
         plt.ylabel(r'height (km)')
 
     plt.title(title + '; n = ' +
-              str(int(len(x[~np.isnan(x)])/1000)) + 'k')
+              str(int(len(x[~np.isnan(x)]) / 1000)) + 'k')
     y_mid = y2d[1:] / 2 + y2d[:-1] / 2
     mom_mid = mom2d[1:] / 2 + mom2d[:-1] / 2
     quant_prof = np.zeros([3, len(y_mid)])
@@ -258,11 +258,11 @@ def plot_CFAD_or_CFTD_from_2_arrays(x, y,
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-    plt.plot(quant_prof[0, ], y_mid, color='red', ls='dashed',
+    plt.plot(quant_prof[0,], y_mid, color='red', ls='dashed',
              linewidth=1, label='$Q_{0.2}$')
-    plt.plot(quant_prof[1, ], y_mid, color='red', ls='solid',
+    plt.plot(quant_prof[1,], y_mid, color='red', ls='solid',
              linewidth=2, label='$Q_{0.5}$')
-    plt.plot(quant_prof[2, ], y_mid, color='red', ls='dashed',
+    plt.plot(quant_prof[2,], y_mid, color='red', ls='dashed',
              linewidth=1, label='$Q_{0.8}$')
     plt.plot(mean_prof, y_mid, color='orange', ls='solid',
              linewidth=2, label='$\mu$')
@@ -274,7 +274,8 @@ def plot_CFAD_or_CFTD_from_2_arrays(x, y,
             plt.text(1.04, 1.03, min(np.round(np.max(h2d), 1), 100.0),
                      transform=ax.transAxes)
         else:  # TODO: check!
-            plt.text((1.04*mom_max-.04*mom_min), (-1.08*y_max+.08*y_min),
+            plt.text((1.04 * mom_max - .04 * mom_min),
+                     (-1.08 * y_max + .08 * y_min),
                      min(np.round(np.max(h2d), 1), 100.0))
 
     plt.tight_layout()
@@ -283,3 +284,31 @@ def plot_CFAD_or_CFTD_from_2_arrays(x, y,
         plt.savefig(save_path + save_name + '.pdf',
                     format='pdf', transparent=True)
         # plt.close()
+
+
+def ice_retrieval_carlin(zh, zdr, kdp, l=50):  # lambda in mm (here for cband)
+    iwc = xr.where(zdr < 0.4,
+                   # eq. 5b
+                   0.033 * (l ** 0.67) * (kdp ** 0.67) *
+                   ((10 ** (0.1 * zh)) ** 0.33),
+                   # eq 4b
+                   0.004 * l * kdp / (1 - 10 ** (-0.1 * zdr))
+                   )
+    dm = 0.67 * ((10 ** (0.1 * zh) / (kdp * l)) ** (1 / 3))
+    nt = 10 ** (6.69 + 2 * np.log10(iwc) - 0.1 * zh)
+    return {'iwc': iwc, 'dm': dm, 'nt': nt}
+
+
+def d0_bringi(zdr, mue=1 / 3):
+    d0 = xr.where(zdr < 1.25,
+                  0.0203 * zdr ** 4 -
+                  0.149 * zdr ** 3 +
+                  0.221 * zdr ** 2 +
+                  0.557 * zdr +
+                  0.801,
+                  0.0355 * zdr ** 3 -
+                  0.302 * zdr ** 2 +
+                  1.06 * zdr +
+                  0.684)
+    dm = ((4 + mue) * d0) / (3.67 + mue)
+    return {'d0': d0, 'dm': dm}
