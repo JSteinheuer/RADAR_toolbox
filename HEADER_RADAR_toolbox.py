@@ -79,6 +79,17 @@ norm_zh = mpl.colors.BoundaryNorm(levels_zh, len(levels_zh) - 1)
 levels_zdr = [-1, -.1, 0, .1, .2, .3, .4, .5, .6, .8, 1, 2, 3]
 norm_zdr = mpl.colors.BoundaryNorm(levels_zdr, len(levels_zdr) - 1)
 
+levels_zdr22 = np.array(levels_zdr)
+levels_zdr22 = np.sort(np.append(levels_zdr22,
+                                 (levels_zdr22[:-1]+levels_zdr22[1:])/2))
+levels_zdr22 = np.sort(np.append(levels_zdr22,
+                                 (levels_zdr22[:-1]+levels_zdr22[1:])/2))
+levels_zdr22 = np.sort(np.append(levels_zdr22,
+                                 (levels_zdr22[:-1]+levels_zdr22[1:])/2))
+cmap_radar22 = LinearSegmentedColormap.from_list('my_list', colors_radar,
+                                                 N=levels_zdr22.size)
+norm_zdr22 = mpl.colors.BoundaryNorm(levels_zdr22, levels_zdr22.size - 1)
+
 # KDP
 # levels_kdp = [-2, -1, 0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9,
 #               1., 1.2, 1.4, 1.7]

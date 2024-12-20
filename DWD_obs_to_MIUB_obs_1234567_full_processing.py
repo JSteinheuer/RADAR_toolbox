@@ -26,17 +26,18 @@ from DWD_OBS_TO_MIUB_OBS import \
 # --------------------------------------------------------------------------- #
 # Parameters for ALL STEPS:
 DATES = [
-    # "20210604",  # case01
-    # "20210620", "20210621",  # case02
-    # "20210628", "20210629",  # case03
-    # "20220519", "20220520",  # case04
-    # "20220623", "20220624", "20220625",  # case05
-    # "20220626", "20220627", "20220628",  # case06+07
-    # "20220630", "20220701",  # case08
-    # "20210714",  # case09
-    # "20221222",  # case10
-    # "20170719",  # caseX -> old OP HM 1 case
-    # "20170725",  # caseX -> old OP HM 1 case
+    "20210604",  # case01
+    "20210620", "20210621",  # case02
+    "20210628", "20210629",  # case03
+    "20220519", "20220520",  # case04
+    "20220623", "20220624", "20220625",  # case05
+    "20220626", "20220627", "20220628",  # case06+07
+    "20220630", "20220701",  # case08
+    "20210713",  # case09
+    "20210714",  # case09
+    "20221222",  # case10
+    "20170719",  # caseX -> old OP HM 1 case
+    "20170725",  # caseX -> old OP HM 1 case
     "20181223",  # case -> PRISTINE
 ]
 LOCATIONS = [
@@ -77,9 +78,8 @@ remove_parts = True
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 7
 other_zdr_off_day = ''
-n_zdr_lowest = 1000
+n_zdr_lowest = 2000
 std_zdr_highest = 2
-method_zdr_priorities = ['BB', 'SD_V', 'LR_V' 'SD_I', 'LR_I']
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:                                  #
 # --------------------------------------------------------------------------- #
@@ -122,18 +122,18 @@ for date in DATES:
                                 win_r=win_r, win_azi=win_azi, rng=rng,
                                 wkdp_light=wkdp_light,
                                 wkdp_heavy=wkdp_heavy)
-
             # STEP 5
-            calibrate_zdr(date=date, location=location,
-                          elevation_deg=elevation_deg, mode=mode,
-                          overwrite=overwrite)
-            # STEP 6
             if mode != '90grad':
                 attenuation_correction(date=date, location=location,
                                        elevation_deg=elevation_deg,
                                        mode=mode,
                                        overwrite=overwrite,
                                        dir_data_obs=header.dir_data_obs)
+
+            # STEP 6
+            calibrate_zdr(date=date, location=location,
+                          elevation_deg=elevation_deg, mode=mode,
+                          overwrite=overwrite)
 
 for date in DATES:
     for location in LOCATIONS:
@@ -143,7 +143,8 @@ for date in DATES:
                 other_zdr_off_day = ''
                 n_zdr_lowest = 1000
                 std_zdr_highest = 2
-                method_zdr_priorities = ['BB', 'SD_V', 'LR_V' 'SD_I', 'LR_I']
+                method_zdr_priorities = ['PPI', 'BB',
+                                         'SD_V', 'LR_V' 'SD_I', 'LR_I']
                 if (date == '20210604') & (location in ['asb']):
                     other_zdr_off_day = '20210621'
                 if (date == '20210604') & (location in ['boo']):

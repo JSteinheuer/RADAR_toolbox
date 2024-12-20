@@ -95,7 +95,8 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
         else:
             path_in_any = files_any[0]
             try:
-                bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+                bw = dttree.open_datatree(path_in_any)[
+                    'how'].attrs['beamwidth']
             except:
                 print('nothing in *any* found -> bw=1')
                 bw = 1
@@ -161,14 +162,17 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     data['temp'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
                     dict(standard_name='air temperature', units='K'))
     data['temp_beamtop'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
-                    dict(standard_name='air temperature at beamtop', units='K',
-                         comment='beambroadening induced temperature of '
-                                 'bin volume top (approximated for pw=0)'))
+                            dict(standard_name='air temperature at beamtop',
+                                 units='K',
+                                 comment='beambroadening induced temperature '
+                                         'of bin volume top (approximated for '
+                                         'pw=0)'))
     data['temp_beambottom'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
-                    dict(standard_name='air temperature at beambottom',
-                         units='K', comment='beambroadening induced '
-                                            'temperature of bin volume '
-                                            'bottom (approximated for pw=0)'))
+                               dict(standard_name='air temperature at '
+                                                  'beambottom', units='K',
+                                    comment='beambroadening induced '
+                                            'temperature of bin volume bottom '
+                                            '(approximated for pw=0)'))
     shape_ra = (data.range.size, data.azimuth.size)
     for t_i in range(data['time'].size):
         # grid for searching later the closest ERA5 cells
@@ -271,6 +275,7 @@ DATES = [
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
+    "20210713",  # case09
     "20210714",  # case09
     "20221222",  # case10
 ]

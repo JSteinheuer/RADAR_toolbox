@@ -23,6 +23,7 @@ DATES = ["20210604",  # case01
          "20220623", "20220624", "20220625",  # case05
          "20220626", "20220627", "20220628",  # case06+07
          "20220630", "20220701",  # case08
+         "20210713",  # case09
          "20210714",  # case09
          "20221222",  # case10
          "20170719",  # case old
@@ -31,18 +32,16 @@ DATES = ["20210604",  # case01
 dir_out = header.dir_data_era5
 overwrite = False
 for date in DATES:
-
     year = date[0:4]
     mon = date[4:6]
     day = date[6:8]
-
-    c = cdsapi.Client()
     file_out1 = dir_out + str(year) + str(mon) + str(day) + "-3D-T-q-ml.grib"
     if not overwrite and os.path.exists(file_out1):
         print('exists: ' + file_out1 + ' -> continue')
     elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
         print('exists: ' + file_out1.replace('grib', 'nc' + ' -> continue'))
     else:
+        c = cdsapi.Client()
         c.retrieve("reanalysis-era5-complete", {
             "class": "ea",
             "date": "%s-%s-%s" % (year, mon, day),
@@ -74,6 +73,7 @@ for date in DATES:
     elif not overwrite and os.path.exists(file_out2.replace('grib', 'nc')):
         print('exists: ' + file_out2.replace('grib', 'nc' + ' -> continue'))
     else:
+        c = cdsapi.Client()
         c.retrieve("reanalysis-era5-complete", {
             "class": "ea",
             "date": "%s-%s-%s" % (year, mon, day),
@@ -94,7 +94,7 @@ for date in DATES:
     file_out3 = file_out1.replace('T-q-ml', 'z')
     if not overwrite and os.path.exists(file_out3):
         print('exists: ' + file_out3 + ' -> continue')
-    elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
+    elif not overwrite and os.path.exists(file_out3.replace('grib', 'nc')):
         print('exists: ' + file_out3.replace('grib', 'nc' + ' -> continue'))
     else:
         os.system('python /user/s6justei/PyCharm/PyCharmProjects/' +

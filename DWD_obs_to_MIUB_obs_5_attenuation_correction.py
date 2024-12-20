@@ -3,7 +3,7 @@
 
 # --------------------------------------------------------------------------- #
 # Julian Steinheuer; 27.05.24                                                 #
-# DWD_obs_to_MIUB_obs_6_attenuation_correction.py                             #
+# DWD_obs_to_MIUB_obs_5_attenuation_correction.py                             #
 #                                                                             #
 # Processing script to quality check, calibrate, and correct the DWD C-band   #
 # observations towards MIUB 'standard'.                                       #
@@ -43,13 +43,19 @@ def correct_zh_zdr(swp_cf, uh_tresh=0,
                             np.isnan(swp_cf.CMAP)
                             )
     swp_mask['PHI_NC'] = xr.where(swp_mask.PHI_NC < 0, 0, swp_mask.PHI_NC)
+
+    # last layer in ML with 1K thickness:
     swp_last_l = swp_mask.where(
         (swp_mask.temp_beambottom >= ML_until_temp_beambottom) &
         (swp_mask.temp_beambottom < ML_until_temp_beambottom + 1))
+
+    # median in 1KML layer
     phi_const = swp_last_l.PHI_NC.median(dim="range", skipna=True)
+    # fill nan with max below ML
     phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
         swp_mask.temp_beambottom >= ML_until_temp_beambottom).PHI_NC.max(
         dim="range", skipna=True), phi_const)
+    # fill the still nan values with lowest from above
     phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
         swp_mask.temp_beambottom < ML_until_temp_beambottom).PHI_NC.min(
         dim="range", skipna=True), phi_const)
@@ -63,12 +69,15 @@ def correct_zh_zdr(swp_cf, uh_tresh=0,
     zh_ac.attrs["short_name"] = 'ZH ac'
     zh_ac.attrs["units"] = 'dBZ'
     swp_cf = swp_cf.assign(ZH_AC=zh_ac)
+    swp_cf.ZH_AC.values = zh_ac.values
     zdr_ac.attrs["long_name"] = 'Log differential reflectivity ' + \
                                 'attenuation corrected'
     zdr_ac.attrs["short_name"] = 'ZDR ac'
     zdr_ac.attrs["units"] = 'dB'
     swp_cf = swp_cf.assign(ZDR_AC=zdr_ac)
+    swp_cf.ZDR_AC.values = zdr_ac.values
     swp_cf = swp_cf.assign(PHI_4AC=phi_4ac)
+    swp_cf.PHI_4AC.values = phi_4ac.values
     return swp_cf
 
 
@@ -158,9 +167,13 @@ def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
 
     data.RHOHV.values = data_rho.RHOHV_NC2P.values
     data = data.assign({'SNRH': data_rho.SNRH})
+    data.SNRH.values = data_rho.SNRH.values
     data = data.assign({'PHI_NC': data_kdp.PHI_NC})
+    data.PHI_NC.values = data_kdp.PHI_NC.values
+    data = data.assign({'temp_beamtop': data_temp2.temp_beamtop})
+    data.temp_beamtop.values = data_temp2.temp_beamtop.values
     data = data.assign({'temp_beambottom': data_temp2.temp_beambottom})
-    data = data.assign({'temp_beamtop': data_temp.temp_beamtop})
+    data.temp_beambottom.values = data_temp2.temp_beambottom.values
     remo_var = list(data.data_vars.keys())
     data = data.transpose('time', 'azimuth', 'range')
     data = correct_zh_zdr(data)
@@ -191,6 +204,7 @@ DATES = [
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
+    "20210713",  # case09
     "20210714",  # case09
     "20221222",  # case10
 ]
@@ -255,4 +269,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-# import DWD_obs_to_MIUB_obs_7_combine_pol_mom_nc
+# import DWD_obs_to_MIUB_obs_6_calibrate_zdr

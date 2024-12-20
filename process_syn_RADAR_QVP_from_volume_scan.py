@@ -342,7 +342,8 @@ emvorado_runs = ['EMVO_00500000.2',
                  'EMVO_00510000.2']
 for emvorado_run in emvorado_runs:
     icon_emvorado_run = 'MAIN_2401.1' + '/' + emvorado_run
-    spin_up_mm = 120
+    # spin_up_mm = 120
+    spin_up_mm = 60
     elevation_deg = 12
     # radar_locs = list(rad_dict().keys())
     radar_locs = ['PRO']

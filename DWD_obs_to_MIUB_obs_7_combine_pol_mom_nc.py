@@ -30,8 +30,8 @@ warnings.filterwarnings("ignore")
 # J. Steinheuer
 def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                        overwrite=False, dir_data_obs=header.dir_data_obs,
-                       method_zdr_priorities=['BB', 'SD_V', 'LR_V'
-                                                            'SD_I', 'LR_I', ],
+                       method_zdr_priorities=['PPI', 'BB', 'SD_V', 'LR_V',
+                                              'SD_I', 'LR_I'],
                        other_zdr_off_day='',
                        n_zdr_lowest=1000, std_zdr_highest=2):
     """
@@ -219,17 +219,20 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined = data_kdp.drop_vars(remo_var)
     if 'VRADH' in data.variables.keys():
         data_combined = data_combined.assign({'VRADH': data.VRADH})
+        data_combined.VRADH.values = data.VRADH.values
 
     data_combined = data_combined.assign({'RHOHV_NC2P': data_rho.RHOHV_NC2P})
-    data_combined = data_combined.assign({'ZH_AC': data_ac.ZH_AC.reindex_like(
-        other=data_rho.RHOHV_NC2P, method='nearest')})
+    data_combined.RHOHV_NC2P.values = data_rho.RHOHV_NC2P.values
+    data_combined = data_combined.assign(
+        {'ZH_AC': data_ac.ZH_AC.reindex_like(
+            other=data_rho.RHOHV_NC2P, method='nearest')})
     data_combined.ZH_AC.attrs[
         "long_name"] = 'reflectivity factor attenuation corrected'
     data_combined.ZH_AC.attrs["short_name"] = 'ZH ac'
     data_combined.ZH_AC.attrs["units"] = 'dBZ'
-    data_combined = data_combined.assign({'ZDR_AC_OC':
-        data_ac.ZDR_AC.reindex_like(other=data_rho.RHOHV_NC2P,
-                                    method='nearest')})
+    data_combined = data_combined.assign(
+        {'ZDR_AC_OC': data_ac.ZDR_AC.reindex_like(
+            other=data_rho.RHOHV_NC2P, method='nearest')})
     xr.set_options(keep_attrs=True)
     data_combined = data_combined.where(np.isnan(data.CMAP))
     data_combined = data_combined.where(data.DBZH >= 0)
@@ -241,6 +244,16 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
         'median PHI_DP offset'
     data_combined.PHI_offset_median.attrs["units"] = 'degrees'
     for method_zdr in method_zdr_priorities + ['00']:
+        if os.path.exists(path_in_bb):
+            data_bb = dttree.open_datatree(path_in_bb)[
+                'sweep_0'].to_dataset().chunk(-1)
+            n = data_bb.zdr_off_bb_n.data
+            if n > n_zdr_lowest:
+                off_bb = data_bb.zdr_off_bb.data
+                data_bb.close()
+            else:
+                off_bb = 0
+
         if method_zdr == 'BB':
             data_bb = dttree.open_datatree(path_in_bb)[
                 'sweep_0'].to_dataset().chunk(-1)
@@ -254,10 +267,109 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_bb.zdr_off_bb})
+                data_combined.ZDR_offset.values = data_bb.zdr_off_bb.values
                 data_bb.close()
                 break
             else:
                 data_bb.close()
+
+        elif method_zdr == 'PPI_DAS':
+            data_zdr_off = dttree.open_datatree(path_zdr_off)[
+                'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
+            if 'ZDR_AC' in data_zdr_off.keys():
+                ac = True
+            else:
+                ac = False
+
+            das_n_ppi = data_zdr_off.zdr_off_das_n_ppi
+            of_das_ppi = data_zdr_off.zdr_off_das_ppi
+            of_das_ppi = of_das_ppi.where(das_n_ppi > n_zdr_lowest)
+            of_das_ppi = of_das_ppi.where(~np.isnan(of_das_ppi),
+                                          data_zdr_off.zdr_off_das)
+            if (data_zdr_off.zdr_off_das_n) >= n_zdr_lowest:
+                data_combined.ZDR_AC_OC.data = \
+                    data_combined.ZDR_AC_OC - of_das_ppi
+                    # consider subtracting overall das-off and adding bb-off:
+                    # + data_zdr_off.zdr_off_das - data_zdr_off.zdr_off_lr
+                data_combined = data_combined.assign(
+                    {'ZDR_offset': of_das_ppi})
+                data_combined.ZDR_offset.values = of_das_ppi.values
+                data_combined.ZDR_offset.attrs["short_name"] = \
+                    'ZDR off from DAS per PPI'
+                data_combined.ZDR_offset.attrs["long_name"] = \
+                    'ZDR offset combined from dry aggregated snow per PPI'
+                data_combined.ZDR_offset.attrs["units"] = 'dB'
+                if ac:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from ac ZDR PPI-wise'
+                else:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from raw ZDR PPI-wise'
+                data_zdr_off.close()
+                break
+            else:
+                data_zdr_off.close()
+
+        elif method_zdr == 'PPI':
+            data_zdr_off = dttree.open_datatree(path_zdr_off)[
+                'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
+            if 'ZDR_AC' in data_zdr_off.keys():
+                ac = True
+            else:
+                ac = False
+
+            sd_n_ppi = data_zdr_off.zdr_off_sd_n_ppi
+            lr_n_ppi = data_zdr_off.zdr_off_lr_n_ppi
+            of_sd_ppi = data_zdr_off.zdr_off_sd_ppi
+            of_lr_ppi = data_zdr_off.zdr_off_lr_ppi
+            of_all = np.nansum(sd_n_ppi * of_sd_ppi + lr_n_ppi * of_lr_ppi) / \
+                     np.nansum(sd_n_ppi + lr_n_ppi)
+            if (np.nansum(sd_n_ppi + lr_n_ppi)) < n_zdr_lowest:
+                of_all=off_bb
+
+            of_sd_ppi = of_sd_ppi.where(sd_n_ppi > n_zdr_lowest)
+            of_lr_ppi = of_lr_ppi.where(lr_n_ppi > n_zdr_lowest)
+            of_combined = of_sd_ppi.where(sd_n_ppi > lr_n_ppi, of_lr_ppi)
+
+            # set first value (if nan) to average
+            if np.isnan(of_combined[0]):
+                out = of_combined.values
+                out[0] = of_all
+                of_combined.values = out
+
+            # set all nans to last valid value
+            # mask = np.isnan(of_combined.data.compute())
+            mask = np.isnan(of_combined.values)
+            idx = np.where(~mask, np.arange(mask.shape[0]), 0)
+            np.maximum.accumulate(idx, axis=0, out=idx)
+            out = of_combined.data[idx]
+            of_combined.values = out
+
+            if (data_zdr_off.zdr_off_sd_n.data +
+                data_zdr_off.zdr_off_lr_n.data) >= n_zdr_lowest:
+                of_combined = of_combined.assign_coords(
+                    {'time': data_combined.time})  # somehow necessary -.-
+                data_combined.ZDR_AC_OC.values = \
+                    data_combined.ZDR_AC_OC - of_combined
+                data_combined = data_combined.assign(
+                    {'ZDR_offset': of_combined})
+                data_combined.ZDR_offset.values = of_combined.values
+                data_combined.ZDR_offset.attrs["short_name"] = \
+                    'ZDR off from SD+LR per PPI'
+                data_combined.ZDR_offset.attrs["long_name"] = \
+                    'ZDR offset combined from small drops ' \
+                    'and light rain per PPI'
+                data_combined.ZDR_offset.attrs["units"] = 'dB'
+                if ac:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from ac ZDR PPI-wise'
+                else:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from raw ZDR PPI-wise'
+                data_zdr_off.close()
+                break
+            else:
+                data_zdr_off.close()
 
         elif method_zdr == 'SD_I':
             data_zdr_off = dttree.open_datatree(path_zdr_off)[
@@ -271,6 +383,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_sd})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_sd.values
                 data_zdr_off.close()
                 break
             else:
@@ -288,6 +402,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_lr})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_lr.values
                 data_zdr_off.close()
                 break
             else:
@@ -321,6 +437,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_sd})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_sd.values
                 data_combined.ZDR_offset.attrs['comment'] = \
                     data_combined.ZDR_offset.comment + \
                     ' (combined offset from all sweeps)'
@@ -356,6 +474,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_lr})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_lr.values
                 data_combined.ZDR_offset.attrs['comment'] = \
                     data_combined.ZDR_offset.comment + \
                     ' (combined offset from all sweeps)'
@@ -381,17 +501,23 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             ' (from day = ' + other_zdr_off_day + ')'
 
     data_combined = data_combined.assign({'temp': data_temp2.temp})
+    data_combined.temp.values = data_temp2.temp.values
     data_combined = data_combined.assign({'temp_beambottom':
                                               data_temp2.temp_beambottom})
+    data_combined.temp_beambottom.values = data_temp2.temp_beambottom.values
     data_combined.temp_beambottom.attrs["long_name"] = \
         'air temperature at beambottom'
     data_combined = data_combined.assign({'temp_beamtop':
                                               data_temp2.temp_beamtop})
+    data_combined.temp_beamtop.values = data_temp2.temp_beamtop.values
     data_combined.temp_beambottom.attrs["long_name"] = \
         'air temperature at beamtop'
     data_combined = data_combined.assign({'lat': data_temp.lat})
+    data_combined.lat.values = data_temp.lat.values
     data_combined = data_combined.assign({'lon': data_temp.lon})
+    data_combined.lon.values = data_temp.lon.values
     data_combined = data_combined.assign({'alt': data_temp.alt})
+    data_combined.alt.values = data_temp.alt.values
     data_combined.elevation.attrs["standard_name"] = 'ray_elevation_angle'
     data_combined.elevation.attrs["long_name"] = 'elevation_angle_from_surface'
     data_combined.elevation.attrs["units"] = 'degrees'
@@ -410,6 +536,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined['time'].encoding["units"] = "seconds since " + \
                                               year + "-" + mon + "-" + day
     data_combined['time'].attrs["comment"] = "UTC"
+    data_combined['ZDR_AC_OC'].attrs["short_name"] = "ZH ac oc"
     dtree = dttree.DataTree(name="root")
     dttree.DataTree(data_combined, name=f"sweep_{int(sweep)}",
                     parent=dtree)
@@ -437,6 +564,7 @@ DATES = [
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
+    "20210713",  # case09
     "20210714",  # case09
     "20221222",  # case10
 ]
@@ -447,14 +575,14 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0,
-    25.0,
+    4.5, 3.5, 2.5, 1.5, 0.5,
+    8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',
     'vol',
 ]
-overwrite = False
+overwrite = True
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -462,9 +590,10 @@ for date in DATES:
         for elevation_deg in ELEVATIONS:
             for mode in MODE:
                 other_zdr_off_day = ''
-                n_zdr_lowest = 1000
+                n_zdr_lowest = 2000
                 std_zdr_highest = 2
-                method_zdr_priorities = ['BB', 'SD_V', 'LR_V' 'SD_I', 'LR_I']
+                method_zdr_priorities = ['PPI', 'BB',
+                                         'SD_V', 'LR_V' 'SD_I', 'LR_I']
                 if (date == '20210604') & (location in ['asb']):
                     other_zdr_off_day = '20210621'
                 if (date == '20210604') & (location in ['boo']):
@@ -552,7 +681,8 @@ LOCATIONS = [
 ]
 ELEVATIONS = np.array([
     5.5,
-    4.5, 3.5, 2.5, 1.5, 0.5, 8.0, 12.0, 17.0, 25.0,
+    4.5, 3.5, 2.5, 1.5, 0.5,
+    8.0, 12.0, 17.0, 25.0,
 ])
 MODE = [
     'pcp',

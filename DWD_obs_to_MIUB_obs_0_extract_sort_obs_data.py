@@ -52,8 +52,10 @@ def unpack_sort_dwd_obs(inpath, outpath, date_struct, log):
                     wmo,
                     ftype,
                 ) = extract_file_name2(m)
-                dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S00") # TODO: works for vol, pcp
-                # dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S")  # TODO: for birdbath 240503
+                # TODO: works for vol, pcp
+                dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S00")
+                # TODO: for birdbath 240503
+                # dtime = dt.datetime.strptime(dtime, "%Y%m%d%H%M%S")
                 date_path = dtime.strftime(date_struct)
                 outp = os.path.join(
                     f"{date_path}",
@@ -71,13 +73,13 @@ def unpack_sort_dwd_obs(inpath, outpath, date_struct, log):
                 th.extract(m, path=outp, **kwargs)
             th.close()
 
-    # TODO: alle below is new
+    # TODO: all below is new
     tgz_files = sorted(glob.glob(os.path.join(inpath, "*.tgz*")))
     for tfile in tgz_files:
         th = tarfile.open(tfile, 'r:gz')
         mem = th.getnames()
         for m in mem:
-            if len(m.split('/')[-1].split('_'))  < 4: # TODO: new
+            if len(m.split('/')[-1].split('_')) < 4: # TODO: new
                 continue
 
             (
@@ -191,6 +193,8 @@ if __name__ == "__main__":
 # DONE:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/BB_20221222 -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case10-20221222 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
 # 240722
-# TODO:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/181223_BB -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20181223 -d "%Y/%Y-%m/%Y-%m-%d" -v
-# TODO:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/181223_PPI -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20181223 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# DONE:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/181223_BB -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20181223 -d "%Y/%Y-%m/%Y-%m-%d" -v
+# DONE:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/181223_PPI -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-caseX-20181223 -d "%Y/%Y-%m/%Y-%m-%d" -v
 
+# 241119
+# DOING:  /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/DWD_obs_to_MIUB_obs_0_extract_sort_obs_data.py -i /automount/ftp/wwwgast/spp-prom/OBS/ -o /automount/data02/agradar/operation_hydrometeors/data/obs/OpHymet2-case09-20210714 -d "%Y/%Y-%m/%Y-%m-%d" -v

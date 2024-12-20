@@ -10,8 +10,8 @@
 #   STEP 2: correct rho_hv                                                    #
 #   STEP 3: add ERA5 temperature                                              #
 #   STEP 4: correct phi, smooth kdp                                           #
-#   STEP 5: calibrate zdr                                                     #
-#   STEP 6: correct for attenuation                                           #
+#   STEP 5: correct for attenuation                                           #
+#   STEP 6: calibrate zdr                                                     #
 #   STEP 7: combine everything                                                #
 # --------------------------------------------------------------------------- #
 
@@ -28,6 +28,7 @@ from scipy.ndimage import uniform_filter, gaussian_filter
 import sys
 import time
 import warnings
+
 warnings.filterwarnings("ignore")
 import wradlib as wrl
 from xhistogram.xarray import histogram
@@ -595,14 +596,13 @@ def download_ERA5_temp(date, overwrite=False, dir_out=header.dir_data_era5):
     year = date[0:4]
     mon = date[4:6]
     day = date[6:8]
-
-    c = cdsapi.Client()
     file_out1 = dir_out + str(year) + str(mon) + str(day) + "-3D-T-q-ml.grib"
     if not overwrite and os.path.exists(file_out1):
         print('exists: ' + file_out1 + ' -> continue')
     elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
         print('exists: ' + file_out1.replace('grib', 'nc' + ' -> continue'))
     else:
+        c = cdsapi.Client()
         c.retrieve("reanalysis-era5-complete", {
             "class": "ea",
             "date": "%s-%s-%s" % (year, mon, day),
@@ -634,6 +634,7 @@ def download_ERA5_temp(date, overwrite=False, dir_out=header.dir_data_era5):
     elif not overwrite and os.path.exists(file_out2.replace('grib', 'nc')):
         print('exists: ' + file_out2.replace('grib', 'nc' + ' -> continue'))
     else:
+        c = cdsapi.Client()
         c.retrieve("reanalysis-era5-complete", {
             "class": "ea",
             "date": "%s-%s-%s" % (year, mon, day),
@@ -654,7 +655,7 @@ def download_ERA5_temp(date, overwrite=False, dir_out=header.dir_data_era5):
     file_out3 = file_out1.replace('T-q-ml', 'z')
     if not overwrite and os.path.exists(file_out3):
         print('exists: ' + file_out3 + ' -> continue')
-    elif not overwrite and os.path.exists(file_out1.replace('grib', 'nc')):
+    elif not overwrite and os.path.exists(file_out3.replace('grib', 'nc')):
         print('exists: ' + file_out3.replace('grib', 'nc' + ' -> continue'))
     else:
         os.system('python /user/s6justei/PyCharm/PyCharmProjects/' +
@@ -876,7 +877,8 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
         else:
             path_in_any = files_any[0]
             try:
-                bw = dttree.open_datatree(path_in_any)['how'].attrs['beamwidth']
+                bw = dttree.open_datatree(path_in_any)[
+                    'how'].attrs['beamwidth']
             except:
                 print('nothing in *any* found -> bw=1')
                 bw = 1
@@ -944,14 +946,15 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
     data['temp_beamtop'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
                             dict(standard_name='air temperature at beamtop',
                                  units='K',
-                                 comment='beambroadening induced temperature of '
-                                         'bin volume top (approximated for pw=0)'))
+                                 comment='beambroadening induced temperature '
+                                         'of bin volume top (approximated for '
+                                         'pw=0)'))
     data['temp_beambottom'] = (['time', 'range', 'azimuth'], dummy_tra.copy(),
-                               dict(
-                                   standard_name='air temperature at beambottom',
-                                   units='K', comment='beambroadening induced '
-                                                      'temperature of bin volume '
-                                                      'bottom (approximated for pw=0)'))
+                               dict(standard_name='air temperature at '
+                                                  'beambottom', units='K',
+                                    comment='beambroadening induced '
+                                            'temperature of bin volume bottom '
+                                            '(approximated for pw=0)'))
     shape_ra = (data.range.size, data.azimuth.size)
     for t_i in range(data['time'].size):
         # grid for searching later the closest ERA5 cells
@@ -1279,11 +1282,13 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     phi_nc.attrs["comments"] = 'PHI_DP smoothing with win_r=' + \
                                str(win_r) + ' and win_azi=' + str(win_azi)
     swp_cf = swp_cf.assign(PHI_NC=phi_nc)
+    swp_cf.PHI_NC.values = phi_nc.values
 
     kdp_comb.attrs["comments"] = 'KDP noise corrected with winlen=' + \
                                  str(wkdp_heavy) + ' (DBZH<40) and ' + \
                                  'winlen=' + str(wkdp_light) + ' (DBZH>=40)'
     swp_cf = swp_cf.assign(KDP_NC=kdp_comb)
+    swp_cf.KDP_NC.values = kdp_comb.values
 
     phi_c1 = phi_c1 + 100
     phi_c1.attrs[
@@ -1291,12 +1296,14 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     phi_c1.attrs["short_name"] = 'PHI_C'
     phi_c1.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_C=phi_c1)  # + 100)
+    swp_cf.PHI_C.values = phi_c1.values
 
     phi_off_2d = phi_off_2d + 100
     phi_off_2d.attrs["long_name"] = 'instrument phase offset raw'
     phi_off_2d.attrs["short_name"] = 'PHI_DP offset raw'
     phi_off_2d.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_OFFSET_raw=phi_off_2d)  # + 100)
+    swp_cf.PHI_OFFSET_raw.values = phi_off_2d.values
 
     phi_off_2d_f_f_s = phi_off_2d_f_f_s + 100
     phi_off_2d_f_f_s.attrs[
@@ -1304,22 +1311,26 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     phi_off_2d_f_f_s.attrs["short_name"] = 'PHI_DP offset centered'
     phi_off_2d_f_f_s.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_OFFSET_centered=phi_off_2d_f_f_s)  # + 100)
+    swp_cf.PHI_OFFSET_centered.values = phi_off_2d_f_f_s.values
 
     phi_off_2d_f_f_s = phi_off_2d_f_f_s + phi_modus
     phi_off_2d_f_f_s.attrs["long_name"] = 'instrument phase offset'
     phi_off_2d_f_f_s.attrs["short_name"] = 'PHI_DP offset'
     phi_off_2d_f_f_s.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_OFFSET=phi_off_2d_f_f_s)  # + 100 + phi_modus)
+    swp_cf.PHI_OFFSET.values = phi_off_2d_f_f_s.values
 
     phi_flip.attrs["long_name"] = 'PHI_DP flipped'
     phi_flip.attrs["short_name"] = 'PHI_DP flipped'
     phi_flip.attrs["units"] = '0,1'
     swp_cf = swp_cf.assign(PHI_FLIPPED=phi_flip)
+    swp_cf.PHI_FLIPPED.values = phi_flip.values
 
     phi_flip_i.attrs["long_name"] = 'PHI_DP flipping index'
     phi_flip_i.attrs["short_name"] = 'PHI_DP flipping index'
     phi_flip_i.attrs["units"] = '°'
     swp_cf = swp_cf.assign(PHI_FLIPPED_INDEX=phi_flip_i)
+    swp_cf.PHI_FLIPPED_INDEX.values = phi_flip_i.values
 
     return swp_cf
 
@@ -1405,6 +1416,7 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
             'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
         data.RHOHV.values = data_rho.RHOHV_NC2P.values
         data = data.assign({'SNRH': data_rho.SNRH})
+        data.SNRH.values = data_rho.SNRH.values
         remo_var = list(data.data_vars.keys())
         # remo_var.remove('CMAP')
         # remo_var.remove('UPHIDP')
@@ -1492,8 +1504,179 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
 
 
 # --------------------------------------------------------------------------- #
+# STEP 5: attenuation correction.                                             #
+#         see Ryzhkov and Zrnic (2019): 6.4 (pp. 162, 167)                    #
+# --------------------------------------------------------------------------- #
+
+
+# J. Steinheuer
+def correct_zh_zdr(swp_cf, uh_tresh=0,
+                   alpha=0.08, beta=0.02,
+                   # until_temp_beamtop=273.15+4,# TODO if diff in ML is need
+                   ML_until_temp_beambottom=273.15 + 0,
+                   # alpha_ML_multipl=1,  # TODO if alpha in ML is to change
+                   # beta_ML_multipl=1,  # TODO if beta in ML is to change
+                   ):
+    """
+    ...
+    """
+    # 1: thresholding
+    swp_mask = swp_cf.where((swp_cf.DBZH > uh_tresh) &
+                            np.isnan(swp_cf.CMAP)
+                            )
+    swp_mask['PHI_NC'] = xr.where(swp_mask.PHI_NC < 0, 0, swp_mask.PHI_NC)
+
+    # last layer in ML with 1K thickness:
+    swp_last_l = swp_mask.where(
+        (swp_mask.temp_beambottom >= ML_until_temp_beambottom) &
+        (swp_mask.temp_beambottom < ML_until_temp_beambottom + 1))
+
+    # median in 1KML layer
+    phi_const = swp_last_l.PHI_NC.median(dim="range", skipna=True)
+    # fill nan with max below ML
+    phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
+        swp_mask.temp_beambottom >= ML_until_temp_beambottom).PHI_NC.max(
+        dim="range", skipna=True), phi_const)
+    # fill the still nan values with lowest from above
+    phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
+        swp_mask.temp_beambottom < ML_until_temp_beambottom).PHI_NC.min(
+        dim="range", skipna=True), phi_const)
+
+    phi_4ac = xr.where(swp_mask.temp_beambottom >= ML_until_temp_beambottom,
+                       swp_mask.PHI_NC, phi_const)
+
+    zh_ac = swp_mask.DBZH + phi_4ac * alpha
+    zdr_ac = swp_mask.ZDR + phi_4ac * beta
+    zh_ac.attrs["long_name"] = 'reflectivity factor attenuation corrected'
+    zh_ac.attrs["short_name"] = 'ZH ac'
+    zh_ac.attrs["units"] = 'dBZ'
+    swp_cf = swp_cf.assign(ZH_AC=zh_ac)
+    swp_cf.ZH_AC.values = zh_ac.values
+    zdr_ac.attrs["long_name"] = 'Log differential reflectivity ' + \
+                                'attenuation corrected'
+    zdr_ac.attrs["short_name"] = 'ZDR ac'
+    zdr_ac.attrs["units"] = 'dB'
+    swp_cf = swp_cf.assign(ZDR_AC=zdr_ac)
+    swp_cf.ZDR_AC.values = zdr_ac.values
+    swp_cf = swp_cf.assign(PHI_4AC=phi_4ac)
+    swp_cf.PHI_4AC.values = phi_4ac.values
+    return swp_cf
+
+
+# J. Steinheuer
+def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
+                           overwrite=False, dir_data_obs=header.dir_data_obs):
+    """
+    .
+
+    Parameter
+    ---------
+    date : 'yyyymmdd' date string.
+    location : 'rrr' 3-letter string for radar location.
+    elevation_deg : elevation in degrees, set to 5.5 for precipitation scan
+                    (as this is the sweep 0 for the volume).
+    mode : set 'vol' for volume and 'pcp' for precipitation.
+    overwrite : Bool;, if *allmoms*-output exists, it can be overwritten.
+    dir_data_obs : directory to search for input cases
+                  (>dir_data_obs</*/yyyy/yyyy-mm/yyyy-mm-dd).
+    """
+    year = date[0:4]
+    mon = date[4:6]
+    day = date[6:8]
+    sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
+                               float(elevation_deg))[0][0])
+    if mode == 'pcp':
+        if sweep != '00':
+            return
+
+        print('\nstart: ' + date + ' ' + location + ' pcp')
+    else:
+        print('\nstart: ' + date + ' ' + location + ' ' +
+              str(elevation_deg))
+
+    path_in = "/".join([dir_data_obs + '*',
+                        year, year + '-' + mon,
+                        year + '-' + mon + '-' + day,
+                        location, mode + '*', sweep,
+                        'ras*_allmoms_*'])
+    files = sorted(glob.glob(path_in))
+    if not files:
+        path_in = "/".join([dir_data_obs +
+                            year, year + '-' + mon,
+                            year + '-' + mon + '-' + day,
+                            location, mode + '*', sweep,
+                            'ras*_allmoms_*'])
+        files = sorted(glob.glob(path_in))
+    if not files:
+        print('no input data *_allmoms_*')
+        return
+    else:
+        path_in = files[0]
+
+    path_out = path_in.replace('_allmoms_', '_zh_zdr_ac_')
+    if os.path.isfile(path_out) and not overwrite:
+        print(path_out + ' exists;\n' + ' ... set: > ' +
+              'overwrite = True < for recalculation')
+        return
+
+    path_kdp = path_in.replace('_allmoms_', '_kdp_nc_')
+    if not os.path.exists(path_kdp):
+        print('not exists: ' + path_kdp + ' -> continue')
+        return
+
+    path_rho = path_in.replace('_allmoms_', '_rhohv_nc_')
+    if not os.path.exists(path_rho):
+        print('not exists: ' + path_rho + ' -> continue')
+        return
+
+    path_temp = path_in.replace('_allmoms_', '_ERA5_temp_')
+    if not os.path.exists(path_temp):
+        print('not exists: ' + path_temp + ' -> continue')
+        return
+
+    data = dttree.open_datatree(path_in)[
+        'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+    data_rho = dttree.open_datatree(path_rho)[
+        'sweep_' + str(int(sweep))].to_dataset()
+    data_kdp = dttree.open_datatree(path_kdp)[
+        'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+    data_temp = dttree.open_datatree(path_temp)[
+        'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
+    data_temp2 = data_temp.interp(
+        coords=data.drop(['longitude', 'latitude',
+                          'altitude', 'elevation']).coords,
+        method='nearest')
+
+    data.RHOHV.values = data_rho.RHOHV_NC2P.values
+    data = data.assign({'SNRH': data_rho.SNRH})
+    data.SNRH.values = data_rho.SNRH.values
+    data = data.assign({'PHI_NC': data_kdp.PHI_NC})
+    data.PHI_NC.values = data_kdp.PHI_NC.values
+    data = data.assign({'temp_beamtop': data_temp2.temp_beamtop})
+    data.temp_beamtop.values = data_temp2.temp_beamtop.values
+    data = data.assign({'temp_beambottom': data_temp2.temp_beambottom})
+    data.temp_beambottom.values = data_temp2.temp_beambottom.values
+    remo_var = list(data.data_vars.keys())
+    data = data.transpose('time', 'azimuth', 'range')
+    data = correct_zh_zdr(data)
+    mom_use = [x for x in list(data.keys())]
+    for mom in mom_use:
+        data[mom].encoding["coordinates"] = \
+            "time azimuth range"
+    data = data.drop_vars(remo_var)
+    dtree = dttree.DataTree(name="root")
+    dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                    parent=dtree)
+    print('saving: ... ' + path_out.split('/')[-1] + ' ...')
+    dtree.load().to_netcdf(path_out)
+    data.close()
+    data_kdp.close()
+    data_temp.close()
+
+
+# --------------------------------------------------------------------------- #
 # observations towards MIUB 'standard'.                                       #
-# STEP 5: calibrate ZDR.                                                      #
+# STEP 6: calibrate ZDR.                                                      #
 #         Adapted from Velibor Pejcic                                         #
 # --------------------------------------------------------------------------- #
 
@@ -1725,6 +1908,10 @@ def cal_zdr_lightrain(swp_cf, band='C', plot=[True, True],
                'X': [0.23, 0.28, 0.33, 0.41, 0.49, 0.58]}
     swp_mask = swp_cf.where((swp_cf.temp_beamtop > 4 + 273.15) &
                             (swp_cf.RHOHV > 0.98) &
+                            (swp_cf.DBZH >= 19) &
+                            (swp_cf.DBZH <= 31) &
+                            (swp_cf.ZDR > -1) &  # below that too unrealistic
+                            (swp_cf.range > 1) &  # 1km away from radom
                             np.isnan(swp_cf.CMAP))
     zdr_zh_20 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 19) &
                                             (swp_mask.DBZH < 21)).ZDR)
@@ -1738,12 +1925,54 @@ def cal_zdr_lightrain(swp_cf, band='C', plot=[True, True],
                                             (swp_mask.DBZH < 29)).ZDR)
     zdr_zh_30 = np.nanmedian(swp_mask.where((swp_mask.DBZH >= 29) &
                                             (swp_mask.DBZH < 31)).ZDR)
-    zdroffset = np.nansum(
+    zdroffset = np.nanmedian(
         [zdr_zh_20 - zdr_bar[band][0], zdr_zh_22 - zdr_bar[band][1],
          zdr_zh_24 - zdr_bar[band][2], zdr_zh_26 - zdr_bar[band][3],
-         zdr_zh_28 - zdr_bar[band][4], zdr_zh_30 - zdr_bar[band][5]]) / 6.
+         zdr_zh_28 - zdr_bar[band][4], zdr_zh_30 - zdr_bar[band][5]])
     nm = np.sum(((swp_mask.DBZH >= 19) & (swp_mask.DBZH < 31) &
                  (~np.isnan(swp_mask.DBZH)))).values.item()
+
+    zdr_zh_20_ppi = swp_mask.where((swp_mask.DBZH >= 19) &
+                                   (swp_mask.DBZH < 21)
+                                   ).ZDR.median(dim=['range', 'azimuth'])
+    zdr_zh_22_ppi = swp_mask.where((swp_mask.DBZH >= 21) &
+                                   (swp_mask.DBZH < 23)
+                                   ).ZDR.median(dim=['range', 'azimuth'])
+    zdr_zh_24_ppi = swp_mask.where((swp_mask.DBZH >= 23) &
+                                   (swp_mask.DBZH < 25)
+                                   ).ZDR.median(dim=['range', 'azimuth'])
+    zdr_zh_26_ppi = swp_mask.where((swp_mask.DBZH >= 25) &
+                                   (swp_mask.DBZH < 27)
+                                   ).ZDR.median(dim=['range', 'azimuth'])
+    zdr_zh_28_ppi = swp_mask.where((swp_mask.DBZH >= 27) &
+                                   (swp_mask.DBZH < 29)
+                                   ).ZDR.median(dim=['range', 'azimuth'])
+    zdr_zh_30_ppi = swp_mask.where((swp_mask.DBZH >= 29) &
+                                   (swp_mask.DBZH < 31)
+                                   ).ZDR.median(dim=['range', 'azimuth'])
+
+    div = np.repeat(6., len(zdr_zh_20_ppi))
+    div[np.isnan(zdr_zh_20_ppi)] = div[np.isnan(zdr_zh_20_ppi)] - 1
+    zdr_zh_20_ppi[np.isnan(zdr_zh_20_ppi)] = zdr_bar[band][0]
+    div[np.isnan(zdr_zh_22_ppi)] = div[np.isnan(zdr_zh_22_ppi)] - 1
+    zdr_zh_22_ppi[np.isnan(zdr_zh_22_ppi)] = zdr_bar[band][1]
+    div[np.isnan(zdr_zh_24_ppi)] = div[np.isnan(zdr_zh_24_ppi)] - 1
+    zdr_zh_24_ppi[np.isnan(zdr_zh_24_ppi)] = zdr_bar[band][2]
+    div[np.isnan(zdr_zh_26_ppi)] = div[np.isnan(zdr_zh_26_ppi)] - 1
+    zdr_zh_26_ppi[np.isnan(zdr_zh_26_ppi)] = zdr_bar[band][3]
+    div[np.isnan(zdr_zh_28_ppi)] = div[np.isnan(zdr_zh_28_ppi)] - 1
+    zdr_zh_28_ppi[np.isnan(zdr_zh_28_ppi)] = zdr_bar[band][4]
+    div[np.isnan(zdr_zh_30_ppi)] = div[np.isnan(zdr_zh_30_ppi)] - 1
+    zdr_zh_30_ppi[np.isnan(zdr_zh_30_ppi)] = zdr_bar[band][5]
+    div[np.where(div == 0.)] = np.nan
+    zdroffset_ppi = (zdr_zh_20_ppi - zdr_bar[band][0] +
+                     zdr_zh_22_ppi - zdr_bar[band][1] +
+                     zdr_zh_24_ppi - zdr_bar[band][2] +
+                     zdr_zh_26_ppi - zdr_bar[band][3] +
+                     zdr_zh_28_ppi - zdr_bar[band][4] +
+                     zdr_zh_30_ppi - zdr_bar[band][5]) / div
+    nm_ppi = swp_mask.ZDR.count(dim=['range', 'azimuth'])
+
     if plot[0]:
         if axes is None:
             plt.figure(figsize=(8, 3))
@@ -1760,7 +1989,6 @@ def cal_zdr_lightrain(swp_cf, band='C', plot=[True, True],
                 bins1=np.arange(0, 40, 1),
                 bins2=np.arange(-1, 3, .1))
         ax.plot([20, 22, 24, 26, 28, 30], zdr_bar[band], color='black')
-        # ax.set_title('Calibrated $Z_{DR}$ (used)')
         ax.set_xlabel(r'$Z_H [dBZ]$', fontsize=15)
         ax.set_ylabel(r'$Z_{DR} [dB]$', fontsize=15)
         ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
@@ -1791,7 +2019,7 @@ def cal_zdr_lightrain(swp_cf, band='C', plot=[True, True],
         plt.tight_layout()
         # plt.show()
 
-    return zdroffset, nm
+    return zdroffset, nm, zdroffset_ppi, nm_ppi
 
 
 # J. Steinheuer
@@ -1806,9 +2034,14 @@ def cal_zdr_smalldrops(swp_cf, band='C', plot=[True, True],
                             (swp_cf.DBZH < 20) &
                             (swp_cf.RHOHV > 0.98) &
                             (swp_cf.temp_beamtop > 4 + 273.15) &
+                            (swp_cf.ZDR > -1) &  # below that too unrealistic
+                            (swp_cf.range > 1) &  # 1km away from radome
                             np.isnan(swp_cf.CMAP))
     zdr_zh_1 = np.nanmedian(swp_mask.ZDR)
+    zdr_zh_ppi = swp_mask.ZDR.median(dim=['range', 'azimuth'])
+    zdr_zh_ppi_n = swp_mask.ZDR.count(dim=['range', 'azimuth'])
     zdroffset = np.nansum(zdr_zh_1 - zdr_bar[band])
+    zdroffset_ppi = zdr_zh_ppi - zdr_bar[band]
     nm = np.sum(~np.isnan(swp_mask.ZDR.values))
     if plot[0]:
         if axes is None:
@@ -1823,7 +2056,6 @@ def cal_zdr_smalldrops(swp_cf, band='C', plot=[True, True],
                 colorbar=colorbar[0],
                 bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
         ax.axhline(zdr_bar[band], color='black')
-        # ax.set_title('Calibrated $Z_{DR}$ (used)')
         ax.set_xlabel(r'$Z_H$', fontsize=15)
         ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
         ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
@@ -1842,7 +2074,6 @@ def cal_zdr_smalldrops(swp_cf, band='C', plot=[True, True],
                 colorbar=colorbar[1],
                 bins1=np.arange(0, 40, 1), bins2=np.arange(-1, 3, .1))
         ax.axhline(zdr_bar[band], color='black')
-        # ax.set_title('Calibrated $Z_{DR}$')
         ax.set_xlabel(r'$Z_H$', fontsize=15)
         ax.set_ylabel(r'$Z_{DR}$', fontsize=15)
         ax.grid(which='both', color='black', linestyle=':', alpha=0.5)
@@ -1853,7 +2084,110 @@ def cal_zdr_smalldrops(swp_cf, band='C', plot=[True, True],
         plt.tight_layout()
         # plt.show()
 
-    return zdroffset, nm
+    return zdroffset, nm, zdroffset_ppi, zdr_zh_ppi_n
+
+
+# J. Steinheuer
+def cal_zdr_dry_aggregated_snow(swp_cf):
+    """
+    Hu, Ryzhkov_Dunnavan (2024)
+    """
+    swp_cf = swp_cf.chunk(chunks=-1)
+    swp_mask = swp_cf.where((swp_cf.DBZH > 0) &
+                            (swp_cf.RHOHV > 0.98) &
+                            (swp_cf.PHI_NC < 30) &
+                            (swp_cf.KDP_NC < 0.1) &
+                            (swp_cf.temp_beambottom < 0 + 273.15) &  # ML
+                            (swp_cf.temp_beamtop > -15 + 273.15) &  # DGL
+                            np.isnan(swp_cf.CMAP))
+    zdr_1 = np.nanmedian(swp_mask.ZDR)
+    zh_1 = np.nanmedian(swp_mask.DBZH)
+    zdr_ppi = swp_mask.ZDR.median(dim=['range', 'azimuth'])
+    zh_ppi = swp_mask.DBZH.median(dim=['range', 'azimuth'])
+    zdr_zh_ppi_n = swp_mask.ZDR.count(dim=['range', 'azimuth'])
+    zdroffset = zdr_1 - 0.35 + 0.01 * zh_1  # S band?!
+    zdroffset_ppi = zdr_ppi - 0.35 + 0.01 * zh_ppi  # S band?!
+    nm = np.sum(~np.isnan(swp_mask.ZDR.values))
+    return zdroffset, nm, zdroffset_ppi, zdr_zh_ppi_n
+
+
+# J. Steinheuer
+def cal_zdr_dry_aggregated_snow2(swp_cf):
+    """
+    Ryzhkov presentation from Veli (2023)
+    """
+    swp_cf = swp_cf.chunk(chunks=-1)
+
+    # determine melting layer
+    swp_ML = swp_cf.where((swp_cf.DBZH > 0) &
+                          (swp_cf.temp_beambottom > 0 + 273.15) &  # bottom > 0
+                          (swp_cf.temp_beamtop < 4 + 273.15) &  # top colder 4
+                          np.isnan(swp_cf.CMAP))
+
+    # calc rho min in ML
+    rho_min = swp_ML.RHOHV.quantile(q=0.1, dim="range", skipna=True)
+
+    # determine ML top
+    top_height_ML = swp_ML.DBZH.where(~np.isnan(swp_ML.DBZH),
+                                      swp_ML.range * np.cos(
+                                          swp_ML.elevation * 2 * np.pi / 360))
+    top_height_ML = top_height_ML.max(dim=['range'], skipna=True)
+
+    # check aggregation gradient:
+    swp_agg_g = swp_cf.where((swp_cf.DBZH > 0) &
+                             (swp_cf.RHOHV > 0.7) &
+                             (swp_cf.PHI_NC < 12) &  # Veli
+                             (swp_cf.KDP_NC < 0.1) &
+                             (rho_min < 0.95) &
+                             (swp_cf.temp_beambottom < 0 + 273.15) &  # ML
+                             (swp_cf.range * np.cos(
+                                 swp_ML.elevation * 2 * np.pi / 360)
+                              < top_height_ML + 3000) &  # DAS top
+                             np.isnan(swp_cf.CMAP))
+    # negativ for increasing zh with height:
+    agg_diff = swp_agg_g.DBZH.diff(dim='range')
+    # negativ and now per km:
+    vert_resol = (swp_agg_g.range[1] - swp_agg_g.range[2]) * \
+                 np.sin(swp_ML.elevation * 2 * np.pi / 360) / 1000
+    # positiv if zh increases with decreasing height
+    # (i.e. above ML and towards ML):
+    agg_diff = agg_diff.median(dim=['range'], skipna=True) / vert_resol
+
+    # check aggregation size:
+    swp_agg_s = swp_cf.where((swp_cf.DBZH > 0) &
+                             (swp_cf.RHOHV > 0.7) &
+                             (rho_min < 0.95) &
+                             (swp_cf.PHI_NC < 12) &  # Veli
+                             (swp_cf.KDP_NC < 0.1) &
+                             (swp_cf.temp_beambottom < 0 + 273.15) &  # ML
+                             (swp_cf.range * np.cos(
+                                 swp_ML.elevation * 2 * np.pi / 360)
+                              < top_height_ML + 1000) &  # DAS top
+                             np.isnan(swp_cf.CMAP))
+    agg_med = swp_agg_s.DBZH.median(dim=['range'], skipna=True)
+
+    # used for DAS:
+    swp_mask = swp_cf.where((swp_cf.DBZH > 0) &  # HM at all
+                            (swp_cf.RHOHV > 0.7) &
+                            (rho_min < 0.95) &
+                            (swp_cf.PHI_NC < 12) &  # low attenuation
+                            (swp_cf.KDP_NC < 0.1) &
+                            (agg_diff > 3) &  # aggregation gradient down to ML
+                            (agg_med > 15) &  # aggregation
+                            (swp_cf.temp_beambottom < 0 + 273.15) &  # ML
+                            (swp_cf.temp_beamtop > -15 + 273.15) &  # below DGL
+                            (swp_cf.range * np.cos(
+                                swp_ML.elevation * 2 * np.pi / 360)
+                             < top_height_ML + 1000) &  # DAS top
+                            np.isnan(swp_cf.CMAP))  # no clutter
+
+    zdr_1 = np.nanmedian(swp_mask.ZDR)
+    zdr_ppi = swp_mask.ZDR.median(dim=['range', 'azimuth'])
+    zdr_zh_ppi_n = swp_mask.ZDR.count(dim=['range', 'azimuth'])
+    zdroffset = zdr_1 - 0.15  # S band?!
+    zdroffset_ppi = zdr_ppi - 0.15  # S band?!
+    nm = np.sum(~np.isnan(swp_mask.ZDR.values))
+    return zdroffset, nm, zdroffset_ppi, zdr_zh_ppi_n
 
 
 # J. Steinheuer
@@ -1870,14 +2204,12 @@ def zdr_at_zero_elev(swp_cf):
     zdr_lin_0 = (zdr_lin * np.cos(el_rad) ** 4) / \
                 (zdr_lin * np.sin(el_rad) ** 4 -
                  2 * zdr_lin ** (1 / 2) * np.sin(el_rad) ** 2 + 1)
-    # zdr_lin_02 = (zdr_lin * np.cos(el_rad)**4) / \
-    #              (zdr_lin * np.sin(el_rad)**4 +
-    #               2 * zdr_lin**(1 / 2) * np.sin(el_rad)**2 + 1)
     zdr_0 = 10 * np.log10(zdr_lin_0)
     zdr_0.attrs["long_name"] = 'equivalent log differential reflectivity at 0°'
     zdr_0.attrs["short_name"] = 'equivalent ZDR 0°'
     zdr_0.attrs["units"] = 'dB'
     swp_cf = swp_cf.assign(ZDR0=zdr_0)
+    swp_cf.ZDR0.values = zdr_0.values
     return swp_cf
 
 
@@ -1898,8 +2230,6 @@ def cal_zdr_birdbath(swp_cf, plot=True, ax=None):
         if ax is None:
             plt.figure(figsize=(4, 3))
             ax = plt.subplot(1, 1, 1)
-        # ax.hist(swp_cf.ZDR.values.flatten(),
-        #          bins=np.arange(-1, 3, .025), density=True, alpha=.5)
         ax.hist(swp_mask.ZDR.values.flatten(),
                 bins=np.arange(-1, 3, .025))
         ax.axvline(zdroffset, color='black')
@@ -1911,7 +2241,6 @@ def cal_zdr_birdbath(swp_cf, plot=True, ax=None):
                         'dB\n' + r'$N$: ' + str(nm) + '\n sd: ' +
                         str(np.round(zdroffset_sd, 3)) + 'dB')
         plt.tight_layout()
-        # plt.show()
 
     return zdroffset, nm, zdroffset_sd
 
@@ -1983,43 +2312,66 @@ def calibrate_zdr(date, location, elevation_deg=5.5, mode='pcp',
         else:
             nc_file_rho = nc_file_rho[0]
 
+        nc_file_att = glob.glob(folder_in + '/*zh_zdr_ac*')
+        if len(nc_file_att) > 1:
+            print('zh_zdr_ac: too many files')
+            if mode != '90grad':
+                return
+
+        elif len(nc_file_att) == 0:
+            print('zh_zdr_ac: no files -> take without attenuation correction')
+            ac = False
+        else:
+            nc_file_att = nc_file_att[0]
+            ac = True
+
+        nc_file_kdp = glob.glob(folder_in + '/*kdp_nc*')
+        if len(nc_file_kdp) > 1:
+            print('kdp: too many files')
+            if mode != '90grad':
+                return
+
+        elif len(nc_file_kdp) == 0:
+            print('kdp: no files')
+            if mode != '90grad':
+                return
+
+        else:
+            nc_file_kdp = nc_file_kdp[0]
+
         # --------------------------------------------------------------- #
         # vol/pcp or bird bad                                             #
         # --------------------------------------------------------------- #
         if mode == '90grad':
             data = dttree.open_datatree(nc_file_mom)[
                 'sweep_' + str(int(sweep))].to_dataset()
-            bb_off, bb_nm, bb_sd = cal_zdr_birdbath(data, plot=False,
+            bb_off, bb_nm, bb_sd = cal_zdr_birdbath(data, plot=[False, False],
                                                     ax=None)
-            path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
-            if not overwrite and os.path.exists(path_out_nc):
-                print('exists: ' + path_out_nc + ' -> continue')
-            else:
-                remo_var = list(data.data_vars.keys())
-                remo_var.remove('ZDR')
-                data = data.drop_vars(remo_var)
-                data['zdr_off_bb'] = bb_off
-                data['zdr_off_bb'].attrs["long_name"] = 'ZDR offset ' + \
-                                                        'from bird bath'
-                data['zdr_off_bb'].attrs["short_name"] = 'ZDR off BB'
-                data['zdr_off_bb'].attrs["units"] = 'dB'
-                data['zdr_off_bb'].attrs["comment"] = 'to subtract ' + \
-                                                      'from ZDR'
-                data['zdr_off_sd_bb'] = bb_sd
-                data['zdr_off_sd_bb'].attrs["long_name"] = \
-                    'ZDR offset standard deviation from bird bath'
-                data['zdr_off_sd_bb'].attrs["short_name"] = 'ZDR off sd BB'
-                data['zdr_off_sd_bb'].attrs["units"] = 'dB'
-                data['zdr_off_bb_n'] = bb_nm
-                data['zdr_off_bb_n'].attrs["long_name"] = 'number ' + \
-                                                          'values for BB'
-                data['zdr_off_bb_n'].attrs["short_name"] = 'nm for BB'
-                data['zdr_off_bb_n'].attrs["units"] = '1'
-                dtree = dttree.DataTree(name="root")
-                dttree.DataTree(data, name=f"sweep_{int(sweep)}",
-                                parent=dtree)
-                print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
-                dtree.load().to_netcdf(path_out_nc)
+            remo_var = list(data.data_vars.keys())
+            remo_var.remove('ZDR')
+            data = data.drop_vars(remo_var)
+            data['zdr_off_bb'] = bb_off
+            data['zdr_off_bb'].attrs["long_name"] = 'ZDR offset ' + \
+                                                    'from bird bath'
+            data['zdr_off_bb'].attrs["short_name"] = 'ZDR off BB'
+            data['zdr_off_bb'].attrs["units"] = 'dB'
+            data['zdr_off_bb'].attrs["comment"] = 'to subtract ' + \
+                                                  'from ZDR'
+            data['zdr_off_sd_bb'] = bb_sd
+            data['zdr_off_sd_bb'].attrs["long_name"] = \
+                'ZDR offset standard deviation from bird bath'
+            data['zdr_off_sd_bb'].attrs["short_name"] = 'ZDR off sd BB'
+            data['zdr_off_sd_bb'].attrs["units"] = 'dB'
+            data['zdr_off_bb_n'] = bb_nm
+            data['zdr_off_bb_n'].attrs["long_name"] = 'number ' + \
+                                                      'values for BB'
+            data['zdr_off_bb_n'].attrs["short_name"] = 'nm for BB'
+            data['zdr_off_bb_n'].attrs["units"] = '1'
+            dtree = dttree.DataTree(name="root")
+            dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                            parent=dtree)
+            print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
+            dtree.load().to_netcdf(path_out_nc)
 
             data.close()
         else:
@@ -2027,103 +2379,232 @@ def calibrate_zdr(date, location, elevation_deg=5.5, mode='pcp',
                 'sweep_' + str(int(sweep))].to_dataset()
             data_rho = dttree.open_datatree(nc_file_rho)[
                 'sweep_' + str(int(sweep))].to_dataset()
+            data_kdp = dttree.open_datatree(nc_file_kdp)[
+                'sweep_' + str(int(sweep))].to_dataset()
             data_temp = dttree.open_datatree(nc_file_temp)[
                 'sweep_' + str(int(sweep))].to_dataset()
+            if ac:
+                data_att = dttree.open_datatree(nc_file_att)[
+                    'sweep_' + str(int(sweep))].to_dataset()
+
             data_temp2 = data_temp.interp(
                 coords=data.drop(['longitude', 'latitude',
                                   'altitude', 'elevation']).coords,
                 method='nearest')
             data.RHOHV.values = data_rho.RHOHV_NC2P.values
+            data = data.assign({'PHI_NC': data_kdp.PHI_NC})
+            data.PHI_NC.values = data_kdp.PHI_NC.values
+            data = data.assign({'KDP_NC': data_kdp.KDP_NC})
+            data.KDP_NC.values = data_kdp.KDP_NC.values
             data = data.assign({'temp_beamtop': data_temp2.temp_beamtop})
+            data.temp_beamtop.values = data_temp2.temp_beamtop.values
+            data = data.assign({'temp_beambottom': data_temp2.temp_beambottom})
+            data.temp_beambottom.values = data_temp2.temp_beambottom.values
+            if ac:
+                data = data.assign({'DBZH': data_att.ZH_AC})
+                data.DBZH.values = data_att.ZH_AC.values
+                data = data.assign({'ZDR': data_att.ZDR_AC})
+                data.ZDR.values = data_att.ZDR_AC.values
+
             data = data.transpose('time', 'azimuth', 'range')
             data2 = zdr_at_zero_elev(data)
-            data2 = data.assign({'ZDR': data2.ZDR0})
-            lr_off, lr_nm = cal_zdr_lightrain(data, band='C',
-                                              plot=[False, False],
-                                              axes=None,
-                                              colorbar=[False, False])
-            sd_off, sd_nm = cal_zdr_smalldrops(data, band='C',
-                                               plot=[False, False],
-                                               axes=None,
-                                               colorbar=[False, False])
-            lr_off_ec, lr_nm_ec = cal_zdr_lightrain(data2, band='C',
-                                                    plot=[False, False],
-                                                    axes=None,
-                                                    colorbar=[False, False])
-            sd_off_ec, sd_nm_ec = cal_zdr_smalldrops(data2, band='C',
-                                                     plot=[False, False],
-                                                     axes=None,
-                                                     colorbar=[False, False])
-            path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
-            if not overwrite and os.path.exists(path_out_nc):
-                print('exists: ' + path_out_nc + ' -> continue')
-            else:
-                remo_var = list(data.data_vars.keys())
-                remo_var.remove('ZDR')
-                data = data.drop_vars(remo_var)
-                data['zdr_off_lr'] = lr_off
-                data['zdr_off_lr'].attrs["long_name"] = 'ZDR offset ' + \
-                                                        'from light rain'
-                data['zdr_off_lr'].attrs["short_name"] = 'ZDR off LR'
-                data['zdr_off_lr'].attrs["units"] = 'dB'
-                data['zdr_off_lr'].attrs["comment"] = 'to subtract ' + \
-                                                      'from ZDR'
-                data['zdr_off_lr_n'] = lr_nm
-                data['zdr_off_lr_n'].attrs["long_name"] = 'number ' + \
-                                                          'values for LR'
-                data['zdr_off_lr_n'].attrs["short_name"] = 'nm for LR'
-                data['zdr_off_lr_n'].attrs["units"] = '1'
-                data['zdr_off_lr_ec'] = lr_off_ec
-                data['zdr_off_lr_ec'].attrs["long_name"] = \
-                    'ZDR offset from light rain and elevation ' + \
-                    'corrected ZDR'
-                data['zdr_off_lr_ec'].attrs["short_name"] = 'ZDR off LR ec'
-                data['zdr_off_lr_ec'].attrs["units"] = 'dB'
-                data['zdr_off_lr_ec'].attrs["comment"] = 'to subtract ' + \
-                                                         'from ZDR'
-                data['zdr_off_lr_n_ec'] = lr_nm
-                data['zdr_off_lr_n_ec'].attrs["long_name"] = \
-                    'number values for LR ec'
-                data['zdr_off_lr_n_ec'].attrs["short_name"] = 'nm for ' + \
-                                                              'LR ec'
-                data['zdr_off_lr_n_ec'].attrs["units"] = '1'
-                data['zdr_off_sd'] = sd_off
-                data['zdr_off_sd'].attrs["long_name"] = 'ZDR offset ' + \
-                                                        'from small drops'
-                data['zdr_off_sd'].attrs["short_name"] = 'ZDR off SD'
-                data['zdr_off_sd'].attrs["units"] = 'dB'
-                data['zdr_off_sd'].attrs["comment"] = 'to subtract ' + \
-                                                      'from ZDR'
-                data['zdr_off_sd_n'] = sd_nm
-                data['zdr_off_sd_n'].attrs["long_name"] = 'number' + \
-                                                          ' values for SD'
-                data['zdr_off_sd_n'].attrs["short_name"] = 'nm for SD'
-                data['zdr_off_sd_n'].attrs["units"] = '1'
-                data['zdr_off_sd_ec'] = sd_off_ec
-                data['zdr_off_sd_ec'].attrs["long_name"] = \
-                    'ZDR offset from small drops and elevation ' + \
-                    'corrected ZDR'
-                data['zdr_off_sd_ec'].attrs["short_name"] = 'ZDR off SD ec'
-                data['zdr_off_sd_ec'].attrs["units"] = 'dB'
-                data['zdr_off_sd_ec'].attrs["comment"] = 'to subtract ' + \
-                                                         'from ZDR'
-                data['zdr_off_sd_n_ec'] = sd_nm
-                data['zdr_off_sd_n_ec'].attrs["long_name"] = \
-                    'number values for SD ec'
-                data['zdr_off_sd_n_ec'].attrs["short_name"] = 'nm for ' + \
-                                                              'SD ec'
-                data['zdr_off_sd_n_ec'].attrs["units"] = '1'
-                dtree = dttree.DataTree(name="root")
-                dttree.DataTree(data, name=f"sweep_{int(sweep)}",
-                                parent=dtree)
-                print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
-                dtree.load().to_netcdf(path_out_nc)
+            data2 = data2.assign({'ZDR': data2.ZDR0})
+            data2.ZDR.values = data2.ZDR0.values
+            lr_off, lr_nm, lr_off_ppi, lr_nm_ppi = \
+                cal_zdr_lightrain(data, band='C', plot=[False, False],
+                                  axes=None, colorbar=[False, False])
+            sd_off, sd_nm, sd_off_ppi, sd_nm_ppi = \
+                cal_zdr_smalldrops(data, band='C', plot=[False, False],
+                                   axes=None, colorbar=[False, False])
+            lr_off_ec, lr_nm_ec, lr_off_ec_ppi, lr_nm_ec_ppi = \
+                cal_zdr_lightrain(data2, band='C', plot=[False, False],
+                                  axes=None, colorbar=[False, False])
+            sd_off_ec, sd_nm_ec, sd_off_ec_ppi, sd_ec_nm_ppi = \
+                cal_zdr_smalldrops(data2, band='C', plot=[False, False],
+                                   axes=None, colorbar=[False, False])
+            das_off, das_nm, das_off_ppi, das_nm_ppi = \
+                cal_zdr_dry_aggregated_snow(data)
 
+            remo_var = list(data.data_vars.keys())
+            remo_var.remove('ZDR')
+            data = data.drop_vars(remo_var)
+
+            # zdr_off_lr
+            data['zdr_off_lr'] = lr_off
+            data['zdr_off_lr'].attrs["short_name"] = 'ZDR off LR'
+            data['zdr_off_lr'].attrs["long_name"] = \
+                'ZDR offset from light rain'
+            data['zdr_off_lr'].attrs["units"] = 'dB'
+            data['zdr_off_lr'].attrs["comment"] = \
+                'to subtract from ZDR'
+            # zdr_off_lr_n
+            data['zdr_off_lr_n'] = lr_nm
+            data['zdr_off_lr_n'].attrs["short_name"] = 'nm for LR'
+            data['zdr_off_lr_n'].attrs["long_name"] = \
+                'number values for light rain'
+            data['zdr_off_lr_n'].attrs["units"] = '1'
+
+            # zdr_off_lr_ec
+            data['zdr_off_lr_ec'] = lr_off_ec
+            data['zdr_off_lr_ec'].attrs["short_name"] = 'ZDR off LR ec'
+            data['zdr_off_lr_ec'].attrs["long_name"] = \
+                'ZDR offset from light rain and elevation corrected ZDR'
+            data['zdr_off_lr_ec'].attrs["units"] = 'dB'
+            data['zdr_off_lr_ec'].attrs["comment"] = \
+                'to subtract from ZDR'
+            # zdr_off_lr_n_ec
+            data['zdr_off_lr_n_ec'] = lr_nm_ec
+            data['zdr_off_lr_n_ec'].attrs["short_name"] = 'nm for LR ec'
+            data['zdr_off_lr_n_ec'].attrs["long_name"] = \
+                'number values for light rain and elevation corrected ZDR'
+            data['zdr_off_lr_n_ec'].attrs["units"] = '1'
+
+            # zdr_off_lr_ppi
+            data['zdr_off_lr_ppi'] = lr_off_ppi
+            data['zdr_off_lr_ppi'].attrs["short_name"] = 'ZDR off LR PPI'
+            data['zdr_off_lr_ppi'].attrs["long_name"] = \
+                'ZDR offset from light rain per PPI'
+            data['zdr_off_lr_ppi'].attrs["units"] = 'dB'
+            data['zdr_off_lr_ppi'].attrs["comment"] = \
+                'to subtract from ZDR PPI-wise'
+            # zdr_off_lr_n_ppi
+            data['zdr_off_lr_n_ppi'] = lr_nm_ppi
+            data['zdr_off_lr_n_ppi'].attrs["short_name"] = 'nm for LR PPI'
+            data['zdr_off_lr_n_ppi'].attrs["long_name"] = \
+                'number values for light rain per PPI'
+            data['zdr_off_lr_n_ppi'].attrs["units"] = '1'
+
+            # zdr_off_lr_ec_ppi
+            data['zdr_off_lr_ec_ppi'] = lr_off_ec_ppi
+            data['zdr_off_lr_ec_ppi'].attrs["short_name"] = \
+                'ZDR off LR ec PPI'
+            data['zdr_off_lr_ec_ppi'].attrs["long_name"] = \
+                'ZDR offset from light rain and ' \
+                'elevation corrected ZDR per PPI'
+            data['zdr_off_lr_ec_ppi'].attrs["units"] = 'dB'
+            data['zdr_off_lr_ec_ppi'].attrs["comment"] = \
+                'to subtract from ZDR PPI-wise'
+            # zdr_off_lr_n_ec_ppi
+            data['zdr_off_lr_n_ec_ppi'] = lr_nm_ec_ppi
+            data['zdr_off_lr_n_ec_ppi'].attrs["short_name"] = \
+                'nm for LR ec PPI'
+            data['zdr_off_lr_n_ec_ppi'].attrs["long_name"] = \
+                'number values for light rain and ' \
+                'elevation corrected ZDR per PPI'
+            data['zdr_off_lr_n_ec_ppi'].attrs["units"] = '1'
+
+            # zdr_off_sd
+            data['zdr_off_sd'] = sd_off
+            data['zdr_off_sd'].attrs["short_name"] = 'ZDR off SD'
+            data['zdr_off_sd'].attrs["long_name"] = \
+                'ZDR offset from small drops'
+            data['zdr_off_sd'].attrs["units"] = 'dB'
+            data['zdr_off_sd'].attrs["comment"] = \
+                'to subtract from ZDR'
+            # zdr_off_sd_n
+            data['zdr_off_sd_n'] = sd_nm
+            data['zdr_off_sd_n'].attrs["short_name"] = 'nm for SD'
+            data['zdr_off_sd_n'].attrs["long_name"] = \
+                'number values for SD'
+            data['zdr_off_sd_n'].attrs["units"] = '1'
+
+            # zdr_off_sd_ec
+            data['zdr_off_sd_ec'] = sd_off_ec
+            data['zdr_off_sd_ec'].attrs["short_name"] = 'ZDR off SD ec'
+            data['zdr_off_sd_ec'].attrs["long_name"] = \
+                'ZDR offset from small drops and ' + \
+                'elevation corrected ZDR'
+            data['zdr_off_sd_ec'].attrs["units"] = 'dB'
+            data['zdr_off_sd_ec'].attrs["comment"] = \
+                'to subtract from ZDR'
+            # zdr_off_sd_n_ec
+            data['zdr_off_sd_n_ec'] = sd_nm_ec
+            data['zdr_off_sd_n_ec'].attrs["short_name"] = 'nm for SD ec'
+            data['zdr_off_sd_n_ec'].attrs["long_name"] = \
+                'number values for small drops and ' + \
+                'elevation corrected ZDR'
+            data['zdr_off_sd_n_ec'].attrs["units"] = '1'
+
+            # zdr_off_sd_ppi
+            data['zdr_off_sd_ppi'] = sd_off_ppi
+            data['zdr_off_sd_ppi'].attrs["short_name"] = 'ZDR off SD PPI'
+            data['zdr_off_sd_ppi'].attrs["long_name"] = \
+                'ZDR offset from small drops per PPI'
+            data['zdr_off_sd_ppi'].attrs["units"] = 'dB'
+            data['zdr_off_sd_ppi'].attrs["comment"] = \
+                'to subtract from ZDR PPI-wise'
+            # zdr_off_sd_n_ppi
+            data['zdr_off_sd_n_ppi'] = sd_nm_ppi
+            data['zdr_off_sd_n_ppi'].attrs["short_name"] = 'nm for SD PPI'
+            data['zdr_off_sd_n_ppi'].attrs["long_name"] = \
+                'number values for small drops per PPI'
+            data['zdr_off_sd_n_ppi'].attrs["units"] = '1'
+
+            # zdr_off_sd_ec_ppi
+            data['zdr_off_sd_ec_ppi'] = sd_off_ec_ppi
+            data['zdr_off_sd_ec_ppi'].attrs["short_name"] = \
+                'ZDR off SD ec PPI'
+            data['zdr_off_sd_ec_ppi'].attrs["long_name"] = \
+                'ZDR offset from small drops and ' \
+                'elevation corrected ZDR per PPI'
+            data['zdr_off_sd_ec_ppi'].attrs["units"] = 'dB'
+            data['zdr_off_sd_ec_ppi'].attrs["comment"] = \
+                'to subtract from ZDR PPI-wise'
+            # zdr_off_sd_n_ec_ppi
+            data['zdr_off_sd_n_ec_ppi'] = sd_ec_nm_ppi
+            data['zdr_off_sd_n_ec_ppi'].attrs["short_name"] = \
+                'nm for SD ec PPI'
+            data['zdr_off_sd_n_ec_ppi'].attrs["long_name"] = \
+                'number values for small drops and ' \
+                'elevation corrected ZDR per PPI'
+            data['zdr_off_sd_n_ec_ppi'].attrs["units"] = '1'
+
+            # zdr_off_das
+            data['zdr_off_das'] = das_off
+            data['zdr_off_das'].attrs["short_name"] = 'ZDR off DAS'
+            data['zdr_off_das'].attrs["long_name"] = \
+                'ZDR offset from dry aggregated snow'
+            data['zdr_off_das'].attrs["units"] = 'dB'
+            data['zdr_off_das'].attrs["comment"] = \
+                'to subtract from ZDR'
+            # zdr_off_das_n
+            data['zdr_off_das_n'] = das_nm
+            data['zdr_off_das_n'].attrs["short_name"] = 'nm for DAS'
+            data['zdr_off_das_n'].attrs["long_name"] = \
+                'number values for dry aggregated snow'
+            data['zdr_off_das_n'].attrs["units"] = '1'
+
+            # zdr_off_das_ppi
+            data['zdr_off_das_ppi'] = das_off_ppi
+            data['zdr_off_das_ppi'].attrs["short_name"] = 'ZDR off DAS PPI'
+            data['zdr_off_das_ppi'].attrs["long_name"] = \
+                'ZDR offset from dry aggregated snow per PPI'
+            data['zdr_off_das_ppi'].attrs["units"] = 'dB'
+            data['zdr_off_das_ppi'].attrs["comment"] = \
+                'to subtract from ZDR'
+            # zdr_off_das_n_PPI
+            data['zdr_off_das_n_ppi'] = das_nm_ppi
+            data['zdr_off_das_n_ppi'].attrs["short_name"] = 'nm for DAS PPI'
+            data['zdr_off_das_n_ppi'].attrs["long_name"] = \
+                'number values for dry aggregated snow per PPI'
+            data['zdr_off_das_n_ppi'].attrs["units"] = '1'
+            if ac:
+                data = data.assign({'ZDR_AC': data_att.ZDR_AC})
+                data.ZDR_AC.values = data_att.ZDR_AC.values
+                data = data.drop_vars('ZDR')
+
+            dtree = dttree.DataTree(name="root")
+            dttree.DataTree(data, name=f"sweep_{int(sweep)}",
+                            parent=dtree)
+            print('saving: ... ' + path_out_nc.split('/')[-1] + ' ...')
+            dtree.load().to_netcdf(path_out_nc)
             data.close()
             data2.close()
             data_rho.close()
             data_temp.close()
             data_temp2.close()
+            data_kdp.clos()
+            data_att.close()
     else:
         print('exists: ' + path_out_nc + ' -> continue')
 
@@ -2233,8 +2714,35 @@ def calibrate_zdr_with_plot(date, location,
         else:
             nc_file_rho = nc_file_rho[0]
 
+        nc_file_att = glob.glob(folder_in + '/*zh_zdr_ac*')
+        if len(nc_file_att) > 1:
+            print('zh_zdr_ac: too many files')
+            if mode != '90grad':
+                return
+
+        elif len(nc_file_att) == 0:
+            print('zh_zdr_ac: no files -> take without attenuation correction')
+            ac = False
+        else:
+            nc_file_att = nc_file_att[0]
+            ac = True
+
+        nc_file_kdp = glob.glob(folder_in + '/*kdp_nc*')
+        if len(nc_file_kdp) > 1:
+            print('kdp: too many files')
+            if mode != '90grad':
+                return
+
+        elif len(nc_file_kdp) == 0:
+            print('kdp: no files')
+            if mode != '90grad':
+                return
+
+        else:
+            nc_file_kdp = nc_file_kdp[0]
+
         # --------------------------------------------------------------- #
-        # vol/pcp or bird bad                                             #
+        # vol/pcp or bird bath                                            #
         # --------------------------------------------------------------- #
         if mode == '90grad':
             data = dttree.open_datatree(nc_file_mom)[
@@ -2243,8 +2751,6 @@ def calibrate_zdr_with_plot(date, location,
             ax = plt.subplot(n_rows, n_cols, index + 0 * n_cols)
             bb_off, bb_nm, bb_sd = cal_zdr_birdbath(data, plot=True, ax=ax)
             ax.set_title('$90°$ ' + location.upper() + ' ' + date)
-            path_out_nc = nc_file_mom.replace(
-                '_allmoms_', '_zdr_off_')
             if not overwrite and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
             else:
@@ -2280,45 +2786,64 @@ def calibrate_zdr_with_plot(date, location,
                 'sweep_' + str(int(sweep))].to_dataset()
             data_rho = dttree.open_datatree(nc_file_rho)[
                 'sweep_' + str(int(sweep))].to_dataset()
+            data_kdp = dttree.open_datatree(nc_file_kdp)[
+                'sweep_' + str(int(sweep))].to_dataset()
             data_temp = dttree.open_datatree(nc_file_temp)[
                 'sweep_' + str(int(sweep))].to_dataset()
+            if ac:
+                data_att = dttree.open_datatree(nc_file_att)[
+                    'sweep_' + str(int(sweep))].to_dataset()
+
             data_temp2 = data_temp.interp(
                 coords=data.drop(['longitude', 'latitude',
                                   'altitude', 'elevation']).coords,
                 method='nearest')
             data.RHOHV.values = data_rho.RHOHV_NC2P.values
+            data = data.assign({'PHI_NC': data_kdp.PHI_NC})
+            data.PHI_NC.values = data_kdp.PHI_NC.values
+            data = data.assign({'KDP_NC': data_kdp.KDP_NC})
+            data.KDP_NC.values = data_kdp.KDP_NC.values
             data = data.assign({'temp_beamtop': data_temp2.temp_beamtop})
+            data.temp_beambottom.values = data_temp2.temp_beambottom.values
+            data = data.assign({'temp_beambottom': data_temp2.temp_beambottom})
+            data.temp_beambottom.values = data_temp2.temp_beambottom.values
+            if ac:
+                data = data.assign({'DBZH': data_att.ZH_AC})
+                data.DBZH.values = data_att.ZH_AC.values
+                data = data.assign({'ZDR': data_att.ZDR_AC})
+                data.ZDR.values = data_att.ZDR_AC.values
+
             data = data.transpose('time', 'azimuth', 'range')
             data2 = zdr_at_zero_elev(data)
-            data2 = data.assign({'ZDR': data2.ZDR0})
+            data2 = data2.assign({'ZDR': data2.ZDR0})
+            data2.ZDR.values = data2.ZDR0.values
             colorbar = [True, True]
             index = index + 1
             axes = [plt.subplot(n_rows, n_cols, index + 0 * n_cols),
                     plt.subplot(n_rows, n_cols, index + 0 * n_cols)]
-            lr_off, lr_nm = cal_zdr_lightrain(data, band='C',
-                                              plot=[True, False],
-                                              axes=axes,
-                                              colorbar=colorbar)
-            if mode == 'pcp0':
-                axes[0].set_title('PCP ' + location.upper() + ' ' +
-                                  date + '    ')
+            lr_off, lr_nm, lr_off_ppi, lr_nm_ppi = \
+                cal_zdr_lightrain(data, band='C', plot=[True, False],
+                                  axes=axes, colorbar=colorbar)
+            if mode == 'pcp':
+                axes[0].set_title('PCP ' + location.upper() + ' ' + date +
+                                  '    ')
             else:
                 axes[0].set_title(str(elevation_deg) + '° ' +
-                                  location.upper() + ' ' + date +
-                                  '    ')
+                                  location.upper() + ' ' + date + '    ')
 
             axes = [plt.subplot(n_rows, n_cols, index + 1 * n_cols),
                     plt.subplot(n_rows, n_cols, index + 1 * n_cols)]
-            sd_off, sd_nm = cal_zdr_smalldrops(data, band='C',
-                                               plot=[True, False],
-                                               axes=axes,
-                                               colorbar=colorbar)
+            sd_off, sd_nm, sd_off_ppi, sd_nm_ppi = \
+                cal_zdr_smalldrops(data, band='C', plot=[True, False],
+                                   axes=axes, colorbar=colorbar)
             axes = [plt.subplot(n_rows, n_cols, index + 2 * n_cols),
                     plt.subplot(n_rows, n_cols, index + 2 * n_cols)]
-            lr_off_ec, lr_nm_ec = cal_zdr_lightrain(data2, band='C',
-                                                    plot=[True, False],
-                                                    axes=axes,
-                                                    colorbar=colorbar)
+            lr_off_ec, lr_nm_ec, lr_off_ec_ppi, lr_nm_ec_ppi = \
+                cal_zdr_lightrain(data2, band='C', plot=[True, False],
+                                  axes=axes, colorbar=colorbar)
+            das_off, das_nm, das_off_ppi, das_nm_ppi = \
+                cal_zdr_dry_aggregated_snow(data)
+
             if mode == 'pcp':
                 axes[0].set_title(r'$Z_{DR}(PCP) \rightarrow Z_{DR}(0°)$')
             else:
@@ -2327,10 +2852,9 @@ def calibrate_zdr_with_plot(date, location,
 
             axes = [plt.subplot(n_rows, n_cols, index + 3 * n_cols),
                     plt.subplot(n_rows, n_cols, index + 3 * n_cols)]
-            sd_off_ec, sd_nm_ec = cal_zdr_smalldrops(data2, band='C',
-                                                     plot=[True, False],
-                                                     axes=axes,
-                                                     colorbar=colorbar)
+            sd_off_ec, sd_nm_ec, sd_off_ec_ppi, sd_ec_nm_ppi = \
+                cal_zdr_smalldrops(data2, band='C', plot=[True, False],
+                                   axes=axes, colorbar=colorbar)
             path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
             if not overwrite and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
@@ -2338,58 +2862,168 @@ def calibrate_zdr_with_plot(date, location,
                 remo_var = list(data.data_vars.keys())
                 remo_var.remove('ZDR')
                 data = data.drop_vars(remo_var)
+
+                # zdr_off_lr
                 data['zdr_off_lr'] = lr_off
-                data['zdr_off_lr'].attrs["long_name"] = 'ZDR offset ' + \
-                                                        'from light rain'
                 data['zdr_off_lr'].attrs["short_name"] = 'ZDR off LR'
+                data['zdr_off_lr'].attrs["long_name"] = \
+                    'ZDR offset from light rain'
                 data['zdr_off_lr'].attrs["units"] = 'dB'
-                data['zdr_off_lr'].attrs["comment"] = 'to subtract ' + \
-                                                      'from ZDR'
+                data['zdr_off_lr'].attrs["comment"] = \
+                    'to subtract from ZDR'
+                # zdr_off_lr_n
                 data['zdr_off_lr_n'] = lr_nm
-                data['zdr_off_lr_n'].attrs["long_name"] = 'number ' + \
-                                                          'values for LR'
                 data['zdr_off_lr_n'].attrs["short_name"] = 'nm for LR'
+                data['zdr_off_lr_n'].attrs["long_name"] = \
+                    'number values for light rain'
                 data['zdr_off_lr_n'].attrs["units"] = '1'
+
+                # zdr_off_lr_ec
                 data['zdr_off_lr_ec'] = lr_off_ec
-                data['zdr_off_lr_ec'].attrs["long_name"] = \
-                    'ZDR offset from light rain and elevation ' + \
-                    'corrected ZDR'
                 data['zdr_off_lr_ec'].attrs["short_name"] = 'ZDR off LR ec'
+                data['zdr_off_lr_ec'].attrs["long_name"] = \
+                    'ZDR offset from light rain and elevation corrected ZDR'
                 data['zdr_off_lr_ec'].attrs["units"] = 'dB'
-                data['zdr_off_lr_ec'].attrs["comment"] = 'to subtract ' + \
-                                                         'from ZDR'
-                data['zdr_off_lr_n_ec'] = lr_nm
+                data['zdr_off_lr_ec'].attrs["comment"] = \
+                    'to subtract from ZDR'
+                # zdr_off_lr_n_ec
+                data['zdr_off_lr_n_ec'] = lr_nm_ec
+                data['zdr_off_lr_n_ec'].attrs["short_name"] = 'nm for LR ec'
                 data['zdr_off_lr_n_ec'].attrs["long_name"] = \
-                    'number values for LR ec'
-                data['zdr_off_lr_n_ec'].attrs["short_name"] = 'nm for ' + \
-                                                              'LR ec'
+                    'number values for light rain and elevation corrected ZDR'
                 data['zdr_off_lr_n_ec'].attrs["units"] = '1'
+
+                # zdr_off_lr_ppi
+                data['zdr_off_lr_ppi'] = lr_off_ppi
+                data['zdr_off_lr_ppi'].attrs["short_name"] = 'ZDR off LR PPI'
+                data['zdr_off_lr_ppi'].attrs["long_name"] = \
+                    'ZDR offset from light rain per PPI'
+                data['zdr_off_lr_ppi'].attrs["units"] = 'dB'
+                data['zdr_off_lr_ppi'].attrs["comment"] = \
+                    'to subtract from ZDR PPI-wise'
+                # zdr_off_lr_n_ppi
+                data['zdr_off_lr_n_ppi'] = lr_nm_ppi
+                data['zdr_off_lr_n_ppi'].attrs["short_name"] = 'nm for LR PPI'
+                data['zdr_off_lr_n_ppi'].attrs["long_name"] = \
+                    'number values for light rain per PPI'
+                data['zdr_off_lr_n_ppi'].attrs["units"] = '1'
+
+                # zdr_off_lr_ec_ppi
+                data['zdr_off_lr_ec_ppi'] = lr_off_ec_ppi
+                data['zdr_off_lr_ec_ppi'].attrs["short_name"] = \
+                    'ZDR off LR ec PPI'
+                data['zdr_off_lr_ec_ppi'].attrs["long_name"] = \
+                    'ZDR offset from light rain and ' \
+                    'elevation corrected ZDR per PPI'
+                data['zdr_off_lr_ec_ppi'].attrs["units"] = 'dB'
+                data['zdr_off_lr_ec_ppi'].attrs["comment"] = \
+                    'to subtract from ZDR PPI-wise'
+                # zdr_off_lr_n_ec_ppi
+                data['zdr_off_lr_n_ec_ppi'] = lr_nm_ec_ppi
+                data['zdr_off_lr_n_ec_ppi'].attrs["short_name"] = \
+                    'nm for LR ec PPI'
+                data['zdr_off_lr_n_ec_ppi'].attrs["long_name"] = \
+                    'number values for light rain and ' \
+                    'elevation corrected ZDR per PPI'
+                data['zdr_off_lr_n_ec_ppi'].attrs["units"] = '1'
+
+                # zdr_off_sd
                 data['zdr_off_sd'] = sd_off
-                data['zdr_off_sd'].attrs["long_name"] = 'ZDR offset ' + \
-                                                        'from small drops'
                 data['zdr_off_sd'].attrs["short_name"] = 'ZDR off SD'
+                data['zdr_off_sd'].attrs["long_name"] = \
+                    'ZDR offset from small drops'
                 data['zdr_off_sd'].attrs["units"] = 'dB'
-                data['zdr_off_sd'].attrs["comment"] = 'to subtract ' + \
-                                                      'from ZDR'
+                data['zdr_off_sd'].attrs["comment"] = \
+                    'to subtract from ZDR'
+                # zdr_off_sd_n
                 data['zdr_off_sd_n'] = sd_nm
-                data['zdr_off_sd_n'].attrs["long_name"] = 'number' + \
-                                                          ' values for SD'
                 data['zdr_off_sd_n'].attrs["short_name"] = 'nm for SD'
+                data['zdr_off_sd_n'].attrs["long_name"] = \
+                    'number values for SD'
                 data['zdr_off_sd_n'].attrs["units"] = '1'
+
+                # zdr_off_sd_ec
                 data['zdr_off_sd_ec'] = sd_off_ec
-                data['zdr_off_sd_ec'].attrs["long_name"] = \
-                    'ZDR offset from small drops and elevation ' + \
-                    'corrected ZDR'
                 data['zdr_off_sd_ec'].attrs["short_name"] = 'ZDR off SD ec'
+                data['zdr_off_sd_ec'].attrs["long_name"] = \
+                    'ZDR offset from small drops and ' + \
+                    'elevation corrected ZDR'
                 data['zdr_off_sd_ec'].attrs["units"] = 'dB'
-                data['zdr_off_sd_ec'].attrs["comment"] = 'to subtract ' + \
-                                                         'from ZDR'
-                data['zdr_off_sd_n_ec'] = sd_nm
+                data['zdr_off_sd_ec'].attrs["comment"] = \
+                    'to subtract from ZDR'
+                # zdr_off_sd_n_ec
+                data['zdr_off_sd_n_ec'] = sd_nm_ec
+                data['zdr_off_sd_n_ec'].attrs["short_name"] = 'nm for SD ec'
                 data['zdr_off_sd_n_ec'].attrs["long_name"] = \
-                    'number values for SD ec'
-                data['zdr_off_sd_n_ec'].attrs["short_name"] = 'nm for ' + \
-                                                              'SD ec'
+                    'number values for small drops and ' + \
+                    'elevation corrected ZDR'
                 data['zdr_off_sd_n_ec'].attrs["units"] = '1'
+
+                # zdr_off_sd_ppi
+                data['zdr_off_sd_ppi'] = sd_off_ppi
+                data['zdr_off_sd_ppi'].attrs["short_name"] = 'ZDR off SD PPI'
+                data['zdr_off_sd_ppi'].attrs["long_name"] = \
+                    'ZDR offset from small drops per PPI'
+                data['zdr_off_sd_ppi'].attrs["units"] = 'dB'
+                data['zdr_off_sd_ppi'].attrs["comment"] = \
+                    'to subtract from ZDR PPI-wise'
+                # zdr_off_sd_n_ppi
+                data['zdr_off_sd_n_ppi'] = sd_nm_ppi
+                data['zdr_off_sd_n_ppi'].attrs["short_name"] = 'nm for SD PPI'
+                data['zdr_off_sd_n_ppi'].attrs["long_name"] = \
+                    'number values for small drops per PPI'
+                data['zdr_off_sd_n_ppi'].attrs["units"] = '1'
+
+                # zdr_off_sd_ec_ppi
+                data['zdr_off_sd_ec_ppi'] = sd_off_ec_ppi
+                data['zdr_off_sd_ec_ppi'].attrs["short_name"] = \
+                    'ZDR off SD ec PPI'
+                data['zdr_off_sd_ec_ppi'].attrs["long_name"] = \
+                    'ZDR offset from small drops and ' \
+                    'elevation corrected ZDR per PPI'
+                data['zdr_off_sd_ec_ppi'].attrs["units"] = 'dB'
+                data['zdr_off_sd_ec_ppi'].attrs["comment"] = \
+                    'to subtract from ZDR PPI-wise'
+                # zdr_off_sd_n_ec_ppi
+                data['zdr_off_sd_n_ec_ppi'] = sd_ec_nm_ppi
+                data['zdr_off_sd_n_ec_ppi'].attrs["short_name"] = \
+                    'nm for SD ec PPI'
+                data['zdr_off_sd_n_ec_ppi'].attrs["long_name"] = \
+                    'number values for small drops and ' \
+                    'elevation corrected ZDR per PPI'
+                data['zdr_off_sd_n_ec_ppi'].attrs["units"] = '1'
+
+                # zdr_off_das
+                data['zdr_off_das'] = das_off
+                data['zdr_off_das'].attrs["short_name"] = 'ZDR off DAS'
+                data['zdr_off_das'].attrs["long_name"] = \
+                    'ZDR offset from dry aggregated snow'
+                data['zdr_off_das'].attrs["units"] = 'dB'
+                data['zdr_off_das'].attrs["comment"] = \
+                    'to subtract from ZDR'
+                # zdr_off_das_n
+                data['zdr_off_das_n'] = das_nm
+                data['zdr_off_das_n'].attrs["short_name"] = 'nm for DAS'
+                data['zdr_off_das_n'].attrs["long_name"] = \
+                    'number values for dry aggregated snow'
+                data['zdr_off_das_n'].attrs["units"] = '1'
+
+                # zdr_off_das_ppi
+                data['zdr_off_das_ppi'] = das_off_ppi
+                data['zdr_off_das_ppi'].attrs["short_name"] = 'ZDR off DAS PPI'
+                data['zdr_off_das_ppi'].attrs["long_name"] = \
+                    'ZDR offset from dry aggregated snow per PPI'
+                data['zdr_off_das_ppi'].attrs["units"] = 'dB'
+                data['zdr_off_das_ppi'].attrs["comment"] = \
+                    'to subtract from ZDR'
+                # zdr_off_das_n_PPI
+                data['zdr_off_das_n_ppi'] = das_nm_ppi
+                data['zdr_off_das_n_ppi'].attrs[
+                    "short_name"] = 'nm for DAS PPI'
+                data['zdr_off_das_n_ppi'].attrs["long_name"] = \
+                    'number values for dry aggregated snow per PPI'
+                data['zdr_off_das_n_ppi'].attrs["units"] = '1'
+
                 dtree = dttree.DataTree(name="root")
                 dttree.DataTree(data, name=f"sweep_{int(sweep)}",
                                 parent=dtree)
@@ -2401,6 +3035,8 @@ def calibrate_zdr_with_plot(date, location,
             data_rho.close()
             data_temp.close()
             data_temp2.close()
+            data_kdp.clos()
+            data_att.close()
 
     # ----------------------------------------------------------------------- #
     # SAVE                                                                    #
@@ -2419,164 +3055,6 @@ def calibrate_zdr_with_plot(date, location,
 
 
 # --------------------------------------------------------------------------- #
-# STEP 6: attenuation correction.                                             #
-#         see Ryzhkov and Zrnic (2019): 6.4 (pp. 162, 167)                    #
-# --------------------------------------------------------------------------- #
-
-
-# J. Steinheuer
-def correct_zh_zdr(swp_cf, uh_tresh=0,
-                   alpha=0.08, beta=0.02,
-                   # until_temp_beamtop=273.15+4,# TODO if diff in ML is need
-                   ML_until_temp_beambottom=273.15 + 0,
-                   # alpha_ML_multipl=1,  # TODO if alpha in ML is to change
-                   # beta_ML_multipl=1,  # TODO if beta in ML is to change
-                   ):
-    """
-    ...
-    """
-    # 1: thresholding
-    swp_mask = swp_cf.where((swp_cf.DBZH > uh_tresh) &
-                            np.isnan(swp_cf.CMAP)
-                            )
-    swp_mask['PHI_NC'] = xr.where(swp_mask.PHI_NC < 0, 0, swp_mask.PHI_NC)
-    swp_last_l = swp_mask.where(
-        (swp_mask.temp_beambottom >= ML_until_temp_beambottom) &
-        (swp_mask.temp_beambottom < ML_until_temp_beambottom + 1))
-    phi_const = swp_last_l.PHI_NC.median(dim="range", skipna=True)
-    phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
-        swp_mask.temp_beambottom >= ML_until_temp_beambottom).PHI_NC.max(
-        dim="range", skipna=True), phi_const)
-    phi_const = xr.where(np.isnan(phi_const), swp_mask.where(
-        swp_mask.temp_beambottom < ML_until_temp_beambottom).PHI_NC.min(
-        dim="range", skipna=True), phi_const)
-
-    phi_4ac = xr.where(swp_mask.temp_beambottom >= ML_until_temp_beambottom,
-                       swp_mask.PHI_NC, phi_const)
-
-    zh_ac = swp_mask.DBZH + phi_4ac * alpha
-    zdr_ac = swp_mask.ZDR + phi_4ac * beta
-    zh_ac.attrs["long_name"] = 'reflectivity factor attenuation corrected'
-    zh_ac.attrs["short_name"] = 'ZH ac'
-    zh_ac.attrs["units"] = 'dBZ'
-    swp_cf = swp_cf.assign(ZH_AC=zh_ac)
-    zdr_ac.attrs["long_name"] = 'Log differential reflectivity ' + \
-                                'attenuation corrected'
-    zdr_ac.attrs["short_name"] = 'ZDR ac'
-    zdr_ac.attrs["units"] = 'dB'
-    swp_cf = swp_cf.assign(ZDR_AC=zdr_ac)
-    swp_cf = swp_cf.assign(PHI_4AC=phi_4ac)
-    return swp_cf
-
-
-# J. Steinheuer
-def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
-                           overwrite=False, dir_data_obs=header.dir_data_obs):
-    """
-    .
-
-    Parameter
-    ---------
-    date : 'yyyymmdd' date string.
-    location : 'rrr' 3-letter string for radar location.
-    elevation_deg : elevation in degrees, set to 5.5 for precipitation scan
-                    (as this is the sweep 0 for the volume).
-    mode : set 'vol' for volume and 'pcp' for precipitation.
-    overwrite : Bool;, if *allmoms*-output exists, it can be overwritten.
-    dir_data_obs : directory to search for input cases
-                  (>dir_data_obs</*/yyyy/yyyy-mm/yyyy-mm-dd).
-    """
-    year = date[0:4]
-    mon = date[4:6]
-    day = date[6:8]
-    sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
-                               float(elevation_deg))[0][0])
-    if mode == 'pcp':
-        if sweep != '00':
-            return
-
-        print('\nstart: ' + date + ' ' + location + ' pcp')
-    else:
-        print('\nstart: ' + date + ' ' + location + ' ' +
-              str(elevation_deg))
-
-    path_in = "/".join([dir_data_obs + '*',
-                        year, year + '-' + mon,
-                        year + '-' + mon + '-' + day,
-                        location, mode + '*', sweep,
-                        'ras*_allmoms_*'])
-    files = sorted(glob.glob(path_in))
-    if not files:
-        path_in = "/".join([dir_data_obs +
-                            year, year + '-' + mon,
-                            year + '-' + mon + '-' + day,
-                            location, mode + '*', sweep,
-                            'ras*_allmoms_*'])
-        files = sorted(glob.glob(path_in))
-    if not files:
-        print('no input data *_allmoms_*')
-        return
-    else:
-        path_in = files[0]
-
-    path_out = path_in.replace('_allmoms_', '_zh_zdr_ac_')
-    if os.path.isfile(path_out) and not overwrite:
-        print(path_out + ' exists;\n' + ' ... set: > ' +
-              'overwrite = True < for recalculation')
-        return
-
-    path_kdp = path_in.replace('_allmoms_', '_kdp_nc_')
-    if not os.path.exists(path_kdp):
-        print('not exists: ' + path_kdp + ' -> continue')
-        return
-
-    path_rho = path_in.replace('_allmoms_', '_rhohv_nc_')
-    if not os.path.exists(path_rho):
-        print('not exists: ' + path_rho + ' -> continue')
-        return
-
-    path_temp = path_in.replace('_allmoms_', '_ERA5_temp_')
-    if not os.path.exists(path_temp):
-        print('not exists: ' + path_temp + ' -> continue')
-        return
-
-    data = dttree.open_datatree(path_in)[
-        'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
-    data_rho = dttree.open_datatree(path_rho)[
-        'sweep_' + str(int(sweep))].to_dataset()
-    data_kdp = dttree.open_datatree(path_kdp)[
-        'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
-    data_temp = dttree.open_datatree(path_temp)[
-        'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
-    data_temp2 = data_temp.interp(
-        coords=data.drop(['longitude', 'latitude',
-                          'altitude', 'elevation']).coords,
-        method='nearest')
-
-    data.RHOHV.values = data_rho.RHOHV_NC2P.values
-    data = data.assign({'SNRH': data_rho.SNRH})
-    data = data.assign({'PHI_NC': data_kdp.PHI_NC})
-    data = data.assign({'temp_beambottom': data_temp2.temp_beambottom})
-    data = data.assign({'temp_beamtop': data_temp.temp_beamtop})
-    remo_var = list(data.data_vars.keys())
-    data = data.transpose('time', 'azimuth', 'range')
-    data = correct_zh_zdr(data)
-    mom_use = [x for x in list(data.keys())]
-    for mom in mom_use:
-        data[mom].encoding["coordinates"] = \
-            "time azimuth range"
-    data = data.drop_vars(remo_var)
-    dtree = dttree.DataTree(name="root")
-    dttree.DataTree(data, name=f"sweep_{int(sweep)}",
-                    parent=dtree)
-    print('saving: ... ' + path_out.split('/')[-1] + ' ...')
-    dtree.load().to_netcdf(path_out)
-    data.close()
-    data_kdp.close()
-    data_temp.close()
-
-
-# --------------------------------------------------------------------------- #
 # STEP 7: combine all noise corrected polarimetric moments                    #
 # --------------------------------------------------------------------------- #
 
@@ -2584,8 +3062,8 @@ def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
 # J. Steinheuer
 def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                        overwrite=False, dir_data_obs=header.dir_data_obs,
-                       method_zdr_priorities=['BB', 'SD_V', 'LR_V'
-                                                            'SD_I', 'LR_I', ],
+                       method_zdr_priorities=['PPI', 'BB', 'SD_V', 'LR_V',
+                                              'SD_I', 'LR_I'],
                        other_zdr_off_day='',
                        n_zdr_lowest=1000, std_zdr_highest=2):
     """
@@ -2681,7 +3159,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
         files = sorted(glob.glob(path_zdr_off))
     if not files:
         print('no pcp input data *_zdr_off_*')
-        # return
+        return
     else:
         paths_zdr_off.append(files[0])
         if sweep == '00' and mode == 'pcp':
@@ -2704,7 +3182,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             files = sorted(glob.glob(path_zdr_off_i))
         if not files:
             print('no ' + swe + ' input data *_zdr_off_*')
-            # return
+            return
         else:
             paths_zdr_off.append(files[0])
             if swe == sweep and mode == 'vol':
@@ -2773,18 +3251,20 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined = data_kdp.drop_vars(remo_var)
     if 'VRADH' in data.variables.keys():
         data_combined = data_combined.assign({'VRADH': data.VRADH})
+        data_combined.VRADH.values = data.VRADH.values
 
     data_combined = data_combined.assign({'RHOHV_NC2P': data_rho.RHOHV_NC2P})
-    data_combined = data_combined.assign({'ZH_AC': data_ac.ZH_AC.reindex_like(
-        other=data_rho.RHOHV_NC2P, method='nearest')})
+    data_combined.RHOHV_NC2P.values = data_rho.RHOHV_NC2P.values
+    data_combined = data_combined.assign(
+        {'ZH_AC': data_ac.ZH_AC.reindex_like(
+            other=data_rho.RHOHV_NC2P, method='nearest')})
     data_combined.ZH_AC.attrs[
         "long_name"] = 'reflectivity factor attenuation corrected'
     data_combined.ZH_AC.attrs["short_name"] = 'ZH ac'
     data_combined.ZH_AC.attrs["units"] = 'dBZ'
-    data_combined = data_combined.assign({'ZDR_AC_OC':
-                                              data_ac.ZDR_AC.reindex_like(
-                                                  other=data_rho.RHOHV_NC2P,
-                                                  method='nearest')})
+    data_combined = data_combined.assign(
+        {'ZDR_AC_OC': data_ac.ZDR_AC.reindex_like(
+            other=data_rho.RHOHV_NC2P, method='nearest')})
     xr.set_options(keep_attrs=True)
     data_combined = data_combined.where(np.isnan(data.CMAP))
     data_combined = data_combined.where(data.DBZH >= 0)
@@ -2796,6 +3276,16 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
         'median PHI_DP offset'
     data_combined.PHI_offset_median.attrs["units"] = 'degrees'
     for method_zdr in method_zdr_priorities + ['00']:
+        if os.path.exists(path_in_bb):
+            data_bb = dttree.open_datatree(path_in_bb)[
+                'sweep_0'].to_dataset().chunk(-1)
+            n = data_bb.zdr_off_bb_n.data
+            if n > n_zdr_lowest:
+                off_bb = data_bb.zdr_off_bb.data
+                data_bb.close()
+            else:
+                off_bb = 0
+
         if method_zdr == 'BB':
             data_bb = dttree.open_datatree(path_in_bb)[
                 'sweep_0'].to_dataset().chunk(-1)
@@ -2809,10 +3299,109 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_bb.zdr_off_bb})
+                data_combined.ZDR_offset.values = data_bb.zdr_off_bb.values
                 data_bb.close()
                 break
             else:
                 data_bb.close()
+
+        elif method_zdr == 'PPI_DAS':
+            data_zdr_off = dttree.open_datatree(path_zdr_off)[
+                'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
+            if 'ZDR_AC' in data_zdr_off.keys():
+                ac = True
+            else:
+                ac = False
+
+            das_n_ppi = data_zdr_off.zdr_off_das_n_ppi
+            of_das_ppi = data_zdr_off.zdr_off_das_ppi
+            of_das_ppi = of_das_ppi.where(das_n_ppi > n_zdr_lowest)
+            of_das_ppi = of_das_ppi.where(~np.isnan(of_das_ppi),
+                                          data_zdr_off.zdr_off_das)
+            if (data_zdr_off.zdr_off_das_n) >= n_zdr_lowest:
+                data_combined.ZDR_AC_OC.data = \
+                    data_combined.ZDR_AC_OC - of_das_ppi
+                    # consider subtracting overall das-off and adding bb-off:
+                    # + data_zdr_off.zdr_off_das - data_zdr_off.zdr_off_lr
+                data_combined = data_combined.assign(
+                    {'ZDR_offset': of_das_ppi})
+                data_combined.ZDR_offset.values = of_das_ppi.values
+                data_combined.ZDR_offset.attrs["short_name"] = \
+                    'ZDR off from DAS per PPI'
+                data_combined.ZDR_offset.attrs["long_name"] = \
+                    'ZDR offset combined from dry aggregated snow per PPI'
+                data_combined.ZDR_offset.attrs["units"] = 'dB'
+                if ac:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from ac ZDR PPI-wise'
+                else:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from raw ZDR PPI-wise'
+                data_zdr_off.close()
+                break
+            else:
+                data_zdr_off.close()
+
+        elif method_zdr == 'PPI':
+            data_zdr_off = dttree.open_datatree(path_zdr_off)[
+                'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
+            if 'ZDR_AC' in data_zdr_off.keys():
+                ac = True
+            else:
+                ac = False
+
+            sd_n_ppi = data_zdr_off.zdr_off_sd_n_ppi
+            lr_n_ppi = data_zdr_off.zdr_off_lr_n_ppi
+            of_sd_ppi = data_zdr_off.zdr_off_sd_ppi
+            of_lr_ppi = data_zdr_off.zdr_off_lr_ppi
+            of_all = np.nansum(sd_n_ppi * of_sd_ppi + lr_n_ppi * of_lr_ppi) / \
+                     np.nansum(sd_n_ppi + lr_n_ppi)
+            if (np.nansum(sd_n_ppi + lr_n_ppi)) < n_zdr_lowest:
+                of_all=off_bb
+
+            of_sd_ppi = of_sd_ppi.where(sd_n_ppi > n_zdr_lowest)
+            of_lr_ppi = of_lr_ppi.where(lr_n_ppi > n_zdr_lowest)
+            of_combined = of_sd_ppi.where(sd_n_ppi > lr_n_ppi, of_lr_ppi)
+
+            # set first value (if nan) to average
+            if np.isnan(of_combined[0]):
+                out = of_combined.values
+                out[0] = of_all
+                of_combined.values = out
+
+            # set all nans to last valid value
+            # mask = np.isnan(of_combined.data.compute())
+            mask = np.isnan(of_combined.values)
+            idx = np.where(~mask, np.arange(mask.shape[0]), 0)
+            np.maximum.accumulate(idx, axis=0, out=idx)
+            out = of_combined.data[idx]
+            of_combined.values = out
+
+            if (data_zdr_off.zdr_off_sd_n.data +
+                data_zdr_off.zdr_off_lr_n.data) >= n_zdr_lowest:
+                of_combined = of_combined.assign_coords(
+                    {'time': data_combined.time})  # somehow necessary -.-
+                data_combined.ZDR_AC_OC.data = \
+                    data_combined.ZDR_AC_OC - of_combined
+                data_combined = data_combined.assign(
+                    {'ZDR_offset': of_combined})
+                data_combined.ZDR_offset.values = of_combined.values
+                data_combined.ZDR_offset.attrs["short_name"] = \
+                    'ZDR off from SD+LR per PPI'
+                data_combined.ZDR_offset.attrs["long_name"] = \
+                    'ZDR offset combined from small drops ' \
+                    'and light rain per PPI'
+                data_combined.ZDR_offset.attrs["units"] = 'dB'
+                if ac:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from ac ZDR PPI-wise'
+                else:
+                    data_combined.ZDR_offset.attrs["comment"] = \
+                        'was subtracted from raw ZDR PPI-wise'
+                data_zdr_off.close()
+                break
+            else:
+                data_zdr_off.close()
 
         elif method_zdr == 'SD_I':
             data_zdr_off = dttree.open_datatree(path_zdr_off)[
@@ -2826,6 +3415,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_sd})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_sd.values
                 data_zdr_off.close()
                 break
             else:
@@ -2843,6 +3434,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_lr})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_lr.values
                 data_zdr_off.close()
                 break
             else:
@@ -2876,6 +3469,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_sd})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_sd.values
                 data_combined.ZDR_offset.attrs['comment'] = \
                     data_combined.ZDR_offset.comment + \
                     ' (combined offset from all sweeps)'
@@ -2911,6 +3506,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     data_combined.ZDR_AC_OC.data - of
                 data_combined = data_combined.assign(
                     {'ZDR_offset': data_zdr_off.zdr_off_lr})
+                data_combined.ZDR_offset.values = \
+                    data_zdr_off.zdr_off_lr.values
                 data_combined.ZDR_offset.attrs['comment'] = \
                     data_combined.ZDR_offset.comment + \
                     ' (combined offset from all sweeps)'
@@ -2936,17 +3533,23 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             ' (from day = ' + other_zdr_off_day + ')'
 
     data_combined = data_combined.assign({'temp': data_temp2.temp})
+    data_combined.temp.values = data_temp2.temp.values
     data_combined = data_combined.assign({'temp_beambottom':
                                               data_temp2.temp_beambottom})
+    data_combined.temp_beambottom.values = data_temp2.temp_beambottom.values
     data_combined.temp_beambottom.attrs["long_name"] = \
         'air temperature at beambottom'
     data_combined = data_combined.assign({'temp_beamtop':
                                               data_temp2.temp_beamtop})
+    data_combined.temp_beamtop.values = data_temp2.temp_beamtop.values
     data_combined.temp_beambottom.attrs["long_name"] = \
         'air temperature at beamtop'
     data_combined = data_combined.assign({'lat': data_temp.lat})
+    data_combined.lat.values = data_temp.lat.values
     data_combined = data_combined.assign({'lon': data_temp.lon})
+    data_combined.lon.values = data_temp.lon.values
     data_combined = data_combined.assign({'alt': data_temp.alt})
+    data_combined.alt.values = data_temp.alt.values
     data_combined.elevation.attrs["standard_name"] = 'ray_elevation_angle'
     data_combined.elevation.attrs["long_name"] = 'elevation_angle_from_surface'
     data_combined.elevation.attrs["units"] = 'degrees'
@@ -2965,6 +3568,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined['time'].encoding["units"] = "seconds since " + \
                                               year + "-" + mon + "-" + day
     data_combined['time'].attrs["comment"] = "UTC"
+    data_combined['ZDR_AC_OC'].attrs["short_name"] = "ZH ac oc"
     dtree = dttree.DataTree(name="root")
     dttree.DataTree(data_combined, name=f"sweep_{int(sweep)}",
                     parent=dtree)

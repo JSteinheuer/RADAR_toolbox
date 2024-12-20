@@ -663,6 +663,7 @@ def plot_CFAD_or_CFTD_from_QVP(
                 print('Missing: ' + path_in)
                 continue
 
+            print('including: ' + path_in)
             n_cases = n_cases + 1
             # OPEN
             syn_nc = xr.open_dataset(path_in)

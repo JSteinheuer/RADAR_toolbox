@@ -42,6 +42,27 @@ def phidp_from_kdp(da):
                           kwargs=dict(dx=dr, initial=0.0, axis=-1),
                           ) * 2
 
+var=xr.DataArray(np.random.random(360),dims='azimuth')
+var=xr.DataArray(np.array([1,1000]),dims='azimuth')
+# var=xr.DataArray(np.repeat(1,360),dims='azimuth')
+# var=xr.DataArray(np.random(1,361),dims='azimuth')
+var=xr.DataArray(np.arange(1,361),dims='azimuth')
+var=xr.DataArray(np.arange(0,360),dims='azimuth')
+dim='azimuth'
+n_valid_values=0
+# def calc_entropy(var, dim='azimuth', n_valid_values=30):
+minimum = np.nanmin(var.data)
+if minimum <= 0:
+    var = xr.where(var.data <= 0, np.nan, var)
+    print(' has values <= 0 which are set to '
+                     'nan (minimum=' + str(minimum) + ')')
+
+var_normed = var / var.sum(dim, skipna=True)
+values = -((var_normed * np.log10(var_normed)).sum(dim)) \
+         / np.log10(var_normed[dim].size)
+values2 = values.where(var_normed.count(dim=dim) >= n_valid_values)
+print(values2)
+
 
 def entropy_of_vars(pol_vars, dim='azimuth', n_lowest=30):
     """
@@ -125,6 +146,54 @@ def seifert2general(hymet_seif):
     hymet_gen['a'] = (1.0 / hymet_seif['a']) ** (1.0 / hymet_seif['b'])
     hymet_gen['b'] = 1.0 / hymet_seif['b']
     return hymet_gen
+
+
+# J. Mendrok 22.11.24
+def muDrain(Dmm, cmu0=None, cmu1=None, cmu2=None, cmu3=None, cmu4=None):
+    # Ansatz is from Seifert (2008, JAS)
+    icmu0 = 6.;
+    icmu1 = 30.0;
+    icmu2 = 1e3;
+    icmu3 = 1.1e-3;
+    icmu4 = 1.0
+    if cmu0 is not None: icmu0 = cmu0
+    if cmu1 is not None: icmu1 = cmu1
+    if cmu2 is not None: icmu2 = cmu2
+    if cmu3 is not None: icmu3 = cmu3
+    if cmu4 is not None: icmu4 = cmu4
+
+    delta = icmu2 * (Dmm - icmu3)
+
+    mu = xr.where(Dmm <= icmu3,  # JSt
+                  icmu0 * np.tanh((4.0 * delta) ** 2) + icmu4,  # JSt
+                  icmu1 * np.tanh(delta ** 2) + icmu4)  # JSt
+
+    # mu = np.zeros_like(Dmm)  # JM
+    # mu[Dmm <= icmu3] = icmu0 * np.tanh((4.0 * delta[Dmm <= icmu3]) ** 2  # JM
+    #                                    ) + icmu4  # JM
+    # mu[Dmm > icmu3] = icmu1 * np.tanh(delta[Dmm > icmu3] ** 2) + icmu4  # JM
+    return mu
+
+
+# J. Mendrok 22.11.24
+def ICON2D0rain(qr, qnr, qc, qc0=1e-8,
+                am=0.124, bm=1. / 3.,
+                cloudmu=5.,
+                cmu0=-1., cmu1=None, cmu2=None, cmu3=None, cmu4=None):
+    # mean-mass diameter
+    Dmm = am * (qr / qnr) ** bm
+
+    # off-cloud mu
+    muD = muDrain(Dmm, cmu0=cmu0, cmu1=cmu1, cmu2=cmu2, cmu3=cmu3, cmu4=cmu4)
+    # where in-cloud, replace variable mu with constant
+    muD = muD.where(qc > qc0, cloudmu)  # JSt
+    # muD[qc > qc0] = cloudmu  #JM
+
+    lamD = ((muD + 3.) * (muD + 2) * (muD + 1)) ** (1. / 3.) / Dmm
+    # Dvol=(muD+4.)/lamD
+    # return Dvol
+    D0 = (muD + 3.673) / lamD
+    return D0
 
 
 def adjust_icon_fields(infields, hymets=icon_hydromets(), spec2dens=1):
@@ -743,6 +812,13 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                                    icon_nc['qn' + hm[0]].standard_name[21:],
                      units='mm'))
 
+        ##
+        icon_nc['D0_rain_new'] = (
+            ['time', 'range', 'azimuth', ],
+            ICON2D0rain(icon_nc['qr'], icon_nc['qnr'], icon_nc['qc']).data[:] * 1000,
+            dict(standard_name='mean volume diameter of rain new',
+                 units='mm'))
+        ##
         vol_qtotice = xr.concat(
             [icon_nc.vol_qi, icon_nc.vol_qs, icon_nc.vol_qh,
              icon_nc.vol_qg], dim="ice_hydrometeors")

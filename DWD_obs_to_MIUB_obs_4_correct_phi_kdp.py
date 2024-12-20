@@ -259,11 +259,13 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     phi_nc.attrs["comments"] = 'PHI_DP smoothing with win_r=' + \
                                str(win_r) + ' and win_azi=' + str(win_azi)
     swp_cf = swp_cf.assign(PHI_NC=phi_nc)
+    swp_cf.PHI_NC.values = phi_nc.values
 
     kdp_comb.attrs["comments"] = 'KDP noise corrected with winlen=' + \
                                  str(wkdp_heavy) + ' (DBZH<40) and ' + \
                                  'winlen=' + str(wkdp_light) + ' (DBZH>=40)'
     swp_cf = swp_cf.assign(KDP_NC=kdp_comb)
+    swp_cf.KDP_NC.values = kdp_comb.values
 
     phi_c1 = phi_c1 + 100
     phi_c1.attrs[
@@ -271,12 +273,14 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     phi_c1.attrs["short_name"] = 'PHI_C'
     phi_c1.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_C=phi_c1)  # + 100)
+    swp_cf.PHI_C.values = phi_c1.values
 
     phi_off_2d = phi_off_2d + 100
     phi_off_2d.attrs["long_name"] = 'instrument phase offset raw'
     phi_off_2d.attrs["short_name"] = 'PHI_DP offset raw'
     phi_off_2d.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_OFFSET_raw=phi_off_2d)  # + 100)
+    swp_cf.PHI_OFFSET_raw.values = phi_off_2d.values
 
     phi_off_2d_f_f_s = phi_off_2d_f_f_s + 100
     phi_off_2d_f_f_s.attrs[
@@ -284,22 +288,26 @@ def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
     phi_off_2d_f_f_s.attrs["short_name"] = 'PHI_DP offset centered'
     phi_off_2d_f_f_s.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_OFFSET_centered=phi_off_2d_f_f_s)  # + 100)
+    swp_cf.PHI_OFFSET_centered.values = phi_off_2d_f_f_s.values
 
     phi_off_2d_f_f_s = phi_off_2d_f_f_s + phi_modus
     phi_off_2d_f_f_s.attrs["long_name"] = 'instrument phase offset'
     phi_off_2d_f_f_s.attrs["short_name"] = 'PHI_DP offset'
     phi_off_2d_f_f_s.attrs["units"] = 'degrees'
     swp_cf = swp_cf.assign(PHI_OFFSET=phi_off_2d_f_f_s)  # + 100 + phi_modus)
+    swp_cf.PHI_OFFSET.values = phi_off_2d_f_f_s.values
 
     phi_flip.attrs["long_name"] = 'PHI_DP flipped'
     phi_flip.attrs["short_name"] = 'PHI_DP flipped'
     phi_flip.attrs["units"] = '0,1'
     swp_cf = swp_cf.assign(PHI_FLIPPED=phi_flip)
+    swp_cf.PHI_FLIPPED.values = phi_flip.values
 
     phi_flip_i.attrs["long_name"] = 'PHI_DP flipping index'
     phi_flip_i.attrs["short_name"] = 'PHI_DP flipping index'
     phi_flip_i.attrs["units"] = '°'
     swp_cf = swp_cf.assign(PHI_FLIPPED_INDEX=phi_flip_i)
+    swp_cf.PHI_FLIPPED_INDEX.values = phi_flip_i.values
 
     return swp_cf
 
@@ -385,6 +393,7 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
             'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
         data.RHOHV.values = data_rho.RHOHV_NC2P.values
         data = data.assign({'SNRH': data_rho.SNRH})
+        data.SNRH.values = data_rho.SNRH.values
         remo_var = list(data.data_vars.keys())
         # remo_var.remove('CMAP')
         # remo_var.remove('UPHIDP')
@@ -483,6 +492,7 @@ DATES = [
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
+    "20210713",  # case09
     "20210714",  # case09
     "20221222",  # case10
 ]
@@ -582,4 +592,4 @@ for date in DATES:
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-# import DWD_obs_to_MIUB_obs_5_calibrate_zdr
+# import DWD_obs_to_MIUB_obs_5_attenuation_correction

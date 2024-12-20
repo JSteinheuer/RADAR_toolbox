@@ -39,9 +39,6 @@ sys.path.insert(0, header.dir_projects +
 # the folder containing /radar_processing_scripts/ was already in the (global)
 # sys.path variable (i.e. the project folder).
 
-# from radar_processing_scripts import utils
-
-ags = True
 import HEADER_RADAR_toolbox as header
 
 
@@ -402,6 +399,7 @@ DATES = [
     "20220623", "20220624", "20220625",  # case05
     "20220626", "20220627", "20220628",  # case06+07
     "20220630", "20220701",  # case08
+    "20210713",  # case09
     "20210714",  # case09
     "20221222",  # case10
 ]

@@ -257,14 +257,18 @@ def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt,
     proj_stereo = wrl.georef.create_osr("dwd-radolan")
     proj_wgs = osr.SpatialReference()
     proj_wgs.ImportFromEPSG(4326)
-    mod_x, mod_y = wrl.georef.reproject(mod_lon,
-                                        mod_lat,
-                                        projection_target=proj_stereo,
-                                        projection_source=proj_wgs)
-    rad_x, rad_y = wrl.georef.reproject(rad_lon,
-                                        rad_lat,
-                                        projection_target=proj_stereo,
-                                        projection_source=proj_wgs)
+    mod_x = mod_lon
+    mod_y = mod_lat
+    # mod_x, mod_y = wrl.georef.reproject(mod_lon,
+    #                                     mod_lat,
+    #                                     projection_target=proj_stereo,
+    #                                     projection_source=proj_wgs)
+    rad_x = rad_lon
+    rad_y = rad_lat
+    # rad_x, rad_y = wrl.georef.reproject(rad_lon,
+    #                                     rad_lat,
+    #                                     projection_target=proj_stereo,
+    #                                     projection_source=proj_wgs)
 
     # # only those model data that are in radar domain
     # mask = (mod_x >= rad_x.min()) & (mod_x <= rad_x.max()) & (

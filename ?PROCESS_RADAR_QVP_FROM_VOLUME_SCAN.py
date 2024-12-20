@@ -298,7 +298,7 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
                         year, year + '-' + mon,
                         year + '-' + mon + '-' + day,
                         location, mode + '*', sweep,
-                        'ras*_polmoms_*'])
+                        'ras*_polmoms_nc_*'])
     files = sorted(glob.glob(path_in))
     if not files:
         print('no input data *_allmoms_*')
@@ -377,8 +377,8 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
             count_values >= n_lowest)
 
     filter_comments = filter_comments + 'QVP needs at least ' + \
-                      str(n_lowest) + ' of 360 valid values per median calculation on ' \
-                                      'azimuth. '
+                      str(n_lowest) + ' of 360 valid values per median ' \
+                                      'calculation on azimuth. '
     qvp_first_nc = qvp_first_nc.swap_dims({'range': 'height'})
     qvp_first_nc = melting_layer_qvp_X_new(ds=qvp_first_nc, all_data=False)
     data['mlh_top'] = qvp_first_nc.mlh_top
@@ -454,6 +454,101 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
                                          skipna=True, keep_attrs=True)
             data[var] = data[var].where(count_values >= n_lowest)
 
+    #TODO: Ice mycrophysical retrieval
+    # search for lambda
+    path_in_any = '/'.join(path_in.split('/')[:-1]) + '/*any*'
+    files_any = sorted(glob.glob(path_in_any))
+    if not files_any:
+        path_in_any = "/".join([header.dir_data_obs_realpep + '' +
+                            year, year + '-' + mon,
+                            year + '-' + mon + '-' + day,
+                            location, mode + '*', sweep, 'ras*'])
+        files_any = sorted(glob.glob(path_in_any))
+        if not files_any:
+            print('nothing found -> bw=1')
+            lamb = 50
+        else:
+            path_in_any = files_any[0]
+            try:
+                lamb = dttree.open_datatree(  # we need it in mm, i.e. *10
+                    path_in_any)['how'].attrs['wavelength']*10
+            except:
+                print('nothing in *any* found -> lambda=5')
+                lamb = 50
+
+    zh_lin = 10 ** (0.1 * data.ZH_AC)
+    zdr_lin = 10 ** (0.1 * data.ZDR_AC_OC)
+    # zdp_lin = zh_lin * (1 - zdr_lin ** (-1))
+    # data = data.where(data.KDP_NC > 0.01)  # TODO: really?
+
+# zh=np.array([20,20,40,40])
+# zh_lin = 10 ** (0.1 * zh)
+# kdp=np.array([0.05,0.05,0.05,0.05])
+# zdr=np.array([.3,.5,.3,5])
+# zdr_lin = 10 ** (0.1 * zdr)
+# iwc = xr.where(
+#     zdr < 0.4,
+#     0.033 * (kdp * lamb) ** 0.67 * zh_lin ** 0.33,
+#     0.004 * kdp * lamb / (1 - zdr_lin ** (-1))
+# )
+# iwcb = xr.where(
+#     zdr < 0.4,
+#     0.033 * (kdp * lamb) ** 0.66 * zh_lin ** 0.28,
+#     0.004 * kdp * lamb / (1 - zdr_lin ** (-1))
+# )
+# iwc_jst = xr.where(
+#     zdr < 0.4,
+#     0.033 * (kdp * lamb) ** 0.67 * zdr_lin ** 0.33,
+#     0.004 * kdp * lamb / (1 - zdr_lin ** (-1))
+# )
+    data['IWC'] = xr.where(
+        data.ZDR_AC_OC < 0.4,
+        0.033 * (data.KDP_NC * lamb) ** 0.67 * zh_lin ** 0.33,
+        0.004 * data.KDP_NC * lamb / (1 - zdr_lin ** (-1))
+    )
+    data['IWC'].values = np.where(data.temp < 273.15+4,
+                                  data['IWC'].values, np.nan)
+    data.IWC.attrs["long_name"] = 'ice water content'
+    data.IWC.attrs["short_name"] = 'IWC'
+    data.IWC.attrs["standard_name"] = 'IWC'
+    data.IWC.attrs["units"] = 'g m^-3'
+    data.IWC.attrs["comments"] = 'hybrid retrieval cf. Carlin et al. (2021)'
+    # data.IWC.attrs["coordinates"] = 'time height'
+
+    # TODO: 6.69 or 3.
+    data['Nt_totice'] = 6.69 -3 + 2 * np.log10(data.IWC.values) - 0.1 * data.ZH_AC
+
+    data['Nt_totice'].values = np.where(data.temp < 273.15+4,
+                                        data['Nt_totice'].values, np.nan)
+    data['Nt_totice'].values = np.where(data['IWC'] < 0,
+                                        np.nan, data['Nt_totice'].values)
+    data.Nt_totice.attrs["long_name"] = 'total number concentration of ice'
+    data.Nt_totice.attrs["short_name"] = 'Nt_totice'
+    data.Nt_totice.attrs["standard_name"] = 'Nt_totice'
+    data.Nt_totice.attrs["units"] = 'log_10 (L^-1)'  # L -> 3.36, m^3 -> 6.69
+    data.Nt_totice.attrs["comments"] = 'hybrid retrieval cf. Carlin et al. ' \
+                                       '(2021)'
+    # data.Nt_totice.attrs["coordinates"] = 'time height'
+
+    data['Dm_totice'] = 0.67 * (zh_lin / (data.KDP_NC*lamb)) ** (1/3)
+
+    #     xr.where(
+    #     data.ZDR_AC_OC < 0.4,
+    #     -0.1 + 2 * (zdp_lin / (data.KDP_NC * lamb)) ** (1 / 2),
+    #     0.67 * (zh_lin / (data.KDP_NC*lamb)) ** (1/3)
+    # )
+    data['Dm_totice'].values = np.where(data.temp < 273.15+4,
+                                        data['Dm_totice'].values, np.nan)
+    data.Dm_totice.attrs["long_name"] = 'mean volume diameter of total ice'
+    data.Dm_totice.attrs["short_name"] = 'Dm_totice'
+    data.Dm_totice.attrs["standard_name"] = 'Dm_totice'
+    data.Dm_totice.attrs["units"] = 'mm'
+    data.Dm_totice.attrs["comments"] = 'hybrid retrieval cf. Carlin et al. (2021)'
+    # data.Dm_totice.attrs["coordinates"] = 'time height'
+
+    #TODO: Ice mycrophysical retrieval
+
+    # do the qvp median!
     data = data.median('azimuth')
     data['min_entropy'] = qvp_entropy[-1, :]
     data['min_entropy'] = data['min_entropy'].assign_attrs(dict(
@@ -482,7 +577,8 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
 date = '20170725'
 elevation_deg = 12
 location = 'pro'
-overwrite = False
+# overwrite = False
+overwrite = True
 lowest_rhv = 0.7
 lowest_kdp = None
 highest_kdp = None
@@ -490,11 +586,11 @@ n_lowest = 30
 lowest_zh = None
 highest_zh = None
 
-qvp_from_radar_PPIs(date=date, elevation_deg=elevation_deg, location=location,
-                    overwrite=overwrite, lowest_rhv=lowest_rhv,
-                    lowest_kdp=lowest_kdp, highest_kdp=highest_kdp,
-                    n_lowest=n_lowest,
-                    lowest_zh=lowest_zh, highest_zh=highest_zh)
+# qvp_from_radar_PPIs(date=date, elevation_deg=elevation_deg, location=location,
+#                     overwrite=overwrite, lowest_rhv=lowest_rhv,
+#                     lowest_kdp=lowest_kdp, highest_kdp=highest_kdp,
+#                     n_lowest=n_lowest,
+#                     lowest_zh=lowest_zh, highest_zh=highest_zh)
 
 DATES = [
     # "20210604",  # case01
@@ -504,23 +600,26 @@ DATES = [
     # "20220623", "20220624", "20220625",  # case05
     # "20220626", "20220627", "20220628",  # case06+07
     # "20220630", "20220701",  # case08
-    # "20210714",  # case09
+    "20210714",  # case09
     # "20221222",  # case10
     # "20170719",  # caseX -> old OP HM 1 case
     # "20170725",  # caseX -> old OP HM 1 case
-    "20181223",  "20181224",  # case -> PRISTINE
+    # "20181223",  "20181224",  # case -> PRISTINE
 ]
 LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
+    'ess',
+    'asb', 'boo', 'drs', 'eis', 'fbg',
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'pro', 'ros', 'tur',
     'umd',
 ]
 for location in LOCATIONS:
     for date in DATES:
-        qvp_from_radar_PPIs(date=date, elevation_deg=elevation_deg,
-                            location=location,
-                            overwrite=overwrite, lowest_rhv=lowest_rhv,
-                            lowest_kdp=lowest_kdp, highest_kdp=highest_kdp,
-                            n_lowest=n_lowest,
-                            lowest_zh=lowest_zh, highest_zh=highest_zh)
+        for elevation_deg in [12]:
+            print(location + ' ' + date + '' + str(elevation_deg))
+            qvp_from_radar_PPIs(date=date, elevation_deg=elevation_deg,
+                                location=location,
+                                overwrite=overwrite, lowest_rhv=lowest_rhv,
+                                lowest_kdp=lowest_kdp, highest_kdp=highest_kdp,
+                                n_lowest=n_lowest,
+                                lowest_zh=lowest_zh, highest_zh=highest_zh)
