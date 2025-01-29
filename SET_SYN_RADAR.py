@@ -17,6 +17,9 @@ import os
 from osgeo import osr
 import wradlib as wrl
 import xarray as xr
+import pyinterp
+import time as time_p
+import datetime as dt
 
 import HEADER_RADAR_toolbox as header
 
@@ -301,7 +304,7 @@ def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt,
     return func_ipol, mask
 
 
-def create_vol_nc(time_start='2017072500', time_end='2017072506',
+def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
                   dir_data_in=header.dir_data_mod,
                   dir_data_out=header.dir_data_vol,
                   radar_loc='PRO', radar_id='010392', spin_up_mm=30,
@@ -580,7 +583,8 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
                 lon, lat, alt = get_lon_lat_alt(r, az, el, sitecoords)
                 vol_scan['lat'][:, :, sweep_i] = lat.transpose()
                 vol_scan['lon'][:, :, sweep_i] = lon.transpose()
-                vol_scan['alt'][:, sweep_i] = alt[0, :]  # TODO: check!!!! alt per azimuth constant?
+                vol_scan['alt'][:, sweep_i] = alt[0,
+                                              :]  # TODO: check!!!! alt per azimuth constant?
 
             # grid for searching later the closest ICON cells
             rad_lon = vol_scan['lon'].data.flatten()
@@ -772,6 +776,744 @@ def create_vol_nc(time_start='2017072500', time_end='2017072506',
             print('___________________________')
 
 
+def load_emvorado_to_radar_volume(path_or_data, rename=False):
+    """
+    Load and reorganize EMVORADO output into a xarray.Dataset in the same
+    flavor as DWD data. Optimized for EMVORADO output with one file per
+    timestep containing all elevations and variables.
+    WARNING: The resulting volume has its elevations ordered from lower to
+             higher and not according to the scan strategy.
+
+    Parameters
+    ----------
+    path_or_data : str or nested sequence of paths or xarray.Dataset
+        – Either a string glob in the form "path/to/my/files/*.nc" or an
+        explicit list of files to open. Paths can be given as strings or
+        as pathlib Paths. Feeds into xarray.open_mfdataset. Alternatively,
+        already-loaded data in the form of an xarray.Dataset can be passed.
+    rename : bool. If True, then rename the variables to DWD-like naming.
+
+    Returns
+    -------
+    data_vol : xarray.Dataset
+
+    """
+    if type(path_or_data) is xr.Dataset:
+        data_emvorado_xr = path_or_data
+    else:
+        data_emvorado_xr = xr.open_mfdataset(path_or_data,
+                                             concat_dim="time",
+                                             combine="nested")
+
+    try:
+        data = data_emvorado_xr.rename_dims({"n_range": "range",
+                                             "n_azimuth": "azimuth"})
+    except ValueError:
+        data = data_emvorado_xr
+
+    # we make the coordinate arrays
+    if "time" in data.dims and "time" not in data.coords:
+        range_coord = \
+            np.array([np.arange(rs, rr * rb + rs, rr) for rr, rs, rb in
+                      zip(data.range_resolution[0],
+                          data.range_start[0],
+                          data.n_range_bins[0])])[0]
+        azimuth_coord = np.array([np.arange(azs, azr * azb + azs, azr)
+                                  for azr, azs, azb in
+                                  zip(data.azimuthal_resolution[0],
+                                      data.azimuth_start[0],
+                                      data.azimuth.shape * np.ones_like(
+                                          data.records))])[0]
+
+        # create time coordinate
+        time_coord = xr.DataArray([dt.datetime(int(yy), int(mm), int(dd),
+                                               int(hh), int(mn), int(ss))
+                                   for yy, mm, dd, hh, mn, ss in
+                                   zip(data.year.isel(records=0),
+                                       data.month.isel(records=0),
+                                       data.day.isel(records=0),
+                                       data.hour.isel(records=0),
+                                       data.minute.isel(records=0),
+                                       data.second.isel(records=0),
+                                       )
+                                   ], dims=["time"])
+
+    elif "time" not in data.coords:
+        range_coord = \
+            np.array([np.arange(rs, rr * rb + rs, rr) for rr, rs, rb in
+                      zip(data.range_resolution,
+                          data.range_start,
+                          data.n_range_bins)])[0]
+        azimuth_coord = np.array([np.arange(azs, azr * azb + azs, azr)
+                                  for azr, azs, azb in
+                                  zip(data.azimuthal_resolution,
+                                      data.azimuth_start,
+                                      data.azimuth.shape * np.ones_like(
+                                          data.records))])[0]
+
+        # create time coordinate
+        time_coord = xr.DataArray([dt.datetime(int(yy), int(mm), int(dd),
+                                               int(hh), int(mn), int(ss))
+                                   for yy, mm, dd, hh, mn, ss in
+                                   zip(data.year,
+                                       data.month,
+                                       data.day,
+                                       data.hour,
+                                       data.minute,
+                                       data.second
+                                       )], dims=["time"])[0]
+
+    # add coordinates for range, azimuth, time, latitude, longitude,
+    # altitude, elevation, sweep_mode
+    try:
+        data.coords["range"] = ("range", range_coord)
+    except NameError:
+        pass
+    try:
+        data.coords["azimuth"] = ("azimuth", azimuth_coord)
+    except NameError:
+        pass
+    try:
+        data.coords["time"] = time_coord
+    except NameError:
+        pass
+    data.coords["latitude"] = float(
+        data["station_latitude"].values.flatten()[0])
+    data.coords["longitude"] = float(
+        data["station_longitude"].values.flatten()[0])
+    try:
+        data.coords["altitude"] = float(
+            [ss for ss in data.attrs["Data_description"].split(" ")
+             if "radar_alt_msl_mod" in ss][0].split("=")[1]
+        )
+    except KeyError:
+        data.coords["altitude"] = float(
+            data["station_height"].values.flatten()[0]
+        )
+    if "elevation" not in data.coords:
+        if "time" in data['ray_elevation'].dims:
+            data.coords["elevation"] = data["ray_elevation"].mean(
+                ("azimuth", "time"))
+        else:
+            data.coords["ray_elevation"] = data["ray_elevation"].mean(
+                "azimuth")
+
+    data.coords["sweep_mode"] = 'azimuth_surveillance'
+
+    # move some variables to attributes
+    vars_to_attrs = ["station_name", "country_ID", "station_ID_national",
+                     "station_longitude", "station_height",
+                     "station_latitude", "range_resolution",
+                     "azimuthal_resolution", "range_start", "azimuth_start",
+                     "extended_nyquist", "high_nyquist", "dualPRF_ratio",
+                     "range_gate_length", "n_ranges_averaged",
+                     "n_pulses_averaged", "DATE", "TIME",
+                     "year", "month", "day", "hour", "minute", "second",
+                     "ppi_azimuth", "ppi_elevation", "n_range_bins"
+                     ]
+    for vta in vars_to_attrs:
+        try:
+            data[vta] = data[vta].isel(records=0, time=0)
+            tmp = data[vta]
+            data = data.drop_vars(vta, errors="ignore")
+            data.attrs[vta] = tmp
+        except KeyError:
+            pass
+
+    # add attribute "fixed_angle"
+    try:
+        # if one timestep
+        data.attrs["fixed_angle"] = float(data.attrs["ppi_elevation"])
+    except TypeError:
+        # if multiple timesteps
+        data.attrs["fixed_angle"] = float(
+            data.attrs["ppi_elevation"].values.flatten()[0])
+    except KeyError:
+        data.attrs["fixed_angle"] = float(
+            data["elevation"].values.flatten()[0])
+
+    # for each remaining variable add "long_name" and "units" attribute
+    for vv in data.data_vars.keys():
+        try:
+            data[vv].attrs["long_name"] = data[vv].attrs["Description"]
+        except:
+            pass
+            # print("no long_name attribute in " + vv)
+
+        try:
+            data[vv].attrs["units"] = data[vv].attrs["Unit"]
+        except:
+            pass
+            # print("no long_name attribute in " + vv)
+
+        return data
+
+
+def create_vol_nc(time_start='2021071412', time_end='2021071418',
+                       dir_data_in=header.dir_data_mod,
+                       dir_data_out=header.dir_data_vol,
+                       radar_loc='ESS', radar_id='010410', spin_up_mm=120,
+                       da_run='ASS_2411', icon_run='MAIN_2411',
+                       icon_emvorado_run='MAIN_2411.1/EMVO_00510000.2',
+                       overwrite=False, include_icon=True, include_emv=False):
+    """
+    Create a synthetic volume scan from EMVORADO and ICON data.
+
+     Args:
+        time_start: start time in >yyyymmddhh<.
+        time_end: end time in >yyyymmddhh<.
+        dir_data_in: directory with folder >yyyymmdd< of the day outputs
+        dir_data_out: directory for the output.
+        radar_loc: string  >RRR< naming the radar
+        radar_id: string (a number) >010NNN< of that radar.
+        spin_up_mm: lower threshold for the time that must have elapsed
+                    since the last DA.
+        da_run: subfolder specifying the data_assimilation run.
+        icon_run: subfolder specifying the ICON run.
+        icon_emvorado_run: subfolders specifying the EMVORADO run.
+        overwrite: If True, then process only if output is not existing, if
+                   false process not if output existing. If overwrite is a
+                   string of type 'yyyy-mm-dd', then a potentioal file is
+                   overwritten if its creation date is older than yyyy-mm-dd.
+        include_icon: If True, ICON variables are included.
+        include_emv: If True, synthetic pol. var from EVMORADO are included.
+
+    Returns:
+    """
+
+    # start
+    current_time = time_p.time()
+
+    # time
+    spin_up_mm = str(spin_up_mm)
+    dti_start = pd.to_datetime(time_start, format="%Y%m%d%H")
+    dti_end = pd.to_datetime(time_end, format="%Y%m%d%H")
+    dti = pd.date_range(dti_start, dti_end, freq="5min", inclusive='left')
+
+    # output
+    dir_out = dir_data_out + dti[0].strftime('%Y%m%d') + '/' + \
+              da_run + '/' + icon_emvorado_run + '/' + \
+              str(spin_up_mm) + 'min_spinup/'
+    if not include_icon:
+        file_out = 'EMV_Vol_'
+        if not include_emv:
+            print('Nothing to do. Please include ICON or EMVORADO!')
+            return
+    elif not include_emv:
+        file_out = 'ICON_Vol_'
+        dir_out = dir_out.replace(icon_emvorado_run, icon_run + '/ICONdata')
+    else:
+        file_out = 'Syn_Vol_'
+
+    file_out = file_out + radar_loc + '_' + dti[0].strftime('%Y%m%d%H%M') + \
+        '_' + dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+    if type(overwrite) == str and os.path.isfile(dir_out + file_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(dir_out+file_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print(radar_loc, '   -   ', time_start, '-', time_end[-2:])
+            print(file_out + ' exists;\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            print('___________________________')
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
+
+    if os.path.isfile(dir_out + file_out) and not overwrite:
+        print(radar_loc, '   -   ', time_start, '-', time_end[-2:])
+        print(file_out + ' exists;\n' +
+              ' ... set: > overwrite = True < for recalculation')
+        print('___________________________')
+        return dir_out + file_out
+
+    # loop over time
+    ncells = 0  # dummy to start grid-loading
+    for t_i in range(len(dti)):
+
+        # time
+        date = dti[t_i].strftime('%Y%m%d')
+        time = dti[t_i].strftime('%H%M%S')
+
+        # file names
+        dir_of_fc, file_fc, dir_of_vol, file_vol = \
+            get_path_syn_volume(date, time, spin_up_mm, radar_id, dir_data_in,
+                                da_run, icon_run, icon_emvorado_run).values()
+
+        # initialization of volume necessary?
+        if ('vol_scan' not in locals() and include_icon
+            and not dir_of_fc + file_fc == '') or \
+                ('vol_scan' not in locals() and include_emv
+                 and not dir_of_vol + file_vol == ''):
+            if not os.path.isfile(dir_of_vol + file_vol):
+                print('No EMVORADO input for time')
+                continue
+
+            print('Initialization of Variables')
+
+            # load RADAR Vol (EMVORADO) even if its data should not be included
+            radar_volume = load_emvorado_to_radar_volume(dir_of_vol + file_vol)
+            radar_volume = radar_volume.transpose(
+                'time', 'records', 'azimuth', 'range', ...)
+
+            # RADAR coords
+            sitecoords = [float(radar_volume.station_longitude),
+                          float(radar_volume.station_latitude),
+                          float(radar_volume.station_height)]
+
+            # # write grid variables
+            xyz, proj_aeqd = wrl.georef.spherical_to_centroids(
+                radar_volume["range"] +
+                radar_volume["range"].diff("range").mean().values / 2,
+                radar_volume["azimuth"],
+                radar_volume["elevation"],
+                sitecoords,
+                crs=None,
+            )
+
+            # xyz needs to be included
+            if "x" not in radar_volume.coords:
+                radar_volume = wrl.georef.georeference(radar_volume)
+
+            # RADAR target grid in shape=raveled(elevation x azimuth x range)
+            trg = np.vstack((radar_volume.x.values.ravel(),
+                             radar_volume.y.values.ravel(),
+                             radar_volume.z.values.ravel())).T
+
+            # new dataset
+            vol_scan = xr.Dataset()
+
+            # initialize dims
+            vol_scan = vol_scan.expand_dims(
+                dim=dict(elevation=radar_volume.elevation.values))
+            vol_scan.elevation.attrs = dict(standard_name='elevation',
+                                            units='degrees')
+            vol_scan = vol_scan.expand_dims(
+                dim=dict(range=radar_volume.range.values))
+            vol_scan.range.attrs = dict(standard_name='range',
+                                        units='m')
+            vol_scan = vol_scan.expand_dims(
+                dim=dict(azimuth=radar_volume.azimuth.values))
+            vol_scan.azimuth.attrs = dict(
+                standard_name='azimuth',
+                comments='increasing clockwise with 0°/360° pointing ' +
+                         'northwards', units='degrees')
+            vol_scan = vol_scan.expand_dims(dim=dict(time=dti), axis=0)
+            vol_scan = vol_scan.transpose(
+                'time', 'elevation', 'azimuth', 'range',)
+
+            # initialize variables
+            dummy_tear = np.empty(
+                shape=[vol_scan.time.size,
+                       vol_scan.elevation.size,
+                       vol_scan.azimuth.size,
+                       vol_scan.range.size])
+            dummy_tear[:] = np.nan
+
+            # grid variables
+            vol_scan['lat'] = (['elevation', 'azimuth', 'range'],
+                               dummy_tear[0, :].copy(),
+                               dict(standard_name='latitude',
+                                    units='degrees_north'))
+            vol_scan['lon'] = (['elevation', 'azimuth', 'range'],
+                               dummy_tear[0, :].copy(),
+                               dict(standard_name='longitude',
+                                    units='degrees_east'))
+            vol_scan['alt'] = (['elevation', 'range', ],
+                               dummy_tear[0, :, 0, :].copy(),
+                               dict(standard_name='altitude',
+                                    comments='height above mean sea level',
+                                    units='m'))
+            if include_icon:
+                # ICON variables
+                vol_scan['temp'] = (['time', 'elevation', 'azimuth', 'range'],
+                                    dummy_tear.copy(),
+                                    dict(standard_name='air temperature',
+                                         units='K'))
+                vol_scan['pres'] = (['time', 'elevation', 'azimuth', 'range'],
+                                    dummy_tear.copy(),
+                                    dict(standard_name='pressure',
+                                         units='Pa'))
+
+                # ICON specific contents
+                vol_scan['qc'] = (['time', 'elevation', 'azimuth', 'range'],
+                                  dummy_tear.copy(), dict(
+                    standard_name='specific cloud water content',
+                    units='kg kg-1'))
+                vol_scan['qg'] = (['time', 'elevation', 'azimuth', 'range'],
+                                  dummy_tear.copy(), dict(
+                    standard_name='specific graupel content',
+                    units='kg kg-1'))
+                vol_scan['qh'] = (['time', 'elevation', 'azimuth', 'range'],
+                                  dummy_tear.copy(),
+                                  dict(standard_name='specific hail content',
+                                       units='kg kg-1'))
+                vol_scan['qi'] = (['time', 'elevation', 'azimuth', 'range'],
+                                  dummy_tear.copy(), dict(
+                    standard_name='specific cloud ice content',
+                    units='kg kg-1'))
+                vol_scan['qr'] = (['time', 'elevation', 'azimuth', 'range'],
+                                  dummy_tear.copy(),
+                                  dict(standard_name='rain mixing ratio',
+                                       units='kg kg-1'))
+                vol_scan['qs'] = (['time', 'elevation', 'azimuth', 'range'],
+                                  dummy_tear.copy(),
+                                  dict(standard_name='snow mixing ratio',
+                                       units='kg kg-1'))
+                vol_scan['qv'] = (['time', 'elevation', 'azimuth', 'range'],
+                                  dummy_tear.copy(),
+                                  dict(standard_name='specific humidity',
+                                       units='kg kg-1'))
+
+                # ICON number concentrations
+                vol_scan['qnc'] = (['time', 'elevation', 'azimuth', 'range'],
+                                   dummy_tear.copy(), dict(
+                    standard_name='number concentration cloud droplets',
+                    units='kg-1'))
+                vol_scan['qng'] = (['time', 'elevation', 'azimuth', 'range'],
+                                   dummy_tear.copy(), dict(
+                    standard_name='number concentration graupel',
+                    units='kg-1'))
+                vol_scan['qnh'] = (['time', 'elevation', 'azimuth', 'range'],
+                                   dummy_tear.copy(), dict(
+                    standard_name='number concentration hail', units='kg-1'))
+                vol_scan['qni'] = (['time', 'elevation', 'azimuth', 'range'],
+                                   dummy_tear.copy(), dict(
+                    standard_name='number concentration cloud ice',
+                    units='kg-1'))
+                vol_scan['qnr'] = (['time', 'elevation', 'azimuth', 'range'],
+                                   dummy_tear.copy(), dict(
+                    standard_name='number concentration rain droplet',
+                    units='kg-1'))
+                vol_scan['qns'] = (['time', 'elevation', 'azimuth', 'range'],
+                                   dummy_tear.copy(), dict(
+                    standard_name='number concentration snow',
+                    units='kg-1'))
+
+                # ICON wind variables
+                vol_scan['u'] = (['time', 'elevation', 'azimuth', 'range'],
+                                 dummy_tear.copy(),
+                                 dict(standard_name='eastward wind',
+                                      comments='zonal wind',
+                                      units='m s-1'))
+                vol_scan['v'] = (['time', 'elevation', 'azimuth', 'range'],
+                                 dummy_tear.copy(),
+                                 dict(standard_name='northward wind',
+                                      comments='meridional wind',
+                                      units='m s-1'))
+                vol_scan['w'] = (['time', 'elevation', 'azimuth', 'range'],
+                                 dummy_tear.copy(),
+                                 dict(standard_name='vertical velocity',
+                                      comments='upward air movement',
+                                      units='m s-1'))
+                vol_scan.attrs['icon_run'] = icon_run
+
+            if include_emv:
+                # EMVORADO pol. variables
+                vol_scan['zrsim'] = (['time', 'elevation', 'azimuth', 'range'],
+                                     dummy_tear.copy(), dict(
+                    standard_name='horizontal reflectivity',
+                    comments='simulated radar reflectivity', units='dBZ'))
+                vol_scan['zdrsim'] = (
+                    ['time', 'elevation', 'azimuth', 'range'],
+                    dummy_tear.copy(), dict(
+                        standard_name='differential reflectivity',
+                        comments='simulated differential reflectivity',
+                        units='dB'))
+                vol_scan['rhvsim'] = (
+                    ['time', 'elevation', 'azimuth', 'range'],
+                    dummy_tear.copy(), dict(
+                        standard_name='co-polar correlation coefficient',
+                        comments='simulated rhohv',
+                        units='1'))
+                vol_scan['kdpsim'] = (
+                    ['time', 'elevation', 'azimuth', 'range'],
+                    dummy_tear.copy(),
+                    dict(standard_name='specific differential phase',
+                         comments='simulated KDP',
+                         units='deg/km'))
+                vol_scan.attrs['icon_emvorado_run'] = icon_emvorado_run
+
+            # to include always: spin-up time and location of radar
+            vol_scan['spin_up_time'] = ([], spin_up_mm, dict(
+                standard_name='spin-up time',
+                comments='lower threshold for the time that must have' +
+                         ' elapsed since the last DA of the pol. variable',
+                units='min'))
+            vol_scan['station_latitude'] = (
+                [], radar_volume.station_latitude.data, dict(
+                    standard_name='station latitude',
+                    comments='latitude of the radar location',
+                    units='degrees_north'))
+            vol_scan['station_longitude'] = (
+                [], radar_volume.station_longitude.data, dict(
+                    standard_name='station longitude',
+                    comments='longitude of the radar location',
+                    units='degrees_east'))
+            vol_scan['station_height'] = (
+                [], radar_volume.station_height.data, dict(
+                    standard_name='station height',
+                    comments='height above means sea level of the radar' +
+                             ' location', units='m'))
+
+            # lat lon alt per scan (could be improved, but works)
+            ra = radar_volume["range"].values.copy()
+            az = radar_volume["azimuth"].values.copy()
+            for sweep_i in range(radar_volume.elevation.size):
+                el = radar_volume["elevation"].values[sweep_i].copy()
+                lon, lat, alt = get_lon_lat_alt(ra,
+                                                az,
+                                                el, sitecoords)
+                vol_scan['lat'][sweep_i, :, :] = lat
+                vol_scan['lon'][sweep_i, :, :] = lon
+                vol_scan['alt'][sweep_i, :] = alt[0, :]
+
+            # global attributes
+            vol_scan.attrs['title'] = 'Synthetic C-band radar variables'
+            vol_scan.attrs['institution'] = 'University of Bonn'
+            vol_scan.attrs['history'] = 'DWD: ICON + EMVORADO'
+            vol_scan.attrs['author'] = \
+                'Julian Steinheuer, J.Steinheuer@uni-bonn.de'
+            vol_scan.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
+            vol_scan.attrs['creation_date'] = str(
+                pd.Timestamp(radar_volume.Creation_date))[:16]
+            vol_scan.attrs['station_ID_national'] = radar_id
+            vol_scan.attrs['station_name'] = radar_loc
+            vol_scan.attrs['data_assimilation_run'] = da_run
+
+            # finishing initialization
+            radar_volume.close()
+
+        print(radar_loc, ' - ', date, ' - ', time)
+
+        # per every timestep
+        if include_emv:
+            if not os.path.isfile(dir_of_vol + file_vol):
+                print('No EMVORADO input file for time')
+                continue
+
+            radar_volume = load_emvorado_to_radar_volume(dir_of_vol + file_vol)
+            radar_volume = radar_volume.transpose(
+                'time', 'records', 'azimuth', 'range', ...)
+
+            # copy pol. variables
+            zrsim = radar_volume['zrsim'].data
+            zdrsim = radar_volume['zdrsim'].data
+            rhvsim = radar_volume['rhvsim'].data
+            kdpsim = radar_volume['kdpsim'].data
+
+            # only applied filter is:
+            mask_rho = rhvsim < 0
+
+            zrsim[mask_rho] = np.nan
+            zdrsim[mask_rho] = np.nan
+            rhvsim[mask_rho] = np.nan
+            kdpsim[mask_rho] = np.nan
+            vol_scan['zrsim'][t_i, :, :, :] = zrsim[0, :]
+            vol_scan['zdrsim'][t_i, :, :, :] = zdrsim[0, :]
+            vol_scan['rhvsim'][t_i, :, :, :] = rhvsim[0, :]
+            vol_scan['kdpsim'][t_i, :, :, :] = kdpsim[0, :]
+
+            # single_scan done!
+            radar_volume.close()
+
+        # read direct ICON fc:
+        if include_icon:
+            if not os.path.isfile(dir_of_fc + file_fc):
+                print(' No input file for t=' + time)
+                continue
+
+            single_fc = xr.open_dataset(dir_of_fc + file_fc, chunks="auto")
+            single_fc = single_fc.transpose('time', 'height', 'ncells', ...)
+
+            # get rid of height_2 (half level center as in w)
+            single_fc = single_fc.interp(
+                height_2=np.arange(1.5, single_fc.height_2.size))
+            for vv in single_fc.data_vars:
+                if "height_2" in single_fc[vv].dims:
+                    vv_alone = single_fc[vv]
+                    vv_alone = vv_alone.assign_coords(
+                        height_2=np.arange(1., 66))
+                    vv_alone = vv_alone.rename({"height_2": "height"})
+                    single_fc[vv] = vv_alone
+
+            single_fc = single_fc.drop_vars({'height_2'})
+
+            # check for ICON grid
+            if not single_fc.ncells.size == ncells:
+                if single_fc.ncells.size == 258775:
+                    ncells = 258775  # RADOLAN
+                    grid_fc = xr.open_dataset(
+                        dir_data_in + '/grid/hgrd_R19B07.RADOLAN.nc')
+                    if grid_fc.clon.units == 'radian':
+                        grid_fc.clon.data = np.rad2deg(grid_fc.clon.data)
+                        grid_fc.clon.attrs['units'] = 'degree'
+                    if grid_fc.clat.units == 'radian':
+                        grid_fc.clat.data = np.rad2deg(grid_fc.clat.data)
+                        grid_fc.clat.attrs['units'] = 'degree'
+
+                    levels_fc = xr.open_dataset(
+                        dir_data_in + '/grid/vgrd_R19B07.RADOLAN.nc')
+                    levels_fc = levels_fc.isel(time=0)
+                elif single_fc.ncells.size == 542040:
+                    ncells = 542040  # ICON-D2
+                    grid_fc = xr.open_dataset(
+                        dir_data_in + '/grid/hgrd_R19B07.ICON-D2.nc')
+                    if grid_fc.cell.size == single_fc.ncells.size:
+                        if grid_fc.clon.units == 'radian':
+                            grid_fc.clon.data = np.rad2deg(grid_fc.clon.data)
+                            grid_fc.clon.attrs['units'] = 'degree'
+                        if grid_fc.clat.units == 'radian':
+                            grid_fc.clat.data = np.rad2deg(grid_fc.clat.data)
+
+                        levels_fc = xr.open_dataset(
+                            dir_data_in + '/grid/vgrd_R19B07.ICON-D2.nc')
+                else:
+                    print('No forcast data, as differing ncells ' +
+                          'were found in ' + dir_data_in + '/grid/')
+                    print('continue')
+
+                # if flipped:
+                if levels_fc.height.size == levels_fc.height_2.size + 1:
+                    levels_fc = levels_fc.rename(
+                        {'height_2': 'height', 'height': 'height_2',
+                         'height_2_bnds': 'height_bnds',
+                         'height_bnds': 'height_2_bnds',
+                         })
+
+                levels_fc = levels_fc.transpose('height', 'ncells', ...)
+
+                # shrink ICON variables
+                vars_to_compute_t = []
+                vars_to_compute_const = []
+                vars_to_drop = []
+                single_fc = single_fc.transpose('time', 'height', 'ncells',
+                                                ...)
+                for vv in single_fc.data_vars:
+                    if single_fc[vv].dims == ('time', 'height', 'ncells'):
+                        vars_to_compute_t.append(vv)
+                    elif single_fc[vv].dims == ('height', 'ncells'):
+                        vars_to_compute_const.append(vv)
+                    else:
+                        vars_to_drop.append(vv)
+                        # print(vv + ' is not processed.')
+
+                single_fc = single_fc.drop_vars(vars_to_drop)
+
+                # reproject ICON into RADAR grid
+                proj_wgs = osr.SpatialReference()
+                proj_wgs.ImportFromEPSG(4326)
+                mod_x, mod_y = wrl.georef.reproject(grid_fc["clon"].values,
+                                                    grid_fc["clat"].values,
+                                                    trg_crs=proj_aeqd,
+                                                    src_crs=proj_wgs)
+
+                # ICON source grid in shape=raveled(ncells_shrunken)
+                src = np.vstack(
+                    (np.repeat(mod_x[np.newaxis, :],
+                               levels_fc.height.size, axis=0).ravel(),
+                     np.repeat(mod_y[np.newaxis, :],
+                               levels_fc.height.size, axis=0).ravel(),
+                     levels_fc.z_mc.values.ravel())).T
+
+                # calculate indices of ICON field that are nearest to RADAR
+                mesh = pyinterp.RTree(ecef=True)
+                stacked_single_fc = single_fc.isel(time=0).stack(
+                    stacked=['height', 'ncells', ])
+                data = stacked_single_fc[vars_to_compute_t[0]]
+                indices_all_fc = np.arange(0, data.shape[0])
+                mesh.packing(src, indices_all_fc)
+                neighbors, indices_near_fc = mesh.value(trg, within=False, k=1)
+                indices_near_fc = indices_near_fc.flatten()
+                indices_near_fc = indices_near_fc.astype(int)
+
+                shape_ear = vol_scan['lon'].shape
+
+            # select fc variables
+            stacked_single_fc = single_fc.isel(time=0).stack(
+                stacked=['height', 'ncells', ])
+            stacked_single_fc = stacked_single_fc.isel(stacked=indices_near_fc)
+
+            # copy fc variables
+            vol_scan['temp'][t_i, :, :, :] = \
+                stacked_single_fc['temp'].values.reshape(shape_ear)
+            try:
+                vol_scan['pres'][t_i, :, :, :] = \
+                    stacked_single_fc['pres'].values.reshape(shape_ear)
+                vol_scan['qv'][t_i, :, :, :] = \
+                    stacked_single_fc['qv'].values.reshape(shape_ear)
+                vol_scan['qc'][t_i, :, :, :] = \
+                    stacked_single_fc['qc'].values.reshape(shape_ear)
+                vol_scan['qr'][t_i, :, :, :] = \
+                    stacked_single_fc['qr'].values.reshape(shape_ear)
+                vol_scan['qi'][t_i, :, :, :] =  \
+                    stacked_single_fc['qi'].values.reshape(shape_ear)
+                vol_scan['qs'][t_i, :, :, :] =  \
+                    stacked_single_fc['qs'].values.reshape(shape_ear)
+                vol_scan['qg'][t_i, :, :, :] =  \
+                    stacked_single_fc['qg'].values.reshape(shape_ear)
+                vol_scan['qh'][t_i, :, :, :] =  \
+                    stacked_single_fc['qh'].values.reshape(shape_ear)
+                vol_scan['qnc'][t_i, :, :, :] =  \
+                    stacked_single_fc['qnc'].values.reshape(shape_ear)
+                vol_scan['qnr'][t_i, :, :, :] =  \
+                    stacked_single_fc['qnr'].values.reshape(shape_ear)
+                vol_scan['qni'][t_i, :, :, :] =  \
+                    stacked_single_fc['qni'].values.reshape(shape_ear)
+                vol_scan['qns'][t_i, :, :, :] = \
+                    stacked_single_fc['qns'].values.reshape(shape_ear)
+                vol_scan['qng'][t_i, :, :, :] = \
+                    stacked_single_fc['qng'].values.reshape(shape_ear)
+                vol_scan['qnh'][t_i, :, :, :] = \
+                    stacked_single_fc['qnh'].values.reshape(shape_ear)
+                vol_scan['u'][t_i, :, :, :] = \
+                    stacked_single_fc['u'].values.reshape(shape_ear)
+                vol_scan['v'][t_i, :, :, :] = \
+                    stacked_single_fc['v'].values.reshape(shape_ear)
+                vol_scan['w'][t_i, :, :, :] = \
+                    stacked_single_fc['w'].values.reshape(shape_ear)
+            except:
+                print('some variable not in ICON fc')
+
+            # single_fc done!
+            single_fc.close()
+            stacked_single_fc.close()
+
+    if 'vol_scan' in locals():
+        Path(dir_out).mkdir(parents=True, exist_ok=True)
+        # transpose for panoply reasons (why do not know)
+        vol_scan = vol_scan.transpose(
+            'time',  'range', 'azimuth', 'elevation', )
+        vol_scan.to_netcdf(dir_out + file_out, unlimited_dims='time')
+        print('    ! Save done now !      ')
+        print(f"... which took "
+              f"{(time_p.time() - current_time) / 60:.2f} min ...")
+        vol_scan.close()
+        print('    ! Close done now !      ')
+        print(f"... which took "
+              f"{(time_p.time() - current_time) / 60:.2f} min ...")
+        print('    ! Case done now !      ')
+        print(f"... which took "
+              f"{(time_p.time() - current_time) / 60:.2f} min ...")
+        print('___________________________')
+        return dir_out + file_out
+    else:
+        if include_icon and not include_emv:
+            print('   ! No ICON for case !    ')
+            print('___________________________')
+        elif not include_icon and include_emv:
+            print('   ! No EMVO for case !    ')
+            print('___________________________')
+        else:
+            print('   ! No data for case !    ')
+            print('___________________________')
+
+
 def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                            icon_run='MAIN_2211.0',
                            icon_emvorado_run='MAIN_2211.0/EMVO_00000000.2',
@@ -779,7 +1521,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                            radar_locs=list(rad_dict().keys()),
                            dir_data_in=header.dir_data_mod,
                            dir_data_out=header.dir_data_vol,
-                           method='Nearest',
+                           overwrite_EMV=False,
+                           overwrite_ICON=False,
                            ):
     """
     Create for day 8 synthetic volume scans from EMVORADO and ICON data.
@@ -794,8 +1537,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
         radar_locs: list of strings  >RRR< naming the radars.
         dir_data_in: directory with folder >yyyymmdd< of the day outputs.
         dir_data_out: directory for the output.
-        method: 'Nearest' or 'Linear' for method to interpolate mod fields to
-                rad grid.
+        overwrite_EMV=overwrite EMVORADO? True, False, <yyyy-mm-dd>,
+        overwrite_ICON=overwrite ICON? True, False, <yyyy-mm-dd>,
 
     Returns:
     """
@@ -814,8 +1557,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                           dir_data_in=dir_data_in,
                           dir_data_out=dir_data_out,
                           radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
-                          include_icon=True, include_emv=False,
-                          method=method)
+                          overwrite=overwrite_ICON,
+                          include_icon=True, include_emv=False)
             print('________________________________________')
             print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
                   str(spin_up_mm) + '_spinup/')
@@ -827,8 +1570,92 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                           dir_data_in=dir_data_in,
                           dir_data_out=dir_data_out,
                           radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
-                          include_icon=False, include_emv=True,
-                          method=method)
+                          overwrite=overwrite_EMV,
+                          include_icon=False, include_emv=True)
+            time_start = time_end
+
+
+def create_8_vol_nc_of_day_cdo(day='20170725', da_run='ASS_2211',
+                               icon_run='MAIN_2211.0',
+                               icon_emvorado_run='MAIN_2211.0/EMVO_00000000.2',
+                               spin_up_mm=30,
+                               radar_locs=list(rad_dict().keys()),
+                               dir_data_in=header.dir_data_mod,
+                               dir_data_out=header.dir_data_vol,
+                               overwrite_EMV=False,
+                               overwrite_ICON=False,
+                               ):
+    """
+    Create for day 8 synthetic volume scans from EMVORADO and ICON data.
+
+     Args:
+        day: day in >yyyymmdd<.
+        da_run: subfolder specifying the data_assimilation run.
+        icon_run: subfolder specifying the ICON run.
+        icon_emvorado_run: subfolders specifying the EMVORADO run.
+        spin_up_mm: lower threshold for the time that must have elapsed
+                    since the last DA.
+        radar_locs: list of strings  >RRR< naming the radars.
+        dir_data_in: directory with folder >yyyymmdd< of the day outputs.
+        dir_data_out: directory for the output.
+        overwrite_EMV=overwrite EMVORADO? True, False, <yyyy-mm-dd>,
+        overwrite_ICON=overwrite ICON? True, False, <yyyy-mm-dd>,
+
+    Returns:
+    """
+    for radar_loc in radar_locs:
+        time_start = pd.to_datetime(day, format="%Y%m%d")
+        for i in range(4):
+            time_end = time_start + pd.Timedelta('6h')
+            print('________________________________________')
+            print(day + '/' + da_run + '/' + icon_run + '/ICONdata/' +
+                  str(spin_up_mm) + '_spinup/')
+            current_time = time_p.time()
+            list_icon = []
+            for ii in range(6):
+                time_start_ii = time_start + pd.Timedelta(str(ii)+'h')
+                time_end_ii = time_start_ii + pd.Timedelta('1h')
+                list_icon.append(create_vol_nc(
+                    time_start=time_start_ii.strftime('%Y%m%d%H'),
+                    time_end=time_end_ii.strftime('%Y%m%d%H'),
+                    spin_up_mm=spin_up_mm, da_run=da_run,
+                    icon_run=icon_run,
+                    icon_emvorado_run=icon_emvorado_run,
+                    dir_data_in=dir_data_in,
+                    dir_data_out=dir_data_out,
+                    radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
+                    overwrite=overwrite_ICON,
+                    include_icon=True, include_emv=False)
+                )
+
+            new = list_icon[0][:-15] + 'neu'+ list_icon[0][-15:]
+            print('cdo merge ' + ' '.join(list_icon) + ' ' + new)
+            os.system('cdo merge ' + ' '.join(list_icon) + ' ' + new)
+            print(f"... which took "
+                  f"{(time_p.time() - current_time) / 60:.2f} min ...")
+
+            print('________________________________________')
+            print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
+                  str(spin_up_mm) + '_spinup/')
+            list_emv = []
+            for ii in range(6):
+                time_start_ii = time_start + pd.Timedelta(str(ii) + 'h')
+                time_end_ii = time_start_ii + pd.Timedelta(+'1h')
+                list_emv.append(create_vol_nc(
+                    time_start=time_start_ii.strftime('%Y%m%d%H'),
+                    time_end=time_end_ii.strftime('%Y%m%d%H'),
+                    spin_up_mm=spin_up_mm, da_run=da_run,
+                    icon_run=icon_run,
+                    icon_emvorado_run=icon_emvorado_run,
+                    dir_data_in=dir_data_in,
+                    dir_data_out=dir_data_out,
+                    radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
+                    overwrite=overwrite_EMV,
+                    include_icon=False, include_emv=True)
+                )
+
+            new = list_emv[0][:-15] + list_emv[0][-15:]
+            os.system('cdo merge ' + ' '.join(list_emv) + ' ' + new)
             time_start = time_end
 
 
@@ -839,8 +1666,7 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                                     spin_up_mm=30,
                                     radar_locs=list(rad_dict().keys()),
                                     dir_data_in=header.dir_data_mod,
-                                    dir_data_out=header.dir_data_vol,
-                                    method='Nearest'
+                                    dir_data_out=header.dir_data_vol
                                     ):
     """
     Create for day 8 synthetic volume scans from EMVORADO and ICON data.
@@ -886,8 +1712,7 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(icon_emvorado_run, 4),
                          np.repeat(False, 4),
                          np.repeat(True, 4),
-                         np.repeat(False, 4),
-                         np.repeat(method, 4))
+                         np.repeat(False, 4))
                      )
         print('________________________________________')
         print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
@@ -905,6 +1730,5 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(icon_emvorado_run, 4),
                          np.repeat(False, 4),
                          np.repeat(False, 4),
-                         np.repeat(True, 4),
-                         np.repeat(method, 4))
+                         np.repeat(True, 4))
                      )

@@ -77,11 +77,11 @@ temp_max = 0
 bins_temp = 10
 
 # adjust ###################### adjust ###################### adjust ##########
-# filter_entr_ML = True  # as email 15.2.24
+filter_entr_ML = True  # as email 15.2.24
 filter_entr_ML = False
 
 locations = ['ESS']
-# locations = list(rad_dict().keys())
+locations = list(rad_dict().keys())
 # locations.remove('FLD')
 # adjust ###################### adjust ###################### adjust ##########
 
@@ -384,8 +384,10 @@ plot_CFAD_or_CFTD_from_QVP(
 # --------------------------------------------------------------------------- #
 # CBAND SYN 1 row 2
 
-da_run = 'ASS_2407'
-icon_emvorado_run = 'MAIN_2405.3/EMVO_00510000.2/'
+# da_run = 'ASS_2407'
+# icon_emvorado_run = 'MAIN_2405.3/EMVO_00510000.2/'
+da_run = 'ASS_2411'
+icon_emvorado_run = 'MAIN_2411.1/EMVO_00510000.2/'
 spin_up_mm = '120'
 
 folder_syn = header.dir_data_qvp

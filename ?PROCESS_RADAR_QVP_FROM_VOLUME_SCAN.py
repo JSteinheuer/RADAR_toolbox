@@ -464,17 +464,18 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
                             year + '-' + mon + '-' + day,
                             location, mode + '*', sweep, 'ras*'])
         files_any = sorted(glob.glob(path_in_any))
-        if not files_any:
-            print('nothing found -> bw=1')
+
+    if not files_any:
+        print('nothing found -> lamb=50')
+        lamb = 50
+    else:
+        path_in_any = files_any[0]
+        try:
+            lamb = dttree.open_datatree(  # we need it in mm, i.e. *10
+                path_in_any)['how'].attrs['wavelength']*10
+        except:
+            print('nothing in *any* found -> lambda=5')
             lamb = 50
-        else:
-            path_in_any = files_any[0]
-            try:
-                lamb = dttree.open_datatree(  # we need it in mm, i.e. *10
-                    path_in_any)['how'].attrs['wavelength']*10
-            except:
-                print('nothing in *any* found -> lambda=5')
-                lamb = 50
 
     zh_lin = 10 ** (0.1 * data.ZH_AC)
     zdr_lin = 10 ** (0.1 * data.ZDR_AC_OC)
@@ -600,6 +601,7 @@ DATES = [
     # "20220623", "20220624", "20220625",  # case05
     # "20220626", "20220627", "20220628",  # case06+07
     # "20220630", "20220701",  # case08
+    "20210713",  # case09
     "20210714",  # case09
     # "20221222",  # case10
     # "20170719",  # caseX -> old OP HM 1 case

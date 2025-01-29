@@ -42,22 +42,15 @@ mod_names = ''
 filter2 = False
 # filter2 = True
 
+date = 'flooding_days'
+
 # All
 date = '20210714'
 dates = [date]
 
 # dates = [
-#     '20170725',  # start this day
-#     '20170810',
-#     '20180809',
-#     '20170719',
-#     '20170720',
-#     '20170724',
-#     '20170726',
-#     '20170727',
-#     '20180728',
-#     '20180923',
-#     '20181202',
+#     '20210713',
+#     '20210714',
 # ]
 
 hhmm_start = '00:00'
@@ -77,8 +70,8 @@ temp_max = 0
 bins_temp = 10
 
 # adjust ###################### adjust ###################### adjust ##########
-# filter_entr_ML = True  # as email 15.2.24
-filter_entr_ML = False
+filter_entr_ML = True  # as email 15.2.24
+# filter_entr_ML = False
 
 locations = ['ESS']
 # locations = list(rad_dict().keys())
@@ -384,20 +377,189 @@ plot_CFAD_or_CFTD_from_QVP(
 # --------------------------------------------------------------------------- #
 # CBAND SYN 1 row 5
 
-da_run = 'ASS_2407'
-icon_emvorado_run = 'MAIN_2405.3/EMVO_00510000.2/'
-spin_up_mm = '120'
-
-folder_syn = header.dir_data_qvp
-current_row = current_row + 1
-model_name = '-'.join([da_run[4:],
-                        icon_emvorado_run.split('/')[0][5:],
-                        icon_emvorado_run.split('/')[1][5:],
-                        spin_up_mm + 'min'])
-mod_names = '-'.join([mod_names, model_name])
-
-# # Syn 1
-# current_col = 1
+# da_run = 'ASS_2407'
+# icon_emvorado_run = 'MAIN_2405.3/EMVO_00510000.2/'
+# spin_up_mm = '120'
+#
+# folder_syn = header.dir_data_qvp
+# current_row = current_row + 1
+# model_name = '-'.join([da_run[4:],
+#                         icon_emvorado_run.split('/')[0][5:],
+#                         icon_emvorado_run.split('/')[1][5:],
+#                         spin_up_mm + 'min'])
+# mod_names = '-'.join([mod_names, model_name])
+#
+# # # Syn 1
+# # current_col = 1
+# # plot_CFAD_or_CFTD_from_QVP(
+# #     dates=dates,
+# #     hhmm_start=hhmm_start,
+# #     hhmm_end=hhmm_end,
+# #     locations=locations,
+# #     elevation_deg=elevation_deg,
+# #     folder_syn=folder_syn,
+# #     da_run=da_run,
+# #     icon_emvorado_run=icon_emvorado_run,
+# #     spin_up_mm=spin_up_mm,
+# #     moment=moment_1s,
+# #     vert_temp=vert_temp,  # CFTD
+# #     mom_max=mom_max_1,
+# #     mom_min=mom_min_1,
+# #     bins_mom=bins_mom_1,
+# #     temp_min=temp_min,
+# #     temp_max=temp_max,
+# #     bins_temp=bins_temp,
+# #     height_min=height_min,  # in km
+# #     height_max=height_max,  # in km
+# #     bins_height=bins_height,
+# #     vmax=vmax,
+# #     filter_entr_ML=filter_entr_ML,
+# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# # )
+# #
+# # # Syn 2
+# # current_col = 2
+# # plot_CFAD_or_CFTD_from_QVP(
+# #     dates=dates,
+# #     hhmm_start=hhmm_start,
+# #     hhmm_end=hhmm_end,
+# #     locations=locations,
+# #     elevation_deg=elevation_deg,
+# #     folder_syn=folder_syn,
+# #     da_run=da_run,
+# #     icon_emvorado_run=icon_emvorado_run,
+# #     spin_up_mm=spin_up_mm,
+# #     moment=moment_2s,
+# #     vert_temp=vert_temp,  # CFTD
+# #     mom_max=mom_max_2,
+# #     mom_min=mom_min_2,
+# #     bins_mom=bins_mom_2,
+# #     temp_min=temp_min,
+# #     temp_max=temp_max,
+# #     bins_temp=bins_temp,
+# #     height_min=height_min,  # in km
+# #     height_max=height_max,  # in km
+# #     bins_height=bins_height,
+# #     vmax=vmax,
+# #     filter_entr_ML=filter_entr_ML,
+# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# # )
+#
+# # # Syn 3
+# # current_col = 3
+# # plot_CFAD_or_CFTD_from_QVP(
+# #     dates=dates,
+# #     hhmm_start=hhmm_start,
+# #     hhmm_end=hhmm_end,
+# #     locations=locations,
+# #     elevation_deg=elevation_deg,
+# #     folder_syn=folder_syn,
+# #     da_run=da_run,
+# #     icon_emvorado_run=icon_emvorado_run,
+# #     spin_up_mm=spin_up_mm,
+# #     moment=moment_3s,
+# #     vert_temp=vert_temp,  # CFTD
+# #     mom_max=mom_max_3,
+# #     mom_min=mom_min_3,
+# #     bins_mom=bins_mom_3,
+# #     temp_min=temp_min,
+# #     temp_max=temp_max,
+# #     bins_temp=bins_temp,
+# #     height_min=height_min,  # in km
+# #     height_max=height_max,  # in km
+# #     bins_height=bins_height,
+# #     vmax=vmax,
+# #     filter_entr_ML=filter_entr_ML,
+# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# # )
+# #
+# # # Syn 4
+# # current_col = 4
+# # plot_CFAD_or_CFTD_from_QVP(
+# #     dates=dates,
+# #     hhmm_start=hhmm_start,
+# #     hhmm_end=hhmm_end,
+# #     locations=locations,
+# #     elevation_deg=elevation_deg,
+# #     folder_syn=folder_syn,
+# #     da_run=da_run,
+# #     icon_emvorado_run=icon_emvorado_run,
+# #     spin_up_mm=spin_up_mm,
+# #     moment=moment_4s,
+# #     vert_temp=vert_temp,  # CFTD
+# #     mom_max=mom_max_4,
+# #     mom_min=mom_min_4,
+# #     bins_mom=bins_mom_4,
+# #     temp_min=temp_min,
+# #     temp_max=temp_max,
+# #     bins_temp=bins_temp,
+# #     height_min=height_min,  # in km
+# #     height_max=height_max,  # in km
+# #     bins_height=bins_height,
+# #     vmax=vmax,
+# #     filter_entr_ML=filter_entr_ML,
+# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# # )
+#
+# # # Syn 5
+# # current_col = 3
+# # plot_CFAD_or_CFTD_from_QVP(
+# #     dates=dates,
+# #     hhmm_start=hhmm_start,
+# #     hhmm_end=hhmm_end,
+# #     locations=locations,
+# #     elevation_deg=elevation_deg,
+# #     folder_syn=folder_syn,
+# #     da_run=da_run,
+# #     icon_emvorado_run=icon_emvorado_run,
+# #     spin_up_mm=spin_up_mm,
+# #     moment=moment_5s,
+# #     vert_temp=vert_temp,  # CFTD
+# #     mom_max=mom_max_5,
+# #     mom_min=mom_min_5,
+# #     bins_mom=bins_mom_5,
+# #     temp_min=temp_min,
+# #     temp_max=temp_max,
+# #     bins_temp=bins_temp,
+# #     height_min=height_min,  # in km
+# #     height_max=height_max,  # in km
+# #     bins_height=bins_height,
+# #     vmax=vmax,
+# #     filter_entr_ML=filter_entr_ML,
+# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# #     filter2=filter2
+# # )
+# #
+# # Syn 5 2
+# # current_col = 4
+# # plot_CFAD_or_CFTD_from_QVP(
+# #     dates=dates,
+# #     hhmm_start=hhmm_start,
+# #     hhmm_end=hhmm_end,
+# #     locations=locations,
+# #     elevation_deg=elevation_deg,
+# #     folder_syn=folder_syn,
+# #     da_run=da_run,
+# #     icon_emvorado_run=icon_emvorado_run,
+# #     spin_up_mm=spin_up_mm,
+# #     moment=moment_5s2,
+# #     vert_temp=vert_temp,  # CFTD
+# #     mom_max=mom_max_5,
+# #     mom_min=mom_min_5,
+# #     bins_mom=bins_mom_5,
+# #     temp_min=temp_min,
+# #     temp_max=temp_max,
+# #     bins_temp=bins_temp,
+# #     height_min=height_min,  # in km
+# #     height_max=height_max,  # in km
+# #     bins_height=bins_height,
+# #     vmax=vmax,
+# #     filter_entr_ML=filter_entr_ML,
+# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# # )
+#
+# # Syn 7
+# current_col = 3
 # plot_CFAD_or_CFTD_from_QVP(
 #     dates=dates,
 #     hhmm_start=hhmm_start,
@@ -408,11 +570,11 @@ mod_names = '-'.join([mod_names, model_name])
 #     da_run=da_run,
 #     icon_emvorado_run=icon_emvorado_run,
 #     spin_up_mm=spin_up_mm,
-#     moment=moment_1s,
+#     moment=moment_7s,
 #     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_1,
-#     mom_min=mom_min_1,
-#     bins_mom=bins_mom_1,
+#     mom_max=mom_max_7,
+#     mom_min=mom_min_7,
+#     bins_mom=bins_mom_7,
 #     temp_min=temp_min,
 #     temp_max=temp_max,
 #     bins_temp=bins_temp,
@@ -424,7 +586,7 @@ mod_names = '-'.join([mod_names, model_name])
 #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 # )
 #
-# # Syn 2
+# # Syn 8
 # current_col = 2
 # plot_CFAD_or_CFTD_from_QVP(
 #     dates=dates,
@@ -436,39 +598,11 @@ mod_names = '-'.join([mod_names, model_name])
 #     da_run=da_run,
 #     icon_emvorado_run=icon_emvorado_run,
 #     spin_up_mm=spin_up_mm,
-#     moment=moment_2s,
+#     moment=moment_8s,
 #     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_2,
-#     mom_min=mom_min_2,
-#     bins_mom=bins_mom_2,
-#     temp_min=temp_min,
-#     temp_max=temp_max,
-#     bins_temp=bins_temp,
-#     height_min=height_min,  # in km
-#     height_max=height_max,  # in km
-#     bins_height=bins_height,
-#     vmax=vmax,
-#     filter_entr_ML=filter_entr_ML,
-#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# )
-
-# # Syn 3
-# current_col = 3
-# plot_CFAD_or_CFTD_from_QVP(
-#     dates=dates,
-#     hhmm_start=hhmm_start,
-#     hhmm_end=hhmm_end,
-#     locations=locations,
-#     elevation_deg=elevation_deg,
-#     folder_syn=folder_syn,
-#     da_run=da_run,
-#     icon_emvorado_run=icon_emvorado_run,
-#     spin_up_mm=spin_up_mm,
-#     moment=moment_3s,
-#     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_3,
-#     mom_min=mom_min_3,
-#     bins_mom=bins_mom_3,
+#     mom_max=mom_max_8,
+#     mom_min=mom_min_8,
+#     bins_mom=bins_mom_8,
 #     temp_min=temp_min,
 #     temp_max=temp_max,
 #     bins_temp=bins_temp,
@@ -480,8 +614,8 @@ mod_names = '-'.join([mod_names, model_name])
 #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 # )
 #
-# # Syn 4
-# current_col = 4
+# # Syn 9
+# current_col = 1
 # plot_CFAD_or_CFTD_from_QVP(
 #     dates=dates,
 #     hhmm_start=hhmm_start,
@@ -492,11 +626,11 @@ mod_names = '-'.join([mod_names, model_name])
 #     da_run=da_run,
 #     icon_emvorado_run=icon_emvorado_run,
 #     spin_up_mm=spin_up_mm,
-#     moment=moment_4s,
+#     moment=moment_9s,
 #     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_4,
-#     mom_min=mom_min_4,
-#     bins_mom=bins_mom_4,
+#     mom_max=mom_max_9,
+#     mom_min=mom_min_9,
+#     bins_mom=bins_mom_9,
 #     temp_min=temp_min,
 #     temp_max=temp_max,
 #     bins_temp=bins_temp,
@@ -507,150 +641,9 @@ mod_names = '-'.join([mod_names, model_name])
 #     filter_entr_ML=filter_entr_ML,
 #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 # )
-
-# # Syn 5
-# current_col = 3
-# plot_CFAD_or_CFTD_from_QVP(
-#     dates=dates,
-#     hhmm_start=hhmm_start,
-#     hhmm_end=hhmm_end,
-#     locations=locations,
-#     elevation_deg=elevation_deg,
-#     folder_syn=folder_syn,
-#     da_run=da_run,
-#     icon_emvorado_run=icon_emvorado_run,
-#     spin_up_mm=spin_up_mm,
-#     moment=moment_5s,
-#     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_5,
-#     mom_min=mom_min_5,
-#     bins_mom=bins_mom_5,
-#     temp_min=temp_min,
-#     temp_max=temp_max,
-#     bins_temp=bins_temp,
-#     height_min=height_min,  # in km
-#     height_max=height_max,  # in km
-#     bins_height=bins_height,
-#     vmax=vmax,
-#     filter_entr_ML=filter_entr_ML,
-#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-#     filter2=filter2
-# )
-#
-# Syn 5 2
-# current_col = 4
-# plot_CFAD_or_CFTD_from_QVP(
-#     dates=dates,
-#     hhmm_start=hhmm_start,
-#     hhmm_end=hhmm_end,
-#     locations=locations,
-#     elevation_deg=elevation_deg,
-#     folder_syn=folder_syn,
-#     da_run=da_run,
-#     icon_emvorado_run=icon_emvorado_run,
-#     spin_up_mm=spin_up_mm,
-#     moment=moment_5s2,
-#     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_5,
-#     mom_min=mom_min_5,
-#     bins_mom=bins_mom_5,
-#     temp_min=temp_min,
-#     temp_max=temp_max,
-#     bins_temp=bins_temp,
-#     height_min=height_min,  # in km
-#     height_max=height_max,  # in km
-#     bins_height=bins_height,
-#     vmax=vmax,
-#     filter_entr_ML=filter_entr_ML,
-#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# )
-
-# Syn 7
-current_col = 3
-plot_CFAD_or_CFTD_from_QVP(
-    dates=dates,
-    hhmm_start=hhmm_start,
-    hhmm_end=hhmm_end,
-    locations=locations,
-    elevation_deg=elevation_deg,
-    folder_syn=folder_syn,
-    da_run=da_run,
-    icon_emvorado_run=icon_emvorado_run,
-    spin_up_mm=spin_up_mm,
-    moment=moment_7s,
-    vert_temp=vert_temp,  # CFTD
-    mom_max=mom_max_7,
-    mom_min=mom_min_7,
-    bins_mom=bins_mom_7,
-    temp_min=temp_min,
-    temp_max=temp_max,
-    bins_temp=bins_temp,
-    height_min=height_min,  # in km
-    height_max=height_max,  # in km
-    bins_height=bins_height,
-    vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
-    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-)
-
-# Syn 8
-current_col = 2
-plot_CFAD_or_CFTD_from_QVP(
-    dates=dates,
-    hhmm_start=hhmm_start,
-    hhmm_end=hhmm_end,
-    locations=locations,
-    elevation_deg=elevation_deg,
-    folder_syn=folder_syn,
-    da_run=da_run,
-    icon_emvorado_run=icon_emvorado_run,
-    spin_up_mm=spin_up_mm,
-    moment=moment_8s,
-    vert_temp=vert_temp,  # CFTD
-    mom_max=mom_max_8,
-    mom_min=mom_min_8,
-    bins_mom=bins_mom_8,
-    temp_min=temp_min,
-    temp_max=temp_max,
-    bins_temp=bins_temp,
-    height_min=height_min,  # in km
-    height_max=height_max,  # in km
-    bins_height=bins_height,
-    vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
-    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-)
-
-# Syn 9
-current_col = 1
-plot_CFAD_or_CFTD_from_QVP(
-    dates=dates,
-    hhmm_start=hhmm_start,
-    hhmm_end=hhmm_end,
-    locations=locations,
-    elevation_deg=elevation_deg,
-    folder_syn=folder_syn,
-    da_run=da_run,
-    icon_emvorado_run=icon_emvorado_run,
-    spin_up_mm=spin_up_mm,
-    moment=moment_9s,
-    vert_temp=vert_temp,  # CFTD
-    mom_max=mom_max_9,
-    mom_min=mom_min_9,
-    bins_mom=bins_mom_9,
-    temp_min=temp_min,
-    temp_max=temp_max,
-    bins_temp=bins_temp,
-    height_min=height_min,  # in km
-    height_max=height_max,  # in km
-    bins_height=bins_height,
-    vmax=vmax,
-    filter_entr_ML=filter_entr_ML,
-    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-)
-#
+# #
 # --------------------------------------------------------------------------- #
-# # CBAND SYN 2 row 5
+# CBAND SYN 2 row 5
 #
 # da_run = 'ASS_2411'
 # icon_emvorado_run = 'MAIN_2411.1/EMVO_00410000.2/'
@@ -917,247 +910,22 @@ plot_CFAD_or_CFTD_from_QVP(
 #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 # )
 # #
-# # --------------------------------------------------------------------------- #
-# # CBAND SYN 3 row 5
-#
-# da_run = 'ASS_2411'
-# icon_emvorado_run = 'MAIN_2411.1/EMVO_00510000.2/'
-# spin_up_mm = '120'
-#
-# folder_syn = header.dir_data_qvp
-# current_row = current_row + 1
-# model_name = '-'.join([da_run[4:],
-#                         icon_emvorado_run.split('/')[0][5:],
-#                         icon_emvorado_run.split('/')[1][5:],
-#                         spin_up_mm + 'min'])
-# mod_names = '-'.join([mod_names, model_name])
-#
-# # # Syn 1
-# # current_col = 1
-# # plot_CFAD_or_CFTD_from_QVP(
-# #     dates=dates,
-# #     hhmm_start=hhmm_start,
-# #     hhmm_end=hhmm_end,
-# #     locations=locations,
-# #     elevation_deg=elevation_deg,
-# #     folder_syn=folder_syn,
-# #     da_run=da_run,
-# #     icon_emvorado_run=icon_emvorado_run,
-# #     spin_up_mm=spin_up_mm,
-# #     moment=moment_1s,
-# #     vert_temp=vert_temp,  # CFTD
-# #     mom_max=mom_max_1,
-# #     mom_min=mom_min_1,
-# #     bins_mom=bins_mom_1,
-# #     temp_min=temp_min,
-# #     temp_max=temp_max,
-# #     bins_temp=bins_temp,
-# #     height_min=height_min,  # in km
-# #     height_max=height_max,  # in km
-# #     bins_height=bins_height,
-# #     vmax=vmax,
-# #     filter_entr_ML=filter_entr_ML,
-# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# # )
-# #
-# # # Syn 2
-# # current_col = 2
-# # plot_CFAD_or_CFTD_from_QVP(
-# #     dates=dates,
-# #     hhmm_start=hhmm_start,
-# #     hhmm_end=hhmm_end,
-# #     locations=locations,
-# #     elevation_deg=elevation_deg,
-# #     folder_syn=folder_syn,
-# #     da_run=da_run,
-# #     icon_emvorado_run=icon_emvorado_run,
-# #     spin_up_mm=spin_up_mm,
-# #     moment=moment_2s,
-# #     vert_temp=vert_temp,  # CFTD
-# #     mom_max=mom_max_2,
-# #     mom_min=mom_min_2,
-# #     bins_mom=bins_mom_2,
-# #     temp_min=temp_min,
-# #     temp_max=temp_max,
-# #     bins_temp=bins_temp,
-# #     height_min=height_min,  # in km
-# #     height_max=height_max,  # in km
-# #     bins_height=bins_height,
-# #     vmax=vmax,
-# #     filter_entr_ML=filter_entr_ML,
-# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# # )
-#
-# # # Syn 3
-# # current_col = 3
-# # plot_CFAD_or_CFTD_from_QVP(
-# #     dates=dates,
-# #     hhmm_start=hhmm_start,
-# #     hhmm_end=hhmm_end,
-# #     locations=locations,
-# #     elevation_deg=elevation_deg,
-# #     folder_syn=folder_syn,
-# #     da_run=da_run,
-# #     icon_emvorado_run=icon_emvorado_run,
-# #     spin_up_mm=spin_up_mm,
-# #     moment=moment_3s,
-# #     vert_temp=vert_temp,  # CFTD
-# #     mom_max=mom_max_3,
-# #     mom_min=mom_min_3,
-# #     bins_mom=bins_mom_3,
-# #     temp_min=temp_min,
-# #     temp_max=temp_max,
-# #     bins_temp=bins_temp,
-# #     height_min=height_min,  # in km
-# #     height_max=height_max,  # in km
-# #     bins_height=bins_height,
-# #     vmax=vmax,
-# #     filter_entr_ML=filter_entr_ML,
-# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# # )
-# #
-# # # Syn 4
-# # current_col = 4
-# # plot_CFAD_or_CFTD_from_QVP(
-# #     dates=dates,
-# #     hhmm_start=hhmm_start,
-# #     hhmm_end=hhmm_end,
-# #     locations=locations,
-# #     elevation_deg=elevation_deg,
-# #     folder_syn=folder_syn,
-# #     da_run=da_run,
-# #     icon_emvorado_run=icon_emvorado_run,
-# #     spin_up_mm=spin_up_mm,
-# #     moment=moment_4s,
-# #     vert_temp=vert_temp,  # CFTD
-# #     mom_max=mom_max_4,
-# #     mom_min=mom_min_4,
-# #     bins_mom=bins_mom_4,
-# #     temp_min=temp_min,
-# #     temp_max=temp_max,
-# #     bins_temp=bins_temp,
-# #     height_min=height_min,  # in km
-# #     height_max=height_max,  # in km
-# #     bins_height=bins_height,
-# #     vmax=vmax,
-# #     filter_entr_ML=filter_entr_ML,
-# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# # )
-#
-# # # Syn 5
-# # current_col = 3
-# # plot_CFAD_or_CFTD_from_QVP(
-# #     dates=dates,
-# #     hhmm_start=hhmm_start,
-# #     hhmm_end=hhmm_end,
-# #     locations=locations,
-# #     elevation_deg=elevation_deg,
-# #     folder_syn=folder_syn,
-# #     da_run=da_run,
-# #     icon_emvorado_run=icon_emvorado_run,
-# #     spin_up_mm=spin_up_mm,
-# #     moment=moment_5s,
-# #     vert_temp=vert_temp,  # CFTD
-# #     mom_max=mom_max_5,
-# #     mom_min=mom_min_5,
-# #     bins_mom=bins_mom_5,
-# #     temp_min=temp_min,
-# #     temp_max=temp_max,
-# #     bins_temp=bins_temp,
-# #     height_min=height_min,  # in km
-# #     height_max=height_max,  # in km
-# #     bins_height=bins_height,
-# #     vmax=vmax,
-# #     filter_entr_ML=filter_entr_ML,
-# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# #     filter2=filter2
-# # )
-# #
-# # Syn 5 2
-# # current_col = 4
-# # plot_CFAD_or_CFTD_from_QVP(
-# #     dates=dates,
-# #     hhmm_start=hhmm_start,
-# #     hhmm_end=hhmm_end,
-# #     locations=locations,
-# #     elevation_deg=elevation_deg,
-# #     folder_syn=folder_syn,
-# #     da_run=da_run,
-# #     icon_emvorado_run=icon_emvorado_run,
-# #     spin_up_mm=spin_up_mm,
-# #     moment=moment_5s2,
-# #     vert_temp=vert_temp,  # CFTD
-# #     mom_max=mom_max_5,
-# #     mom_min=mom_min_5,
-# #     bins_mom=bins_mom_5,
-# #     temp_min=temp_min,
-# #     temp_max=temp_max,
-# #     bins_temp=bins_temp,
-# #     height_min=height_min,  # in km
-# #     height_max=height_max,  # in km
-# #     bins_height=bins_height,
-# #     vmax=vmax,
-# #     filter_entr_ML=filter_entr_ML,
-# #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# # )
-#
-# # Syn 7
-# current_col = 3
-# plot_CFAD_or_CFTD_from_QVP(
-#     dates=dates,
-#     hhmm_start=hhmm_start,
-#     hhmm_end=hhmm_end,
-#     locations=locations,
-#     elevation_deg=elevation_deg,
-#     folder_syn=folder_syn,
-#     da_run=da_run,
-#     icon_emvorado_run=icon_emvorado_run,
-#     spin_up_mm=spin_up_mm,
-#     moment=moment_7s,
-#     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_7,
-#     mom_min=mom_min_7,
-#     bins_mom=bins_mom_7,
-#     temp_min=temp_min,
-#     temp_max=temp_max,
-#     bins_temp=bins_temp,
-#     height_min=height_min,  # in km
-#     height_max=height_max,  # in km
-#     bins_height=bins_height,
-#     vmax=vmax,
-#     filter_entr_ML=filter_entr_ML,
-#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# )
-#
-# # Syn 8
-# current_col = 2
-# plot_CFAD_or_CFTD_from_QVP(
-#     dates=dates,
-#     hhmm_start=hhmm_start,
-#     hhmm_end=hhmm_end,
-#     locations=locations,
-#     elevation_deg=elevation_deg,
-#     folder_syn=folder_syn,
-#     da_run=da_run,
-#     icon_emvorado_run=icon_emvorado_run,
-#     spin_up_mm=spin_up_mm,
-#     moment=moment_8s,
-#     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_8,
-#     mom_min=mom_min_8,
-#     bins_mom=bins_mom_8,
-#     temp_min=temp_min,
-#     temp_max=temp_max,
-#     bins_temp=bins_temp,
-#     height_min=height_min,  # in km
-#     height_max=height_max,  # in km
-#     bins_height=bins_height,
-#     vmax=vmax,
-#     filter_entr_ML=filter_entr_ML,
-#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
-# )
-#
-# # Syn 9
+# --------------------------------------------------------------------------- #
+# CBAND SYN 3 row 5
+
+da_run = 'ASS_2411'
+icon_emvorado_run = 'MAIN_2411.1/EMVO_00510000.2/'
+spin_up_mm = '120'
+
+folder_syn = header.dir_data_qvp
+current_row = current_row + 1
+model_name = '-'.join([da_run[4:],
+                        icon_emvorado_run.split('/')[0][5:],
+                        icon_emvorado_run.split('/')[1][5:],
+                        spin_up_mm + 'min'])
+mod_names = '-'.join([mod_names, model_name])
+
+# # Syn 1
 # current_col = 1
 # plot_CFAD_or_CFTD_from_QVP(
 #     dates=dates,
@@ -1169,11 +937,39 @@ plot_CFAD_or_CFTD_from_QVP(
 #     da_run=da_run,
 #     icon_emvorado_run=icon_emvorado_run,
 #     spin_up_mm=spin_up_mm,
-#     moment=moment_9s,
+#     moment=moment_1s,
 #     vert_temp=vert_temp,  # CFTD
-#     mom_max=mom_max_9,
-#     mom_min=mom_min_9,
-#     bins_mom=bins_mom_9,
+#     mom_max=mom_max_1,
+#     mom_min=mom_min_1,
+#     bins_mom=bins_mom_1,
+#     temp_min=temp_min,
+#     temp_max=temp_max,
+#     bins_temp=bins_temp,
+#     height_min=height_min,  # in km
+#     height_max=height_max,  # in km
+#     bins_height=bins_height,
+#     vmax=vmax,
+#     filter_entr_ML=filter_entr_ML,
+#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# )
+#
+# # Syn 2
+# current_col = 2
+# plot_CFAD_or_CFTD_from_QVP(
+#     dates=dates,
+#     hhmm_start=hhmm_start,
+#     hhmm_end=hhmm_end,
+#     locations=locations,
+#     elevation_deg=elevation_deg,
+#     folder_syn=folder_syn,
+#     da_run=da_run,
+#     icon_emvorado_run=icon_emvorado_run,
+#     spin_up_mm=spin_up_mm,
+#     moment=moment_2s,
+#     vert_temp=vert_temp,  # CFTD
+#     mom_max=mom_max_2,
+#     mom_min=mom_min_2,
+#     bins_mom=bins_mom_2,
 #     temp_min=temp_min,
 #     temp_max=temp_max,
 #     bins_temp=bins_temp,
@@ -1185,11 +981,210 @@ plot_CFAD_or_CFTD_from_QVP(
 #     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
 # )
 
+# # Syn 3
+# current_col = 3
+# plot_CFAD_or_CFTD_from_QVP(
+#     dates=dates,
+#     hhmm_start=hhmm_start,
+#     hhmm_end=hhmm_end,
+#     locations=locations,
+#     elevation_deg=elevation_deg,
+#     folder_syn=folder_syn,
+#     da_run=da_run,
+#     icon_emvorado_run=icon_emvorado_run,
+#     spin_up_mm=spin_up_mm,
+#     moment=moment_3s,
+#     vert_temp=vert_temp,  # CFTD
+#     mom_max=mom_max_3,
+#     mom_min=mom_min_3,
+#     bins_mom=bins_mom_3,
+#     temp_min=temp_min,
+#     temp_max=temp_max,
+#     bins_temp=bins_temp,
+#     height_min=height_min,  # in km
+#     height_max=height_max,  # in km
+#     bins_height=bins_height,
+#     vmax=vmax,
+#     filter_entr_ML=filter_entr_ML,
+#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# )
+#
+# # Syn 4
+# current_col = 4
+# plot_CFAD_or_CFTD_from_QVP(
+#     dates=dates,
+#     hhmm_start=hhmm_start,
+#     hhmm_end=hhmm_end,
+#     locations=locations,
+#     elevation_deg=elevation_deg,
+#     folder_syn=folder_syn,
+#     da_run=da_run,
+#     icon_emvorado_run=icon_emvorado_run,
+#     spin_up_mm=spin_up_mm,
+#     moment=moment_4s,
+#     vert_temp=vert_temp,  # CFTD
+#     mom_max=mom_max_4,
+#     mom_min=mom_min_4,
+#     bins_mom=bins_mom_4,
+#     temp_min=temp_min,
+#     temp_max=temp_max,
+#     bins_temp=bins_temp,
+#     height_min=height_min,  # in km
+#     height_max=height_max,  # in km
+#     bins_height=bins_height,
+#     vmax=vmax,
+#     filter_entr_ML=filter_entr_ML,
+#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# )
+
+# # Syn 5
+# current_col = 3
+# plot_CFAD_or_CFTD_from_QVP(
+#     dates=dates,
+#     hhmm_start=hhmm_start,
+#     hhmm_end=hhmm_end,
+#     locations=locations,
+#     elevation_deg=elevation_deg,
+#     folder_syn=folder_syn,
+#     da_run=da_run,
+#     icon_emvorado_run=icon_emvorado_run,
+#     spin_up_mm=spin_up_mm,
+#     moment=moment_5s,
+#     vert_temp=vert_temp,  # CFTD
+#     mom_max=mom_max_5,
+#     mom_min=mom_min_5,
+#     bins_mom=bins_mom_5,
+#     temp_min=temp_min,
+#     temp_max=temp_max,
+#     bins_temp=bins_temp,
+#     height_min=height_min,  # in km
+#     height_max=height_max,  # in km
+#     bins_height=bins_height,
+#     vmax=vmax,
+#     filter_entr_ML=filter_entr_ML,
+#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+#     filter2=filter2
+# )
+#
+# Syn 5 2
+# current_col = 4
+# plot_CFAD_or_CFTD_from_QVP(
+#     dates=dates,
+#     hhmm_start=hhmm_start,
+#     hhmm_end=hhmm_end,
+#     locations=locations,
+#     elevation_deg=elevation_deg,
+#     folder_syn=folder_syn,
+#     da_run=da_run,
+#     icon_emvorado_run=icon_emvorado_run,
+#     spin_up_mm=spin_up_mm,
+#     moment=moment_5s2,
+#     vert_temp=vert_temp,  # CFTD
+#     mom_max=mom_max_5,
+#     mom_min=mom_min_5,
+#     bins_mom=bins_mom_5,
+#     temp_min=temp_min,
+#     temp_max=temp_max,
+#     bins_temp=bins_temp,
+#     height_min=height_min,  # in km
+#     height_max=height_max,  # in km
+#     bins_height=bins_height,
+#     vmax=vmax,
+#     filter_entr_ML=filter_entr_ML,
+#     ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+# )
+
+# Syn 7
+current_col = 3
+plot_CFAD_or_CFTD_from_QVP(
+    dates=dates,
+    hhmm_start=hhmm_start,
+    hhmm_end=hhmm_end,
+    locations=locations,
+    elevation_deg=elevation_deg,
+    folder_syn=folder_syn,
+    da_run=da_run,
+    icon_emvorado_run=icon_emvorado_run,
+    spin_up_mm=spin_up_mm,
+    moment=moment_7s,
+    vert_temp=vert_temp,  # CFTD
+    mom_max=mom_max_7,
+    mom_min=mom_min_7,
+    bins_mom=bins_mom_7,
+    temp_min=temp_min,
+    temp_max=temp_max,
+    bins_temp=bins_temp,
+    height_min=height_min,  # in km
+    height_max=height_max,  # in km
+    bins_height=bins_height,
+    vmax=vmax,
+    filter_entr_ML=filter_entr_ML,
+    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+)
+
+# Syn 8
+current_col = 2
+plot_CFAD_or_CFTD_from_QVP(
+    dates=dates,
+    hhmm_start=hhmm_start,
+    hhmm_end=hhmm_end,
+    locations=locations,
+    elevation_deg=elevation_deg,
+    folder_syn=folder_syn,
+    da_run=da_run,
+    icon_emvorado_run=icon_emvorado_run,
+    spin_up_mm=spin_up_mm,
+    moment=moment_8s,
+    vert_temp=vert_temp,  # CFTD
+    mom_max=mom_max_8,
+    mom_min=mom_min_8,
+    bins_mom=bins_mom_8,
+    temp_min=temp_min,
+    temp_max=temp_max,
+    bins_temp=bins_temp,
+    height_min=height_min,  # in km
+    height_max=height_max,  # in km
+    bins_height=bins_height,
+    vmax=vmax,
+    filter_entr_ML=filter_entr_ML,
+    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+)
+
+# Syn 9
+current_col = 1
+plot_CFAD_or_CFTD_from_QVP(
+    dates=dates,
+    hhmm_start=hhmm_start,
+    hhmm_end=hhmm_end,
+    locations=locations,
+    elevation_deg=elevation_deg,
+    folder_syn=folder_syn,
+    da_run=da_run,
+    icon_emvorado_run=icon_emvorado_run,
+    spin_up_mm=spin_up_mm,
+    moment=moment_9s,
+    vert_temp=vert_temp,  # CFTD
+    mom_max=mom_max_9,
+    mom_min=mom_min_9,
+    bins_mom=bins_mom_9,
+    temp_min=temp_min,
+    temp_max=temp_max,
+    bins_temp=bins_temp,
+    height_min=height_min,  # in km
+    height_max=height_max,  # in km
+    bins_height=bins_height,
+    vmax=vmax,
+    filter_entr_ML=filter_entr_ML,
+    ax=plt.subplot(n_rows, n_cols, (current_row - 1) * n_cols + current_col),
+)
+
 # --------------------------------------------------------------------------- #
 # CBAND SYN 4 row 5
 
+# da_run = 'ASS_2411'
+# icon_emvorado_run = 'MAIN_2411.6/EMVO_00510000.2/'
 da_run = 'ASS_2411'
-icon_emvorado_run = 'MAIN_2411.6/EMVO_00510000.2/'
+icon_emvorado_run = 'MAIN_2411.61/EMVO_00510000.2/'
 spin_up_mm = '120'
 
 folder_syn = header.dir_data_qvp

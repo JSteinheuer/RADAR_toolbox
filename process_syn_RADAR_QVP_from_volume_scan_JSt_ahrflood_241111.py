@@ -60,7 +60,7 @@ for da_run in [
         ]:
             for day in [
                 '20210714',
-                # '20210713',
+                '20210713',
             ]:
                 icon_emvorado_run = icon_run + '/' + emvorado_run
                 spin_up_mm = 120
@@ -85,14 +85,15 @@ for da_run in [
     'ASS_2411',
 ]:
     for icon_run in [
-        'MAIN_2411.6',
+        # 'MAIN_2411.6',
+        'MAIN_2411.61',  # 15.01.25
     ]:
         for emvorado_run in [
             'EMVO_00510000.2',
         ]:
             for day in [
                 '20210714',
-                # '20210713',
+                '20210713',
             ]:
                 icon_emvorado_run = icon_run + '/' + emvorado_run
                 spin_up_mm = 120

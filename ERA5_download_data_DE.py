@@ -28,6 +28,7 @@ DATES = ["20210604",  # case01
          "20221222",  # case10
          "20170719",  # case old
          "20170725",  # case old
+         "20220102",  # case Schmuh
          ]
 dir_out = header.dir_data_era5
 overwrite = False
