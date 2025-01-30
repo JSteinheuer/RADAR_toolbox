@@ -25,6 +25,8 @@ import warnings
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 warnings.filterwarnings("ignore")
+import time as time_p
+import datetime as dt
 
 
 # V. Pejcic
@@ -1098,7 +1100,23 @@ def calibrate_zdr_with_plot(date, location,
             ax = plt.subplot(n_rows, n_cols, index + 0 * n_cols)
             bb_off, bb_nm, bb_sd = cal_zdr_birdbath(data, plot=True, ax=ax)
             ax.set_title('$90°$ ' + location.upper() + ' ' + date)
-            if not overwrite and os.path.exists(path_out_nc):
+            if type(overwrite) == str and os.path.isfile(path_out_nc):
+                out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+                file_date = dt.datetime.strptime(
+                    time_p.strftime("%Y-%m-%d", time_p.localtime(
+                        os.path.getctime(path_out_nc))), '%Y-%m-%d')
+                if out_of_date > file_date:
+                    print('exists: ' + path_out_nc + '\n' +
+                          ' ... but out-of-date as ' +
+                          out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                          file_date.strftime("%Y-%m-%d"))
+                    overwrite_i = True
+                else:
+                    overwrite_i = False
+            else:
+                overwrite_i = False
+
+            if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
             else:
                 remo_var = list(data.data_vars.keys())
@@ -1203,7 +1221,23 @@ def calibrate_zdr_with_plot(date, location,
                 cal_zdr_smalldrops(data2, band='C', plot=[True, False],
                                    axes=axes, colorbar=colorbar)
             path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
-            if not overwrite and os.path.exists(path_out_nc):
+            if type(overwrite) == str and os.path.isfile(path_out_nc):
+                out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+                file_date = dt.datetime.strptime(
+                    time_p.strftime("%Y-%m-%d", time_p.localtime(
+                        os.path.getctime(path_out_nc))), '%Y-%m-%d')
+                if out_of_date > file_date:
+                    print('exists: ' + path_out_nc + '\n' +
+                          ' ... but out-of-date as ' +
+                          out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                          file_date.strftime("%Y-%m-%d"))
+                    overwrite_i = True
+                else:
+                    overwrite_i = False
+            else:
+                overwrite_i = False
+
+            if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
             else:
                 remo_var = list(data.data_vars.keys())

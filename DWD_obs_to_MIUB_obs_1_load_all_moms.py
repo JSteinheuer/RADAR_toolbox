@@ -31,6 +31,8 @@ from pathlib import Path
 import os
 import xarray as xr
 import xradar as xd
+import time as time_p
+import datetime as dt
 
 sys.path.insert(0, header.dir_projects +
                 'RADAR_toolbox/radar_processing_scripts/')
@@ -308,8 +310,9 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                         if 'zdr_off' not in file:
                             if 'zh_zdr_ac' not in file:
                                 if 'polmoms' not in file:
-                                    if 'vradh' not in file:
-                                        files_temp.append(file)
+                                    files_temp.append(file)
+                                    # if 'vradh' not in file:
+                                    #     files_temp.append(file) # TODO: why?
 
     files = files_temp
     if not files:
@@ -344,8 +347,9 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                         if 'zdr_off' not in file:
                             if 'zh_zdr_ac' not in file:
                                 if 'polmoms' not in file:
-                                    if 'vradh' not in file:
-                                        files_temp.append(file)
+                                    files_temp.append(file)
+                                    # if 'vradh' not in file:
+                                    #     files_temp.append(file)  # TODO: why
 
     files = files_temp
     name = files[0].split("/")[-1].split("_")
@@ -361,6 +365,22 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
     name_out = ("_".join(name))
     file_out = '/'.join([path_out, name_out])
     Path(path_out).mkdir(parents=True, exist_ok=True)
+    if type(overwrite) == str and os.path.isfile(file_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(file_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print('exists: ' + file_out + '\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
+
     if not overwrite and os.path.exists(file_out):
         print('exists: ' + file_out + ' -> continue')
         return
@@ -392,16 +412,16 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20210604",  # case01
-    "20210620", "20210621",  # case02
-    "20210628", "20210629",  # case03
-    "20220519", "20220520",  # case04
-    "20220623", "20220624", "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
+    # "20210604",  # case01
+    # "20210620", "20210621",  # case02
+    # "20210628", "20210629",  # case03
+    # "20220519", "20220520",  # case04
+    # "20220623", "20220624", "20220625",  # case05
+    # "20220626", "20220627", "20220628",  # case06+07
+    # "20220630", "20220701",  # case08
     "20210713",  # case09
     "20210714",  # case09
-    "20221222",  # case10
+    # "20221222",  # case10
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -420,6 +440,8 @@ MODE = [
 moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC',
            'VRADH', ]
 overwrite = False
+overwrite = True
+overwrite = '2025-01-28'
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:
@@ -456,12 +478,12 @@ moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC',
 overwrite = False
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
-for date in DATES:
-    for location in LOCATIONS:
-        for elevation_deg in ELEVATIONS:
-            for mode in MODE:
-                load_all_moms(date, location, elevation_deg,
-                              mode, moments, overwrite)
+# for date in DATES:
+#     for location in LOCATIONS:
+#         for elevation_deg in ELEVATIONS:
+#             for mode in MODE:
+#                 load_all_moms(date, location, elevation_deg,
+#                               mode, moments, overwrite)
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?

@@ -28,6 +28,8 @@ from scipy.ndimage import uniform_filter, gaussian_filter
 import sys
 import time
 import warnings
+import time as time_p
+import datetime as dt
 
 warnings.filterwarnings("ignore")
 import wradlib as wrl
@@ -321,8 +323,9 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                         if 'zdr_off' not in file:
                             if 'zh_zdr_ac' not in file:
                                 if 'polmoms' not in file:
-                                    if 'vradh' not in file:
-                                        files_temp.append(file)
+                                    files_temp.append(file)
+                                    # if 'vradh' not in file:
+                                    #     files_temp.append(file)  # TODO: why
 
     files = files_temp
     if not files:
@@ -357,8 +360,9 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
                         if 'zdr_off' not in file:
                             if 'zh_zdr_ac' not in file:
                                 if 'polmoms' not in file:
-                                    if 'vradh' not in file:
-                                        files_temp.append(file)
+                                    files_temp.append(file)
+                                    # if 'vradh' not in file:
+                                    #     files_temp.append(file)  # TODO: why
 
     files = files_temp
     name = files[0].split("/")[-1].split("_")
@@ -374,6 +378,22 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
     name_out = ("_".join(name))
     file_out = '/'.join([path_out, name_out])
     Path(path_out).mkdir(parents=True, exist_ok=True)
+    if type(overwrite) == str and os.path.isfile(file_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(file_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print('exists: ' + file_out + '\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
+
     if not overwrite and os.path.exists(file_out):
         print('exists: ' + file_out + ' -> continue')
         return
@@ -495,6 +515,22 @@ def correct_rho_hv(date, location, elevation_deg=5.5, mode='vol',
     else:
         path_in = files[0]
         path_out = path_in.replace('_allmoms_', '_rhohv_nc_')
+
+    if type(overwrite) == str and os.path.isfile(path_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(path_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print('exists: ' + path_out + '\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')
@@ -858,6 +894,22 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
         path_out = path_in.replace('_allmoms_', '_ERA5_temp_')
         if len(files) > 1:
             print('More than 1 input -> take files[0]: ' + path_in)
+
+    if type(overwrite) == str and os.path.isfile(path_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(path_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print('exists: ' + path_out + '\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')
@@ -1400,10 +1452,26 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
             path_out = path_in.replace(
                 '_allmoms_', '_kdp_nc_' + str(p) + '_')
 
-        if (os.path.isfile(path_out) and not overwrite) or \
+        if type(overwrite) == str and os.path.isfile(path_out):
+            out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+            file_date = dt.datetime.strptime(
+                time_p.strftime("%Y-%m-%d", time_p.localtime(
+                    os.path.getctime(path_out))), '%Y-%m-%d')
+            if out_of_date > file_date:
+                print('exists: ' + path_out + '\n' +
+                      ' ... but out-of-date as ' +
+                      out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                      file_date.strftime("%Y-%m-%d"))
+                overwrite_i = True
+            else:
+                overwrite_i = False
+        else:
+            overwrite_i = False
+
+        if (os.path.isfile(path_out) and not overwrite_i) or \
                 (os.path.isfile(path_out.replace(
                     '_kdp_nc_' + str(p), '_kdp_nc'))
-                 and not overwrite):
+                 and not overwrite_i):
             print(path_out + ' exists;\n' + ' ... set: > ' +
                   'overwrite = True < for recalculation')
             merge_files.append(path_out)
@@ -1471,6 +1539,22 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
     if merge and merge_files != []:
         path_out_new = merge_files[0].replace(
             'kdp_nc_0_', 'kdp_nc_')
+        if type(overwrite) == str and os.path.isfile(path_out_new):
+            out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+            file_date = dt.datetime.strptime(
+                time_p.strftime("%Y-%m-%d", time_p.localtime(
+                    os.path.getctime(path_out_new))), '%Y-%m-%d')
+            if out_of_date > file_date:
+                print('exists: ' + path_out_new + '\n' +
+                      ' ... but out-of-date as ' +
+                      out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                      file_date.strftime("%Y-%m-%d"))
+                overwrite = True
+            else:
+                overwrite = False
+        else:
+            overwrite = False
+
         if os.path.isfile(path_out_new) and not overwrite:
             print(path_out_new + ' exists;\n' + ' ... set: ' +
                   '> overwrite = True < for recalculation')
@@ -1614,6 +1698,22 @@ def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
         path_in = files[0]
 
     path_out = path_in.replace('_allmoms_', '_zh_zdr_ac_')
+    if type(overwrite) == str and os.path.isfile(path_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(path_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print('exists: ' + path_out + '\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
+
     if os.path.isfile(path_out) and not overwrite:
         print(path_out + ' exists;\n' + ' ... set: > ' +
               'overwrite = True < for recalculation')
@@ -2751,7 +2851,23 @@ def calibrate_zdr_with_plot(date, location,
             ax = plt.subplot(n_rows, n_cols, index + 0 * n_cols)
             bb_off, bb_nm, bb_sd = cal_zdr_birdbath(data, plot=True, ax=ax)
             ax.set_title('$90°$ ' + location.upper() + ' ' + date)
-            if not overwrite and os.path.exists(path_out_nc):
+            if type(overwrite) == str and os.path.isfile(path_out_nc):
+                out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+                file_date = dt.datetime.strptime(
+                    time_p.strftime("%Y-%m-%d", time_p.localtime(
+                        os.path.getctime(path_out_nc))), '%Y-%m-%d')
+                if out_of_date > file_date:
+                    print('exists: ' + path_out_nc + '\n' +
+                          ' ... but out-of-date as ' +
+                          out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                          file_date.strftime("%Y-%m-%d"))
+                    overwrite_i = True
+                else:
+                    overwrite_i = False
+            else:
+                overwrite_i = False
+
+            if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
             else:
                 remo_var = list(data.data_vars.keys())
@@ -2856,7 +2972,23 @@ def calibrate_zdr_with_plot(date, location,
                 cal_zdr_smalldrops(data2, band='C', plot=[True, False],
                                    axes=axes, colorbar=colorbar)
             path_out_nc = nc_file_mom.replace('_allmoms_', '_zdr_off_')
-            if not overwrite and os.path.exists(path_out_nc):
+            if type(overwrite) == str and os.path.isfile(path_out_nc):
+                out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+                file_date = dt.datetime.strptime(
+                    time_p.strftime("%Y-%m-%d", time_p.localtime(
+                        os.path.getctime(path_out_nc))), '%Y-%m-%d')
+                if out_of_date > file_date:
+                    print('exists: ' + path_out_nc + '\n' +
+                          ' ... but out-of-date as ' +
+                          out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                          file_date.strftime("%Y-%m-%d"))
+                    overwrite_i = True
+                else:
+                    overwrite_i = False
+            else:
+                overwrite_i = False
+
+            if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
             else:
                 remo_var = list(data.data_vars.keys())
@@ -3196,6 +3328,22 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             method_zdr_priorities.remove('LR_V')
 
     path_out = path_in.replace('_allmoms_', '_polmoms_nc_')
+    if type(overwrite) == str and os.path.isfile(path_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(path_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print('exists: ' + path_out + '\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
+
     if os.path.isfile(path_out) and not overwrite:
         print(path_out + ' exists;\n' + ' ... set: > ' +
               'overwrite = True < for recalculation')

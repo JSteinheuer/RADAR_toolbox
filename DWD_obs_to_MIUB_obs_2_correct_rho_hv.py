@@ -23,6 +23,8 @@ import glob
 import HEADER_RADAR_toolbox as header
 import os
 import xarray as xr
+import time as time_p
+import datetime as dt
 
 sys.path.insert(0, header.dir_projects +
                 'RADAR_toolbox/radar_processing_scripts/')
@@ -126,6 +128,22 @@ def correct_rho_hv(date, location , elevation_deg=5.5, mode='vol',
     else:
         path_in = files[0]
         path_out = path_in.replace('_allmoms_', '_rhohv_nc_')
+
+    if type(overwrite) == str and os.path.isfile(path_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(path_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print('exists: ' + path_out + '\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')

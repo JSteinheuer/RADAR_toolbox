@@ -355,6 +355,24 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
 
     file_out = file_out + radar_loc + '_' + dti[0].strftime('%Y%m%d%H%M') + \
                '_' + dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+    if type(overwrite) == str and os.path.isfile(dir_out + file_out):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(dir_out+file_out))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print(radar_loc, '   -   ', time_start, '-', time_end[-2:])
+            print(file_out + ' exists;\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            print('___________________________')
+            overwrite = True
+        else:
+            overwrite = False
+    else:
+        overwrite = False
+
     if os.path.isfile(dir_out + file_out) and not overwrite:
         print(radar_loc, '   -   ', time_start, '-', time_end[-2:])
         print(file_out + ' exists;\n' +
@@ -1490,13 +1508,7 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
         vol_scan = vol_scan.transpose(
             'time',  'range', 'azimuth', 'elevation', )
         vol_scan.to_netcdf(dir_out + file_out, unlimited_dims='time')
-        print('    ! Save done now !      ')
-        print(f"... which took "
-              f"{(time_p.time() - current_time) / 60:.2f} min ...")
         vol_scan.close()
-        print('    ! Close done now !      ')
-        print(f"... which took "
-              f"{(time_p.time() - current_time) / 60:.2f} min ...")
         print('    ! Case done now !      ')
         print(f"... which took "
               f"{(time_p.time() - current_time) / 60:.2f} min ...")

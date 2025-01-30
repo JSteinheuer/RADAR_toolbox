@@ -21,6 +21,8 @@ import xarray as xr
 from scipy.ndimage import uniform_filter, gaussian_filter
 import time
 import warnings
+import time as time_p
+import datetime as dt
 
 warnings.filterwarnings("ignore")
 
@@ -377,10 +379,26 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
             path_out = path_in.replace(
                 '_allmoms_', '_kdp_nc_' + str(p) + '_')
 
-        if (os.path.isfile(path_out) and not overwrite) or \
+        if type(overwrite) == str and os.path.isfile(path_out):
+            out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+            file_date = dt.datetime.strptime(
+                time_p.strftime("%Y-%m-%d", time_p.localtime(
+                    os.path.getctime(path_out))), '%Y-%m-%d')
+            if out_of_date > file_date:
+                print('exists: ' + path_out + '\n' +
+                      ' ... but out-of-date as ' +
+                      out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                      file_date.strftime("%Y-%m-%d"))
+                overwrite_i = True
+            else:
+                overwrite_i = False
+        else:
+            overwrite_i = False
+
+        if (os.path.isfile(path_out) and not overwrite_i) or \
                 (os.path.isfile(path_out.replace(
                     '_kdp_nc_' + str(p), '_kdp_nc'))
-                 and not overwrite):
+                 and not overwrite_i):
             print(path_out + ' exists;\n' + ' ... set: > ' +
                   'overwrite = True < for recalculation')
             merge_files.append(path_out)
@@ -448,6 +466,22 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
     if merge and merge_files != []:
         path_out_new = merge_files[0].replace(
             'kdp_nc_0_', 'kdp_nc_')
+        if type(overwrite) == str and os.path.isfile(path_out_new):
+            out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+            file_date = dt.datetime.strptime(
+                time_p.strftime("%Y-%m-%d", time_p.localtime(
+                    os.path.getctime(path_out_new))), '%Y-%m-%d')
+            if out_of_date > file_date:
+                print('exists: ' + path_out_new + '\n' +
+                      ' ... but out-of-date as ' +
+                      out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                      file_date.strftime("%Y-%m-%d"))
+                overwrite = True
+            else:
+                overwrite = False
+        else:
+            overwrite = False
+
         if os.path.isfile(path_out_new) and not overwrite:
             print(path_out_new + ' exists;\n' + ' ... set: ' +
                   '> overwrite = True < for recalculation')
