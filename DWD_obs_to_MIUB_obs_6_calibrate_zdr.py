@@ -20,7 +20,6 @@ import HEADER_RADAR_toolbox as header
 import os
 import xarray as xr
 from scipy.ndimage import uniform_filter, gaussian_filter
-import time
 import warnings
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm

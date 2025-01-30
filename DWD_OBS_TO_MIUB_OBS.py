@@ -26,7 +26,6 @@ import pandas as pd
 from pathlib import Path
 from scipy.ndimage import uniform_filter, gaussian_filter
 import sys
-import time
 import warnings
 import time as time_p
 import datetime as dt
@@ -1410,7 +1409,7 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
     [...]
     """
     parts_current = parts
-    time_a = time.time()
+    time_a = time_p.time()
     year = date[0:4]
     mon = date[4:6]
     day = date[6:8]
@@ -1427,8 +1426,8 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
 
     merge_files = []
     for p in range(parts):
-        time_f = time.time()
-        time_l = time.time()
+        time_f = time_p.time()
+        time_l = time_p.time()
         i_t_a = int(288 / parts * p)
         i_t_b = int(288 / parts * (p + 1))
         path_in = "/".join([dir_data_obs + '*',
@@ -1501,8 +1500,8 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
         else:
             flip_default = 1
 
-        time_l = time.time() - time_l
-        time_p = time.time()
+        time_l = time_p.time() - time_l
+        time_pp = time_p.time()
         data = proc_phidp_kdp(data,
                               uh_tresh=uh_tresh,
                               rho_tresh=rho_tresh,
@@ -1513,8 +1512,8 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
                               wkdp_heavy=wkdp_heavy,
                               rng=rng,
                               flip_default=flip_default)
-        time_p = time.time() - time_p
-        time_s = time.time()
+        time_pp = time_p.time() - time_pp
+        time_s = time_p.time()
         mom_use = [x for x in list(data.keys())]
         for mom in mom_use:
             data[mom].encoding["coordinates"] = \
@@ -1528,11 +1527,11 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
         data.close()
         print('saved (' + str(p + 1) + '/' + str(parts_current) +
               '): ' + path_out + ' !')
-        time_s = time.time() - time_s
-        time_f = time.time() - time_f
+        time_s = time_p.time() - time_s
+        time_f = time_p.time() - time_f
         print('full time: ' + str(round(time_f, 1)) +
               's: 1/3: loading time: ' + str(round(time_l, 1)) +
-              's; 2/3: processing time: ' + str(round(time_p, 1)) +
+              's; 2/3: processing time: ' + str(round(time_pp, 1)) +
               's; 3/3: saving time: ' + str(round(time_s, 1)) +
               's')
 
@@ -1579,7 +1578,7 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
             dtree.load().to_netcdf(path_out_new)
             data_merged.close()
             print('combined:  ' + path_out_new + ' !')
-            time_a = time.time() - time_a
+            time_a = time_p.time() - time_a
             print(' -> full case: ' +
                   str(round(time_a, 1)) + 's\n')
             if remove_parts:
