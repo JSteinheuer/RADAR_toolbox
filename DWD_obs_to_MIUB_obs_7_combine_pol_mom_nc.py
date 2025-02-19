@@ -178,8 +178,6 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if os.path.isfile(path_out) and not overwrite:
         print(path_out + ' exists;\n' + ' ... set: > ' +
@@ -208,6 +206,19 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 
         if 'LR_I' in method_zdr_priorities:
             method_zdr_priorities.remove('LR_I')
+
+    else:
+        data_zdr_off = dttree.open_datatree(path_zdr_off)[
+            'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
+        if 'zdr_off_das_n_ppi' not in data_zdr_off.variables.keys():
+            if 'PPI_DAS' in method_zdr_priorities:
+                method_zdr_priorities.remove('PPI_DAS')
+
+        if 'zdr_off_sd_n_ppi' not in data_zdr_off.variables.keys():
+            if 'PPI' in method_zdr_priorities:
+                method_zdr_priorities.remove('PPI')
+
+        data_zdr_off.close()
 
     path_zhzdr_ac = path_in.replace('_allmoms_', '_zh_zdr_ac_')
     if not os.path.exists(path_zhzdr_ac):
@@ -240,6 +251,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 
     data_combined = data_combined.assign({'RHOHV_NC2P': data_rho.RHOHV_NC2P})
     data_combined.RHOHV_NC2P.values = data_rho.RHOHV_NC2P.values
+    data_combined = data_combined.assign({'SNRH': data_rho.SNRH})
+    data_combined.SNRH.values = data_rho.SNRH.values
     data_combined = data_combined.assign(
         {'ZH_AC': data_ac.ZH_AC.reindex_like(
             other=data_rho.RHOHV_NC2P, method='nearest')})
@@ -270,6 +283,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                 data_bb.close()
             else:
                 off_bb = 0
+        else:
+            off_bb = 0
 
         if method_zdr == 'BB':
             data_bb = dttree.open_datatree(path_in_bb)[
@@ -342,7 +357,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             of_all = np.nansum(sd_n_ppi * of_sd_ppi + lr_n_ppi * of_lr_ppi) / \
                      np.nansum(sd_n_ppi + lr_n_ppi)
             if (np.nansum(sd_n_ppi + lr_n_ppi)) < n_zdr_lowest:
-                of_all=off_bb
+                of_all = off_bb
 
             of_sd_ppi = of_sd_ppi.where(sd_n_ppi > n_zdr_lowest)
             of_lr_ppi = of_lr_ppi.where(lr_n_ppi > n_zdr_lowest)
@@ -553,7 +568,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined['time'].encoding["units"] = "seconds since " + \
                                               year + "-" + mon + "-" + day
     data_combined['time'].attrs["comment"] = "UTC"
-    data_combined['ZDR_AC_OC'].attrs["short_name"] = "ZH ac oc"
+    data_combined['ZDR_AC_OC'].attrs["short_name"] = "ZDR ac oc"  # TODO: wrong befor 25-02-19
     dtree = dttree.DataTree(name="root")
     dttree.DataTree(data_combined, name=f"sweep_{int(sweep)}",
                     parent=dtree)
@@ -574,21 +589,23 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 # --------------------------------------------------------------------------- #
 # SET PARAMS:
 DATES = [
-    "20210604",  # case01
-    "20210620", "20210621",  # case02
-    "20210628", "20210629",  # case03
-    "20220519", "20220520",  # case04
-    "20220623", "20220624", "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
-    "20210713",  # case09
+    # "20210604",  # case01
+    # "20210620", "20210621",  # case02
+    # "20210628", "20210629",  # case03
+    # "20220519", "20220520",  # case04
+    # "20220623", "20220624", "20220625",  # case05
+    # "20220626", "20220627", "20220628",  # case06+07
+    # "20220630", "20220701",  # case08
+    # "20210713",  # case09
     "20210714",  # case09
-    "20221222",  # case10
+    # "20221222",  # case10
 ]
 LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
-    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
-    'oft', 'pro', 'ros', 'tur', 'umd',
+    # 'asb', 'boo', 'drs', 'eis',
+    'ess',
+    # 'fbg',
+    # 'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    # 'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
     5.5,
@@ -600,6 +617,7 @@ MODE = [
     'vol',
 ]
 overwrite = True
+overwrite = '2025-01-28'
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:
 for date in DATES:

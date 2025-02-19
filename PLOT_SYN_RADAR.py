@@ -579,6 +579,291 @@ def plot_syn_PPI_temp_ring(nc_file,
     ax.set_ylabel("northing [km]")
 
 
+def mom_plot_dict(mom_name='zh'):
+    if mom_name in ['zh', 'ZH', 'ZH_AC', 'zrsim']:
+        return dict(mom_name=mom_name, mom_min=0, mom_max=40, bins_mom=30, )
+    elif mom_name in ['zdr', 'zdrsim', 'ZDR', 'ZDR_AC_OC']:
+        return dict(mom_name=mom_name, mom_min=-0.5, mom_max=3, bins_mom=40, )
+    elif mom_name in ['kdpsim', 'KDP',  'KDP_NC',
+                    'kdpsim_ml_corrected', 'KDP_ML_corrected']:
+        return dict(mom_name=mom_name, mom_min=0, mom_max=0.3, bins_mom=40, )
+    elif mom_name in ['rho', 'rhvsim', 'RHOHV', 'RHOHV_NC2P', ]:
+        # return dict(mom_name=mom_name, mom_min=0.951, mom_max=1.051,
+        return dict(mom_name=mom_name, mom_min=0.925, mom_max=1.025,
+                    bins_mom=25, )
+                    # bins_mom=40, )
+    else:
+        print('unknown moment: ' + mom_name)
+        return dict(mom_name=mom_name, mom_min=-20, mom_max=20,
+                    bins_mom=40, )
+
+
+def plot_CFAD_or_CFTD_from_QVP_with_list(
+        locations=['PRO'],
+        dates=['20170725'],
+        hhmm_start='00:00',
+        hhmm_end='23:55',
+        elevation_deg=12,
+        paths_in=None,
+        title=None,
+        da_icon_emvorado_run='ASS_2211/MAIN_2401.3/EMVO_00500000.2',
+        spin_up_mm='60',
+        moment='zrsim',
+        mom_min=None,
+        mom_max=None,
+        bins_mom=None,
+        vert_temp=True,  # CFTD
+        temp_min=-20,
+        temp_max=16,
+        bins_temp=18,
+        height_min=0,  # in km
+        height_max=10,  # in km
+        bins_height=20,
+        vmax=15,
+        filter_entr=False,
+        filter_moms=True,
+        ax=None,
+        save=False,
+        save_path=header.folder_plot + 'CFADs/',
+        save_name='test_CFAD'
+):
+    # locations = ['PRO']
+    # dates = ['20170725']
+    # hhmm_start = '00:00'
+    # hhmm_end = '23:55'
+    # elevation_deg = 12
+    # paths_in = ['/automount/data02/agradar/operation_hydrometeors/data/QVP/20170725/ASS_2211/MAIN_2401.3/EMVO_00500000.2/60min_spinup/QVP_12_Syn_PRO_201707250000_201707252355.nc']
+    # paths_in = ['/automount/data02/agradar/operation_hydrometeors/data/obs_qvp/OpHymet2-caseX-20170725/2017/2017-07/2017-07-25/pro/vol5minng01/07/ras07-qvp5minng01_sweeph5onem_polmoms_nc_07-201707250003-201707252358-pro-10392.hd5']
+    # title = None
+    # da_icon_emvorado_run = 'ASS_2211/MAIN_2401.3/EMVO_00500000.2'
+    # da_icon_emvorado_run = None
+    # spin_up_mm = '60'
+    # moment = 'zrsim'
+    # moment = 'ZH_AC'
+    # mom_min = 0
+    # mom_max = 40
+    # bins_mom = 40
+    # vert_temp = True # CFTD
+    # temp_min = -20
+    # temp_max = 16
+    # bins_temp = 18
+    # height_min = 0  # in km
+    # height_max = 10  # in km
+    # bins_height = 20
+    # vmax = None
+    # filter_entr = False
+    # ax = None
+    # save = False
+    # save_path = header.folder_plot + 'CFADs/'
+    # save_name = 'test_CFAD'
+
+    sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
+                               float(elevation_deg))[0][0])
+    if not isinstance(dates, list):
+        dates = [dates]
+
+    if not isinstance(locations, list):
+        locations = [locations]
+
+    if paths_in is None:
+        if da_icon_emvorado_run is None:
+            paths_in = glob.glob('/'.join([header.dir_obs_qvp + '*', '*',
+                                           '*', '*', '*', '*', sweep, '*', ]))
+        else:
+            paths_in = glob.glob('/'.join([header.dir_data_qvp + '*',
+                                           da_icon_emvorado_run + '/' +
+                                           str(spin_up_mm) +
+                                           'min_spinup/QVP_' +
+                                           str(elevation_deg) + '_Syn_*', ]))
+
+    if not isinstance(paths_in, list):
+        paths_in = [paths_in]
+
+    if mom_max is None:
+        mom_max = mom_plot_dict(moment)['mom_max']
+
+    if mom_min is None:
+        mom_min = mom_plot_dict(moment)['mom_min']
+
+    if bins_mom is None:
+        bins_mom = mom_plot_dict(moment)['bins_mom']
+
+    mom_all = np.array([], )
+    y_all = np.array([], )
+    weights_all = np.array([], )
+    n_cases = 0
+    if da_icon_emvorado_run:  # Synthetic
+        if not title:
+            title = '-'.join([da_icon_emvorado_run[4:8],
+                              da_icon_emvorado_run[14:20],
+                              da_icon_emvorado_run[26:36],
+                              spin_up_mm + 'min'])
+    else:  # Observation
+        if not title:
+            title = 'C-band Observations'
+
+    for path_in in paths_in:
+        # check for proper files
+        file_in = path_in.split('/')[-1]
+        if da_icon_emvorado_run:  # Synthetic
+            date = file_in.split('_')[4][:8]
+            if (da_icon_emvorado_run + '/' + str(spin_up_mm) +
+                'min_spinup/QVP_' + str(elevation_deg) + '_Syn_' in path_in) \
+                    and (file_in.split('_')[1] == str(elevation_deg)) \
+                    and (file_in.split('_')[3] in locations) \
+                    and (date in dates)\
+                    and (date == path_in.split('/')[-6]):
+                year = date[0:4]
+                mon = date[4:6]
+                day = date[6:8]
+                date_start = '-'.join([year, mon, day, hhmm_start])
+                date_end = '-'.join([year, mon, day, hhmm_end])
+            else:
+                # print('Not used: ' + path_in)
+                continue
+
+        else:  # Observation
+            date = file_in.split('-')[2][:8]
+            if ('/obs_qvp/' in path_in) \
+                    and (path_in.split('/')[-2] == sweep) \
+                    and (path_in.split('/')[-4].upper() in locations) \
+                    and (date in dates) \
+                    and ('_polmoms_nc' in file_in):
+                year = date[0:4]
+                mon = date[4:6]
+                day = date[6:8]
+                date_start = '-'.join([year, mon, day, hhmm_start])
+                date_end = '-'.join([year, mon, day, hhmm_end])
+            else:
+                # print('Not used: ' + path_in)
+                continue
+
+        print('Included: ' + path_in)
+        n_cases = n_cases + 1
+        # OPEN
+        file_nc = xr.open_dataset(path_in).transpose('time', ...)
+        file_nc = file_nc.sel(time=slice(date_start, date_end))
+        if filter_entr:
+            file_nc = xr.where(file_nc['min_entropy'] > 0.8,
+                               file_nc, np.nan)
+
+        if filter_moms:
+            if da_icon_emvorado_run:  # Synthetic
+                zh = file_nc['zrsim']
+                zdr = file_nc['zdrsim']
+                kdp = file_nc['kdpsim']
+                rho = file_nc['rhvsim']
+            else:  # Observations
+                zh = file_nc['ZH_AC']
+                zdr = file_nc['ZDR_AC_OC']
+                kdp = file_nc['KDP_NC']
+                rho = file_nc['RHOHV_NC2P']
+
+            file_nc = xr.where(zh > 0, file_nc, np.nan)
+            file_nc = xr.where(zh < 80, file_nc, np.nan)
+            file_nc = xr.where(zdr > -1, file_nc, np.nan)
+            file_nc = xr.where(zdr < 8, file_nc, np.nan)
+            file_nc = xr.where(rho > .7, file_nc, np.nan)
+            file_nc = xr.where(rho < 1.1, file_nc, np.nan)
+            file_nc = xr.where(kdp > -1, file_nc, np.nan)
+            file_nc = xr.where(kdp < 8, file_nc, np.nan)
+
+        if moment in list(file_nc.keys()):
+            mom = file_nc[moment].values
+        else:
+            print(moment + ' not in ' + file_in)
+            continue
+
+        if vert_temp:
+            y = file_nc.temp.values
+            y_min, y_max, bins_y = temp_min, temp_max, bins_temp
+            if 'units' in file_nc.temp.attrs:  # else: TS in °C
+                if file_nc.temp.units == 'K':
+                    y = y - 273.15
+        else:
+            y = np.array([file_nc.height.values] * file_nc.time.size) / 1000
+            y_min, y_max, bins_y = height_min, height_max, bins_height
+            if 'units' in file_nc.height.attrs:  # else: TS in m
+                if file_nc.height.units == 'km':
+                    y = y * 1000
+
+        mom_min_outer = 2 * mom_min - mom_max  # TODO: necessary?
+        mom_max_outer = 2 * mom_max - mom_min  # TODO: necessary?
+        # mom_min_outer = mom_min   # TODO: necessary?
+        # mom_max_outer = mom_max   # TODO: necessary?
+        mask = (y >= y_min) & (y <= y_max) & \
+               (mom >= -999) & (mom <= 999)
+        mom = mom[mask]
+        y = y[mask]
+        i_sort = np.argsort(y)
+        mom = mom[i_sort]
+        y = y[i_sort]
+        if ax is None:
+            plt.figure(figsize=(6, 5))
+
+        a = plt.hist(y, bins=bins_y, range=(y_min, y_max))
+        weights = np.repeat(100 / a[0], np.int16(a[0]))
+        mom_all = np.append(mom_all, mom)
+        y_all = np.append(y_all, y)
+        weights_all = np.append(weights_all, weights)
+        # file_nc.close()
+
+    # out of loop
+    weights_all = weights_all / (n_cases)
+    # PLOT
+    if vmax:
+        extend = 'max'
+    else:
+        extend = 'neither'
+
+    h2d, mom2d, y2d, fg = plt.hist2d(mom_all, y_all,
+                                     bins=[bins_mom * 3, bins_y],
+                                     range=[[mom_min_outer, mom_max_outer],
+                                            [y_min, y_max]], vmax=vmax,
+                                     weights=weights_all, cmap='YlGnBu')
+    plt.colorbar(label='frequency [%]', extend=extend)
+    if vert_temp:
+        plt.gca().invert_yaxis()
+        plt.ylabel('temperature (°C)')
+    else:
+        plt.ylabel(r'height (km)')
+
+    plt.xlabel(moment + ' [' + file_nc[moment].units + ']')
+    plt.title(title)
+    y_mid = y2d[1:] / 2 + y2d[:-1] / 2
+    mom_mid = mom2d[1:] / 2 + mom2d[:-1] / 2
+    quant_prof = np.zeros([3, len(y_mid)])
+    mean_prof = np.zeros(len(y_mid))
+    for t_i in range(len(y_mid)):
+        wq = DescrStatsW(data=mom_mid, weights=h2d[:, t_i])
+        quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+                                         return_pandas=False)
+        mean_prof[t_i] = wq.mean
+
+    plt.plot(quant_prof[0, ], y_mid, color='red', ls='dashed',
+             linewidth=1, label='$Q_{0.2}$')
+    plt.plot(quant_prof[1, ], y_mid, color='red', ls='solid',
+             linewidth=2, label='$Q_{0.5}$')
+    plt.plot(quant_prof[2, ], y_mid, color='red', ls='dashed',
+             linewidth=1, label='$Q_{0.8}$')
+    plt.plot(mean_prof, y_mid, color='orange', ls='solid',
+             linewidth=2, label='$\mu$')
+    plt.legend()
+    plt.xlim([mom_min, mom_max])
+    if vmax and np.max(h2d) > vmax:
+        if np.max(h2d) > 100:
+            print('above 100% :' + str(np.max(h2d)))
+
+        plt.text(1.04, 1.03, min(np.round(np.max(h2d), 1), 100.0),
+                 transform=ax.transAxes)
+    file_nc.close()
+    plt.tight_layout()
+    if save:
+        Path(save_path).mkdir(parents=True, exist_ok=True)
+        plt.savefig(save_path + save_name + '.pdf',
+                    format='pdf', transparent=True)
+
+
 def plot_CFAD_or_CFTD_from_QVP(
         dates=['20170725'],
         hhmm_start='00:00',
@@ -887,3 +1172,15 @@ def plot_CFAD_or_CFTD_from_QVP(
         Path(save_path).mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path + save_name + '.pdf',
                     format='pdf', transparent=True)
+
+
+def calc_vradh(data):
+    data['vradh'] = data.u * \
+                    np.sin(np.deg2rad(data.azimuth)) * \
+                    np.cos(np.deg2rad(data.elevation)) + \
+                    data.v * \
+                    np.cos(np.deg2rad(data.azimuth)) * \
+                    np.cos(np.deg2rad(data.elevation)) + \
+                    data.w * \
+                    np.sin(np.deg2rad(data.elevation))
+    return data

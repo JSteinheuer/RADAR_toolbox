@@ -303,16 +303,20 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
     files = sorted(glob.glob(path_in))
     files_temp = []
     for file in files:
-        if 'allmoms' not in file:
-            if 'rhohv_nc' not in file:
-                if 'ERA5' not in file:
-                    if 'kdp_nc' not in file:
-                        if 'zdr_off' not in file:
-                            if 'zh_zdr_ac' not in file:
-                                if 'polmoms' not in file:
-                                    files_temp.append(file)
-                                    # if 'vradh' not in file:
-                                    #     files_temp.append(file) # TODO: why?
+        if file.split("/")[-1].split("-")[3][-3:] == location:
+            files_temp.append(file)  # works due to time stamp
+
+    # for file in files:
+    #     if 'allmoms' not in file:
+    #         if 'rhohv_nc' not in file:
+    #             if 'ERA5' not in file:
+    #                 if 'kdp_nc' not in file:
+    #                     if 'zdr_off' not in file:
+    #                         if 'zh_zdr_ac' not in file:
+    #                             if 'polmoms' not in file:
+    #                                 files_temp.append(file)
+    #                                 # if 'vradh' not in file:
+    #                                 #     files_temp.append(file) # TODO: why
 
     files = files_temp
     if not files:
@@ -340,16 +344,19 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
 
     files_temp = []
     for file in files:
-        if 'allmoms' not in file:
-            if 'rhohv_nc' not in file:
-                if 'ERA5' not in file:
-                    if 'kdp_nc' not in file:
-                        if 'zdr_off' not in file:
-                            if 'zh_zdr_ac' not in file:
-                                if 'polmoms' not in file:
-                                    files_temp.append(file)
-                                    # if 'vradh' not in file:
-                                    #     files_temp.append(file)  # TODO: why
+        if file.split("/")[-1].split("-")[3][-3:] == location:
+            files_temp.append(file)  # works due to time stamp
+
+        # if 'allmoms' not in file:
+        #     if 'rhohv_nc' not in file:
+        #         if 'ERA5' not in file:
+        #             if 'kdp_nc' not in file:
+        #                 if 'zdr_off' not in file:
+        #                     if 'zh_zdr_ac' not in file:
+        #                         if 'polmoms' not in file:
+        #                             files_temp.append(file)
+        #                             # if 'vradh' not in file:
+        #                             #     files_temp.append(file) # TODO: why
 
     files = files_temp
     name = files[0].split("/")[-1].split("_")
@@ -378,8 +385,6 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if not overwrite and os.path.exists(file_out):
         print('exists: ' + file_out + ' -> continue')
@@ -419,7 +424,7 @@ DATES = [
     # "20220623", "20220624", "20220625",  # case05
     # "20220626", "20220627", "20220628",  # case06+07
     # "20220630", "20220701",  # case08
-    # "20210713",  # case09
+    # "20210713",  # case09  # already with vradh
     "20210714",  # case09
     # "20221222",  # case10
 ]

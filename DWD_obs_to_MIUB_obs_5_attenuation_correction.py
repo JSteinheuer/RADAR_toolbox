@@ -29,7 +29,7 @@ import datetime as dt
 
 
 # J. Steinheuer
-def correct_zh_zdr(swp_cf, uh_tresh=0,
+def correct_zh_zdr(swp_cf, uh_tresh=-20,
                    alpha=0.08, beta=0.02,
                    # until_temp_beamtop=273.15+4,# TODO if diff in ML is need
                    ML_until_temp_beambottom=273.15+0,
@@ -63,6 +63,8 @@ def correct_zh_zdr(swp_cf, uh_tresh=0,
 
     phi_4ac = xr.where(swp_mask.temp_beambottom >= ML_until_temp_beambottom,
                        swp_mask.PHI_NC, phi_const)
+    # fill the still nan values with 0
+    phi_4ac = xr.where(np.isnan(phi_4ac), 0, phi_4ac)
 
     zh_ac = swp_mask.DBZH + phi_4ac * alpha
     zdr_ac = swp_mask.ZDR + phi_4ac * beta
@@ -146,8 +148,6 @@ def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if os.path.isfile(path_out) and not overwrite:
         print(path_out + ' exists;\n' + ' ... set: > ' +

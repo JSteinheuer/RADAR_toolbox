@@ -209,7 +209,7 @@ qvp_zdr_obs = obs_nc['ZDR_AC_OC'].sel(
 qvp_rho_obs = obs_nc['RHOHV_NC2P'].sel(
     time=slice(date_start, date_end)).transpose(..., 'time')
 qvp_temp_obs = obs_nc['temp'].sel(
-    time=slice(date_start, date_end)).transpose(..., 'time')
+    time=slice(date_start, date_end)).transpose(..., 'time')-273.15
 # --------------------------------------------------------------------------- #
 current_row = current_row + 1
 n_i = n_cols * (current_row - 1)

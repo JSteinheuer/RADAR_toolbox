@@ -26,19 +26,19 @@ from DWD_OBS_TO_MIUB_OBS import \
 # --------------------------------------------------------------------------- #
 # Parameters for ALL STEPS:
 DATES = [
-    "20210604",  # case01
-    "20210620", "20210621",  # case02
-    "20210628", "20210629",  # case03
-    "20220519", "20220520",  # case04
-    "20220623", "20220624", "20220625",  # case05
-    "20220626", "20220627", "20220628",  # case06+07
-    "20220630", "20220701",  # case08
+    # "20210604",  # case01
+    # "20210620", "20210621",  # case02
+    # "20210628", "20210629",  # case03
+    # "20220519", "20220520",  # case04
+    # "20220623", "20220624", "20220625",  # case05
+    # "20220626", "20220627", "20220628",  # case06+07
+    # "20220630", "20220701",  # case08
     "20210713",  # case09
-    "20210714",  # case09
-    "20221222",  # case10
-    "20170719",  # caseX -> old OP HM 1 case
+    # "20221222",  # case10
+    # "20170719",  # caseX -> old OP HM 1 case
     "20170725",  # caseX -> old OP HM 1 case
-    "20181223",  # case -> PRISTINE
+    "20210714",  # case09
+    # "20181223",  # case -> PRISTINE
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -48,7 +48,9 @@ LOCATIONS = [
 ELEVATIONS = np.array([
     5.5,  # for pcp
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-    8.0, 12.0, 17.0, 25.0,
+    8.0,
+    12.0,
+    17.0, 25.0,
     5.5,  # for 90grad
 ])
 MODE = [
@@ -86,6 +88,7 @@ std_zdr_highest = 2
 for date in DATES:
     for location in LOCATIONS:
         for elevation_deg, mode in zip(ELEVATIONS, MODE):
+            print(date, location, elevation_deg, mode)
             # STEP 1
             load_all_moms(date=date, location=location,
                           elevation_deg=elevation_deg,
@@ -127,7 +130,7 @@ for date in DATES:
                 attenuation_correction(date=date, location=location,
                                        elevation_deg=elevation_deg,
                                        mode=mode,
-                                       overwrite=overwrite,
+                                       overwrite='2025-02-12',
                                        dir_data_obs=header.dir_data_obs)
 
             # STEP 6
@@ -212,7 +215,7 @@ for date in DATES:
 
                 combine_pol_mom_nc(date=date, location=location,
                                    elevation_deg=elevation_deg, mode=mode,
-                                   overwrite=overwrite,
+                                   overwrite='2025-02-12',  # TODO overwrite,
                                    n_zdr_lowest=n_zdr_lowest,
                                    std_zdr_highest=std_zdr_highest,
                                    other_zdr_off_day=other_zdr_off_day,
@@ -220,3 +223,4 @@ for date in DATES:
                                    dir_data_obs=header.dir_data_obs)
 
 # --------------------------------------------------------------------------- #
+

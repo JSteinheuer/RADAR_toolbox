@@ -951,7 +951,7 @@ def calibrate_zdr(date, location, elevation_deg=5.5, mode='pcp',
             data_rho.close()
             data_temp.close()
             data_temp2.close()
-            data_kdp.clos()
+            data_kdp.close()
             data_att.close()
     else:
         print('exists: ' + path_out_nc + ' -> continue')
@@ -1113,7 +1113,7 @@ def calibrate_zdr_with_plot(date, location,
                 else:
                     overwrite_i = False
             else:
-                overwrite_i = False
+                overwrite_i = overwrite
 
             if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
@@ -1234,7 +1234,7 @@ def calibrate_zdr_with_plot(date, location,
                 else:
                     overwrite_i = False
             else:
-                overwrite_i = False
+                overwrite_i = overwrite
 
             if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
@@ -1415,7 +1415,7 @@ def calibrate_zdr_with_plot(date, location,
             data_rho.close()
             data_temp.close()
             data_temp2.close()
-            data_kdp.clos()
+            data_kdp.close()
             data_att.close()
 
     # ----------------------------------------------------------------------- #

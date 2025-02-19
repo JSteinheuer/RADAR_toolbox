@@ -18,7 +18,7 @@ import glob
 import pandas as pd
 import os
 import matplotlib as mpl
-from PLOT_SYN_RADAR import plot_syn_PPI, plot_syn_PPI_temp_ring
+from PLOT_SYN_RADAR import plot_syn_PPI, plot_syn_PPI_temp_ring, calc_vradh
 
 # --------------------------------------------------------------------------- #
 # Colors NINJO DWD JM                                                         #
@@ -113,6 +113,7 @@ path2 = '/'.join([header.dir_data_vol[:-1], date, da_run,
                   date + hhmm_start + '_' + date + hhmm_end + '.nc'])
 syn_nc = xr.open_dataset(path)
 syn_nc2 = xr.open_dataset(path2)
+syn_nc2 = calc_vradh(syn_nc2)
 # --------------------------------------------------------------------------- #
 
 elevation_deg = 2.5
@@ -225,6 +226,15 @@ for elevation_deg, range_max in zip([0.5, 1.5, 2.5, 3.5, 4.5, 12, ],
     n_i = n_i + 1
     ax = plt.subplot(n_rows, n_cols, n_i)
     title = 'w at ' + str(elevation_deg) + '° ' + \
+            location.upper() + ' ' + time_UTC
+
+    plot_syn_PPI(nc_file_comb2, ax, time_i, moment, title=title,
+                 range_max=range_max)
+    # ------------------------------------------------------------------------#
+    moment = 'vradh'
+    n_i = n_i + 1
+    ax = plt.subplot(n_rows, n_cols, n_i)
+    title = 'vrad at ' + str(elevation_deg) + '° ' + \
             location.upper() + ' ' + time_UTC
 
     plot_syn_PPI(nc_file_comb2, ax, time_i, moment, title=title,

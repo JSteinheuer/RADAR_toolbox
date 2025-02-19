@@ -142,8 +142,6 @@ def correct_rho_hv(date, location , elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')

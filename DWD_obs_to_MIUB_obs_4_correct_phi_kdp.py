@@ -478,8 +478,6 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
                 overwrite = True
             else:
                 overwrite = False
-        else:
-            overwrite = False
 
         if os.path.isfile(path_out_new) and not overwrite:
             print(path_out_new + ' exists;\n' + ' ... set: ' +

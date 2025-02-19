@@ -895,5 +895,5 @@ plt.savefig(
     mod_names +
     ['', '_filtered'][filter_entr_ML] +
     ['', '_g1'][filter2]
-    + '_IWC_2°C.pdf', format='pdf', transparent=True)
+    + '_IWC_2°C_new.pdf', format='pdf', transparent=True)
 plt.close()

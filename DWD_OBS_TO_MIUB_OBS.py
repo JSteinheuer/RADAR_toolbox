@@ -315,16 +315,20 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
     files = sorted(glob.glob(path_in))
     files_temp = []
     for file in files:
-        if 'allmoms' not in file:
-            if 'rhohv_nc' not in file:
-                if 'ERA5' not in file:
-                    if 'kdp_nc' not in file:
-                        if 'zdr_off' not in file:
-                            if 'zh_zdr_ac' not in file:
-                                if 'polmoms' not in file:
-                                    files_temp.append(file)
-                                    # if 'vradh' not in file:
-                                    #     files_temp.append(file)  # TODO: why
+        if file.split("/")[-1].split("-")[3][-3:] == location:
+            files_temp.append(file)  # works due to time stamp
+
+    # for file in files:
+    #     if 'allmoms' not in file:
+    #         if 'rhohv_nc' not in file:
+    #             if 'ERA5' not in file:
+    #                 if 'kdp_nc' not in file:
+    #                     if 'zdr_off' not in file:
+    #                         if 'zh_zdr_ac' not in file:
+    #                             if 'polmoms' not in file:
+    #                                 files_temp.append(file)
+    #                                 # if 'vradh' not in file:
+    #                                 #     files_temp.append(file) # TODO: why
 
     files = files_temp
     if not files:
@@ -352,16 +356,19 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
 
     files_temp = []
     for file in files:
-        if 'allmoms' not in file:
-            if 'rhohv_nc' not in file:
-                if 'ERA5' not in file:
-                    if 'kdp_nc' not in file:
-                        if 'zdr_off' not in file:
-                            if 'zh_zdr_ac' not in file:
-                                if 'polmoms' not in file:
-                                    files_temp.append(file)
-                                    # if 'vradh' not in file:
-                                    #     files_temp.append(file)  # TODO: why
+        if file.split("/")[-1].split("-")[3][-3:] == location:
+            files_temp.append(file)  # works due to time stamp
+
+        # if 'allmoms' not in file:
+        #     if 'rhohv_nc' not in file:
+        #         if 'ERA5' not in file:
+        #             if 'kdp_nc' not in file:
+        #                 if 'zdr_off' not in file:
+        #                     if 'zh_zdr_ac' not in file:
+        #                         if 'polmoms' not in file:
+        #                             files_temp.append(file)
+        #                             # if 'vradh' not in file:
+        #                             #     files_temp.append(file) # TODO: why
 
     files = files_temp
     name = files[0].split("/")[-1].split("_")
@@ -390,8 +397,6 @@ def load_all_moms(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if not overwrite and os.path.exists(file_out):
         print('exists: ' + file_out + ' -> continue')
@@ -528,8 +533,6 @@ def correct_rho_hv(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')
@@ -907,8 +910,6 @@ def era5_temp(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if not overwrite and os.path.exists(path_out):
         print('exists: ' + path_out + ' -> continue')
@@ -1465,7 +1466,7 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
             else:
                 overwrite_i = False
         else:
-            overwrite_i = False
+            overwrite_i = overwrite
 
         if (os.path.isfile(path_out) and not overwrite_i) or \
                 (os.path.isfile(path_out.replace(
@@ -1551,8 +1552,6 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
                 overwrite = True
             else:
                 overwrite = False
-        else:
-            overwrite = False
 
         if os.path.isfile(path_out_new) and not overwrite:
             print(path_out_new + ' exists;\n' + ' ... set: ' +
@@ -1593,7 +1592,7 @@ def correct_phi_kdp(date, location, elevation_deg=5.5, mode='vol',
 
 
 # J. Steinheuer
-def correct_zh_zdr(swp_cf, uh_tresh=0,
+def correct_zh_zdr(swp_cf, uh_tresh=-20,
                    alpha=0.08, beta=0.02,
                    # until_temp_beamtop=273.15+4,# TODO if diff in ML is need
                    ML_until_temp_beambottom=273.15 + 0,
@@ -1627,6 +1626,8 @@ def correct_zh_zdr(swp_cf, uh_tresh=0,
 
     phi_4ac = xr.where(swp_mask.temp_beambottom >= ML_until_temp_beambottom,
                        swp_mask.PHI_NC, phi_const)
+    # fill the still nan values with 0
+    phi_4ac = xr.where(np.isnan(phi_4ac), 0, phi_4ac)
 
     zh_ac = swp_mask.DBZH + phi_4ac * alpha
     zdr_ac = swp_mask.ZDR + phi_4ac * beta
@@ -1710,8 +1711,6 @@ def attenuation_correction(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if os.path.isfile(path_out) and not overwrite:
         print(path_out + ' exists;\n' + ' ... set: > ' +
@@ -2702,7 +2701,7 @@ def calibrate_zdr(date, location, elevation_deg=5.5, mode='pcp',
             data_rho.close()
             data_temp.close()
             data_temp2.close()
-            data_kdp.clos()
+            data_kdp.close()
             data_att.close()
     else:
         print('exists: ' + path_out_nc + ' -> continue')
@@ -2864,7 +2863,7 @@ def calibrate_zdr_with_plot(date, location,
                 else:
                     overwrite_i = False
             else:
-                overwrite_i = False
+                overwrite_i = overwrite
 
             if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
@@ -2985,7 +2984,7 @@ def calibrate_zdr_with_plot(date, location,
                 else:
                     overwrite_i = False
             else:
-                overwrite_i = False
+                overwrite_i = overwrite
 
             if not overwrite_i and os.path.exists(path_out_nc):
                 print('exists: ' + path_out_nc + ' -> continue')
@@ -3166,7 +3165,7 @@ def calibrate_zdr_with_plot(date, location,
             data_rho.close()
             data_temp.close()
             data_temp2.close()
-            data_kdp.clos()
+            data_kdp.close()
             data_att.close()
 
     # ----------------------------------------------------------------------- #
@@ -3340,8 +3339,6 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             overwrite = True
         else:
             overwrite = False
-    else:
-        overwrite = False
 
     if os.path.isfile(path_out) and not overwrite:
         print(path_out + ' exists;\n' + ' ... set: > ' +
@@ -3370,6 +3367,19 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 
         if 'LR_I' in method_zdr_priorities:
             method_zdr_priorities.remove('LR_I')
+
+    else:
+        data_zdr_off = dttree.open_datatree(path_zdr_off)[
+            'sweep_' + str(int(sweep))].to_dataset().chunk(-1)
+        if 'zdr_off_das_n_ppi' not in data_zdr_off.variables.keys():
+            if 'PPI_DAS' in method_zdr_priorities:
+                method_zdr_priorities.remove('PPI_DAS')
+
+        if 'zdr_off_sd_n_ppi' not in data_zdr_off.variables.keys():
+            if 'PPI' in method_zdr_priorities:
+                method_zdr_priorities.remove('PPI')
+
+        data_zdr_off.close()
 
     path_zhzdr_ac = path_in.replace('_allmoms_', '_zh_zdr_ac_')
     if not os.path.exists(path_zhzdr_ac):
@@ -3402,6 +3412,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
 
     data_combined = data_combined.assign({'RHOHV_NC2P': data_rho.RHOHV_NC2P})
     data_combined.RHOHV_NC2P.values = data_rho.RHOHV_NC2P.values
+    data_combined = data_combined.assign({'SNRH': data_rho.SNRH})
+    data_combined.SNRH.values = data_rho.SNRH.values
     data_combined = data_combined.assign(
         {'ZH_AC': data_ac.ZH_AC.reindex_like(
             other=data_rho.RHOHV_NC2P, method='nearest')})
@@ -3432,6 +3444,8 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                 data_bb.close()
             else:
                 off_bb = 0
+        else:
+            off_bb = 0
 
         if method_zdr == 'BB':
             data_bb = dttree.open_datatree(path_in_bb)[
@@ -3504,7 +3518,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             of_all = np.nansum(sd_n_ppi * of_sd_ppi + lr_n_ppi * of_lr_ppi) / \
                      np.nansum(sd_n_ppi + lr_n_ppi)
             if (np.nansum(sd_n_ppi + lr_n_ppi)) < n_zdr_lowest:
-                of_all=off_bb
+                of_all = off_bb
 
             of_sd_ppi = of_sd_ppi.where(sd_n_ppi > n_zdr_lowest)
             of_lr_ppi = of_lr_ppi.where(lr_n_ppi > n_zdr_lowest)
@@ -3715,7 +3729,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_combined['time'].encoding["units"] = "seconds since " + \
                                               year + "-" + mon + "-" + day
     data_combined['time'].attrs["comment"] = "UTC"
-    data_combined['ZDR_AC_OC'].attrs["short_name"] = "ZH ac oc"
+    data_combined['ZDR_AC_OC'].attrs["short_name"] = "ZDR ac oc"  # TODO: wrong befor 25-02-19
     dtree = dttree.DataTree(name="root")
     dttree.DataTree(data_combined, name=f"sweep_{int(sweep)}",
                     parent=dtree)
