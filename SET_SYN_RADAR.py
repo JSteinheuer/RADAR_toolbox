@@ -305,12 +305,12 @@ def ipol_fc_to_radgrid(mod_lon, mod_lat, mod_z, rad_lon, rad_lat, rad_alt,
 
 
 def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
-                  dir_data_in=header.dir_data_mod,
-                  dir_data_out=header.dir_data_vol,
-                  radar_loc='PRO', radar_id='010392', spin_up_mm=30,
-                  da_run='', icon_run='', icon_emvorado_run='',
-                  overwrite=False, include_icon=True, include_emv=True,
-                  method='Nearest'):
+                      dir_data_in=header.dir_data_mod,
+                      dir_data_out=header.dir_data_vol,
+                      radar_loc='PRO', radar_id='010392', spin_up_mm=30,
+                      da_run='', icon_run='', icon_emvorado_run='',
+                      overwrite=False, include_icon=True, include_emv=True,
+                      method='Nearest'):
     """
     Create a synthetic volume scan from EMVORADO and ICON data.
 
@@ -359,7 +359,7 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
         out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
         file_date = dt.datetime.strptime(
             time_p.strftime("%Y-%m-%d", time_p.localtime(
-                os.path.getctime(dir_out+file_out))), '%Y-%m-%d')
+                os.path.getctime(dir_out + file_out))), '%Y-%m-%d')
         if out_of_date > file_date:
             print(radar_loc, '   -   ', time_start, '-', time_end[-2:])
             print(file_out + ' exists;\n' +
@@ -1024,12 +1024,12 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
         file_out = 'Syn_Vol_'
 
     file_out = file_out + radar_loc + '_' + dti[0].strftime('%Y%m%d%H%M') + \
-        '_' + dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+               '_' + dti[-1].strftime('%Y%m%d%H%M') + '.nc'
     if type(overwrite) == str and os.path.isfile(dir_out + file_out):
         out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
         file_date = dt.datetime.strptime(
             time_p.strftime("%Y-%m-%d", time_p.localtime(
-                os.path.getctime(dir_out+file_out))), '%Y-%m-%d')
+                os.path.getctime(dir_out + file_out))), '%Y-%m-%d')
         if out_of_date > file_date:
             print(radar_loc, '   -   ', time_start, '-', time_end[-2:])
             print(file_out + ' exists;\n' +
@@ -1123,7 +1123,7 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                          'northwards', units='degrees')
             vol_scan = vol_scan.expand_dims(dim=dict(time=dti), axis=0)
             vol_scan = vol_scan.transpose(
-                'time', 'elevation', 'azimuth', 'range',)
+                'time', 'elevation', 'azimuth', 'range', )
 
             # initialize variables
             dummy_tear = np.empty(
@@ -1469,19 +1469,19 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                     stacked_single_fc['qc'].values.reshape(shape_ear)
                 vol_scan['qr'][t_i, :, :, :] = \
                     stacked_single_fc['qr'].values.reshape(shape_ear)
-                vol_scan['qi'][t_i, :, :, :] =  \
+                vol_scan['qi'][t_i, :, :, :] = \
                     stacked_single_fc['qi'].values.reshape(shape_ear)
-                vol_scan['qs'][t_i, :, :, :] =  \
+                vol_scan['qs'][t_i, :, :, :] = \
                     stacked_single_fc['qs'].values.reshape(shape_ear)
-                vol_scan['qg'][t_i, :, :, :] =  \
+                vol_scan['qg'][t_i, :, :, :] = \
                     stacked_single_fc['qg'].values.reshape(shape_ear)
-                vol_scan['qh'][t_i, :, :, :] =  \
+                vol_scan['qh'][t_i, :, :, :] = \
                     stacked_single_fc['qh'].values.reshape(shape_ear)
-                vol_scan['qnc'][t_i, :, :, :] =  \
+                vol_scan['qnc'][t_i, :, :, :] = \
                     stacked_single_fc['qnc'].values.reshape(shape_ear)
-                vol_scan['qnr'][t_i, :, :, :] =  \
+                vol_scan['qnr'][t_i, :, :, :] = \
                     stacked_single_fc['qnr'].values.reshape(shape_ear)
-                vol_scan['qni'][t_i, :, :, :] =  \
+                vol_scan['qni'][t_i, :, :, :] = \
                     stacked_single_fc['qni'].values.reshape(shape_ear)
                 vol_scan['qns'][t_i, :, :, :] = \
                     stacked_single_fc['qns'].values.reshape(shape_ear)
@@ -1506,7 +1506,7 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
         Path(dir_out).mkdir(parents=True, exist_ok=True)
         # transpose for panoply reasons (why do not know)
         vol_scan = vol_scan.transpose(
-            'time',  'range', 'azimuth', 'elevation', )
+            'time', 'range', 'azimuth', 'elevation', )
         vol_scan.to_netcdf(dir_out + file_out, unlimited_dims='time')
         vol_scan.close()
         print('    ! Case done now !      ')
@@ -1625,7 +1625,7 @@ def create_8_vol_nc_of_day_cdo(day='20170725', da_run='ASS_2211',
             current_time = time_p.time()
             list_icon = []
             for ii in range(6):
-                time_start_ii = time_start + pd.Timedelta(str(ii)+'h')
+                time_start_ii = time_start + pd.Timedelta(str(ii) + 'h')
                 time_end_ii = time_start_ii + pd.Timedelta('1h')
                 list_icon.append(create_vol_nc(
                     time_start=time_start_ii.strftime('%Y%m%d%H'),
@@ -1640,7 +1640,7 @@ def create_8_vol_nc_of_day_cdo(day='20170725', da_run='ASS_2211',
                     include_icon=True, include_emv=False)
                 )
 
-            new = list_icon[0][:-15] + 'neu'+ list_icon[0][-15:]
+            new = list_icon[0][:-15] + 'neu' + list_icon[0][-15:]
             print('cdo merge ' + ' '.join(list_icon) + ' ' + new)
             os.system('cdo merge ' + ' '.join(list_icon) + ' ' + new)
             print(f"... which took "

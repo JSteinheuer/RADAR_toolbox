@@ -20,6 +20,33 @@ from SET_SYN_RADAR import \
     create_8_vol_nc_of_day_cdo
 
 # --------------------------------------------------------------------------- #
+# 20.02.25
+overwrite_EMV = False
+overwrite_ICON = False
+radar_locs = list(rad_dict().keys())
+spin_up_mm = 120
+for day in [
+    '20210714',
+    '20210713',
+]:
+    da_run = 'ASS_2411'  # ASS_newererer
+    icon_run = 'MAIN_2411.0'  # MAIN_newererererRH8_MP-RUC1.0
+    for emvorado_run in [
+        'EMVO_00010000.2',
+        'EMVO_00510000.2',
+    ]:
+        icon_emvorado_run = icon_run + '/' + emvorado_run
+        create_8_vol_nc_of_day(day=day, da_run=da_run,
+                               icon_run=icon_run,
+                               icon_emvorado_run=icon_emvorado_run,
+                               spin_up_mm=spin_up_mm,
+                               radar_locs=radar_locs,
+                               dir_data_in=header.dir_data_mod,
+                               dir_data_out=header.dir_data_vol,
+                               overwrite_EMV=overwrite_EMV,
+                               overwrite_ICON=overwrite_ICON)
+
+# --------------------------------------------------------------------------- #
 # 16.12.24  # start rerun 28.01.25
 overwrite_EMV = False
 overwrite_ICON = '2025-01-28'
