@@ -165,6 +165,7 @@ def get_radar_locations():
     return radars
 
 
+# ------------------------------------ #
 # Load RW of two flooding days
 folder_rw = header.folder_radolan + 'RW202107/'
 rw_files = glob.glob(folder_rw + '*')
@@ -179,76 +180,83 @@ ds_sum = ds_m.sum(dim='time')
 ds_count = ds_m.count(dim='time')
 ds_sum = xr.where(ds_count > 0, ds_sum, np.nan)
 
+# ------------------------------------ #
 # map with catropy
-map_proj = ccrs.Stereographic(
-    true_scale_latitude=60.0, central_latitude=90.0, central_longitude=10.0
-    # TODO: mystical lat lon params from KM / www ?!
-    # TODO: why does this hold for RW?
-    # KM: RADOLAN Stereographische Projection see:
-    # https://docs.wradlib.org/en/2.2.0/notebooks/fileio/radolan/radolan_grid.html#Polar-Stereographic-Projection
-)
+# KM: RADOLAN Stereographische Projection see:
+# https://docs.wradlib.org/en/2.2.0/notebooks/fileio/radolan/radolan_grid.html#Polar-Stereographic-Projection
+if ds_m.formatversion < 5:
+    map_proj = ccrs.Stereographic(
+        true_scale_latitude=60.0,
+        central_latitude=90.0,
+        central_longitude=10.0,
+        globe=ccrs.Globe(ellipse="sphere")  # for RW formatversion < 5
 
-# create radolan projection object
-proj_stereo = wrl.georef.create_osr("dwd-radolan")
+    )
+else:
+    map_proj = ccrs.Stereographic(
+        true_scale_latitude=60.0,
+        central_latitude=90.0,
+        central_longitude=10.0,
+        globe=ccrs.Globe(ellipse="WGS84")  # for RW formatversion >= 5
+    )
 
-# create wgs84 projection object
-proj_wgs = osr.SpatialReference()
-proj_wgs.ImportFromEPSG(4326)
+# # ------------------------------------ #
+# # create radolan projection object
+# proj_stereo = wrl.georef.create_osr("dwd-radolan")  # TODO: not used
+# # create wgs84 projection object
+# proj_wgs = osr.SpatialReference()  # TODO: used
+# proj_wgs.ImportFromEPSG(4326)  # TODO
 
+# --------------------------------------------------------------------------- #
 # plot RW
-# cmap = mpl.cm.viridis
-# cmap = mpl.cm.jet
 cmap = mpl.cm.plasma
 bounds = np.concatenate(
     (np.arange(0, 50, 10),
      np.arange(50, 225, 25),))
 norm = mpl.colors.BoundaryNorm(bounds, len(bounds), extend='max')
-# fig = plt.figure(figsize=(10, 8))
-fig = plt.figure(figsize=(8, 6))
-plot = ds_sum.RW.plot(subplot_kws=dict(projection=map_proj), cmap=cmap,
-                      norm=norm)
+fig = plt.figure(figsize=(7, 6))
+ax = fig.add_subplot(111, projection=map_proj)
+plot = ds_sum.RW.plot(ax=ax,
+                      cmap=cmap, norm=norm)
 plot.colorbar.set_ticks(bounds)
-plot.colorbar.set_label('RW rain [mm]')
+plot.colorbar.set_label('rain [mm]')
 plt.title('accumulated rain 13-14 July 2021')
 
 # plot borders etc
-ax = plt.gca()
+#ax = plt.gca()
 ax.add_feature(cartopy.feature.OCEAN, facecolor="lightblue")
 ax.add_feature(cartopy.feature.LAND)
 ax.coastlines(color='cyan')
 ax.add_feature(cartopy.feature.BORDERS, color='yellow')
-ax.gridlines(draw_labels=True, y_inline=False)
-
+gl = ax.gridlines(draw_labels=True, y_inline=False)
+gl.xlabels_top = False
+gl.ylabels_right = False
 xlim = ax.set_xlim()
 ylim = ax.set_ylim()
-# plot radars
+
+# plot radar rings
 radars = get_radar_locations()
 for RRR in radars:
     radar = radars[RRR]
     site = (radar['lon'], radar['lat'], radar['alt'])
-    plt.scatter(radar['lon'], radar['lat'],
-                marker='H', s=40, color='grey',
-                transform=ccrs.PlateCarree())
-    plt.annotate(RRR, (radar['lon'], radar['lat']),
-                 color='white', fontsize=12,
-                 transform=ccrs.PlateCarree())
-    # radar ring
+    map_trans = ccrs.AzimuthalEquidistant(
+        central_latitude=radar['lat'],
+        central_longitude=radar['lon'],
+    )
     r = np.arange(1, 151) * 1000
     az = np.linspace(0, 359, 360)
-    polygons = wrl.georef.spherical_to_polyvert(
-        # r, az, 0, site, crs=proj_stereo)  # TODO not working
-        r, az, 0, site, crs=proj_wgs)  # TODO slightly shifted projection?!
+    polygons, rad_proj = wrl.georef.spherical_to_polyvert(
+        r, az, 0, site)
     polygons = polygons[..., 0:2]  # not heights
     polygons.shape = (len(az), len(r), 5, 2)  # az x ra x 5 x lo/la
     polygons = polygons[:, -1, :, :]  # only last range
-
-    # create PolyCollections and add to respective axes
     polycoll = mpl.collections.PolyCollection(
         polygons, closed=True, edgecolors='lightgray',
-        transform=ccrs.PlateCarree()
+        transform=map_trans
     )
     ax.add_collection(polycoll, autolim=True)
 
+# plot radars
 for RRR in radars:
     radar = radars[RRR]
     site = (radar['lon'], radar['lat'], radar['alt'])
@@ -257,6 +265,7 @@ for RRR in radars:
                 transform=ccrs.PlateCarree())
     plt.annotate(RRR, (radar['lon'], radar['lat']),
                  color='white', fontsize=12,
+                 bbox=dict(facecolor='black', alpha=.25),
                  transform=ccrs.PlateCarree())
 
 ax.set_xlim(xlim)

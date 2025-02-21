@@ -74,8 +74,19 @@ folder_obs = header.dir_data_obs
 # --------------------------------------------------------------------------- #
 
 # --------------------------------------------------------------------------- #
-folder_20250225 = folder_ftp + 'BACYdata/'
-files = sorted(glob.glob(folder_20250225 + '*'))
+# folder_20250220 = folder_ftp + 'BACYdata/'
+# files = sorted(glob.glob(folder_20250220 + '*'))
+# for file in files:
+#     if file[-4:] == '.tgz':
+#         print('tar zxvf ' + file + ' -C ' + folder_mod)
+#         os.system('tar zxvf ' + file + ' -C ' + folder_mod)
+#
+# # /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/set_syn_RADAR_0_load_from_ftp.py
+# --------------------------------------------------------------------------- #
+
+# --------------------------------------------------------------------------- #
+folder_20250221 = folder_ftp + 'BACYdata/'
+files = sorted(glob.glob(folder_20250221 + '*'))
 for file in files:
     if file[-4:] == '.tgz':
         print('tar zxvf ' + file + ' -C ' + folder_mod)
@@ -83,4 +94,5 @@ for file in files:
 
 # /automount/agh/s6justei/mambaforge/envs/RADAR_toolbox_agh/bin/python /user/s6justei/PyCharm/PyCharmProjects/RADAR_toolbox/set_syn_RADAR_0_load_from_ftp.py
 # --------------------------------------------------------------------------- #
+
 
