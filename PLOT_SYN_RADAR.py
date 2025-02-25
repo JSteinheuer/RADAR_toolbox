@@ -702,10 +702,11 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
     n_cases = 0
     if da_icon_emvorado_run:  # Synthetic
         if not title:
-            title = '-'.join([da_icon_emvorado_run[4:8],
-                              da_icon_emvorado_run[14:20],
-                              da_icon_emvorado_run[26:36],
+            title = '-'.join([da_icon_emvorado_run.split('/')[0][4:],
+                              da_icon_emvorado_run.split('/')[1][5:],
+                              da_icon_emvorado_run.split('/')[2][5:],
                               spin_up_mm + 'min'])
+
     else:  # Observation
         if not title:
             title = 'C-band Observations'

@@ -50,18 +50,55 @@ temp_min = -20
 temp_max = 16
 bins_temp = 18
 # ------------------------------------ #
-# SYN data row i                       #
+# SYN data row 1                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')  # ASS_newererer
 # MAIN_newererererRH8_MP-RUC1.0  /
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_00010000.2')
 spin_up_mms.append('120')
 # ------------------------------------ #
-# SYN data row i                       #
+# SYN data row 2                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')  # ASS_newererer
 # MAIN_newererererRH8_MP-RUC1.0  / # EMVO_dynwetgrow-BBold_sig-ice-25
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510000.2')
+spin_up_mms.append('120')
+# ------------------------------------ #
+# SYN data row 3                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_newererererRH8_MP-RUC1.0  / # EMVO_
+icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510200.2')
+spin_up_mms.append('120')
+
+# ------------------------------------ #
+# SYN data row 4                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_  / # EMVO_dynwetgrow-BBold_sig-ice-25
+icon_emvorado_runs.append('MAIN_2411.03/EMVO_00510000.2')
+spin_up_mms.append('120')
+# ------------------------------------ #
+# SYN data row 5                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_  / #
+icon_emvorado_runs.append('MAIN_2411.03/EMVO_00510100.2')
+spin_up_mms.append('120')
+
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# # MAIN_newererererRH8_MP-RUC1.0  / # EMVO-neu
+icon_emvorado_runs.append('MAIN_2411.1/EMVO_00410000.2')
+spin_up_mms.append('120')
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# # MAIN_newererererRH8_MP-RUC1.0  / # EMVO_dynwetgrow-BBold_sig-ice-25
+icon_emvorado_runs.append('MAIN_2411.1/EMVO_00510000.2')
 spin_up_mms.append('120')
 
 # ------------------------------------ #
@@ -70,44 +107,6 @@ spin_up_mms.append('120')
 da_runs.append('ASS_2411')  # ASS_newererer
 # MAIN_  / # EMVO_dynwetgrow-BBold_sig-ice-25
 icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510000.2')
-spin_up_mms.append('120')
-
-# ------------------------------------ #
-# SYN data row i                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')  # ASS_newererer
-# MAIN_  / # EMVO_dynwetgrow-BBold_sig-ice-25
-icon_emvorado_runs.append('MAIN_2411.03/EMVO_00510000.2')
-spin_up_mms.append('120')
-# ------------------------------------ #
-# SYN data row i                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')  # ASS_newererer
-# MAIN_  / #
-icon_emvorado_runs.append('MAIN_2411.03/EMVO_00510100.2')
-spin_up_mms.append('120')
-
-# ------------------------------------ #
-# SYN data row 2                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')  # ASS_newererer
-# MAIN_newererererRH8_MP-RUC1.0  / # EMVO_
-icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510200.2')
-spin_up_mms.append('120')
-
-# ------------------------------------ #
-# SYN data row i                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')  # ASS_newererer
-# # MAIN_newererererRH8_MP-RUC1.0  / # EMVO_dynwetgrow-BBold_sig-ice-25
-icon_emvorado_runs.append('MAIN_2411.1/EMVO_00510000.2')
-spin_up_mms.append('120')
-# ------------------------------------ #
-# SYN data row i                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')  # ASS_newererer
-# # MAIN_newererererRH8_MP-RUC1.0  / # EMVO-neu
-icon_emvorado_runs.append('MAIN_2411.1/EMVO_00410000.2')
 spin_up_mms.append('120')
 
 # ------------------------------------ #
@@ -392,6 +391,11 @@ plt.savefig(
     folder_plot + 'QVP_4polmoms_' + str(elevation_deg) + '_' +
     date + '_' + hhmm_start + '-' + hhmm_end + '_' +
     location + mod_names +
+    '.png', format='png', transparent=True)
+plt.savefig(
+    folder_plot + 'QVP_4polmoms_' + str(elevation_deg) + '_' +
+    date + '_' + hhmm_start + '-' + hhmm_end + '_' +
+    location + mod_names +
     '.pdf', format='pdf', transparent=True)
 plt.close()
 
@@ -659,4 +663,10 @@ plt.savefig(
     locations_str + ['', 'entr_'][filter_entr] + ['', 'mom_'][filter_moms] +
     mod_names +
     '.pdf', format='pdf', transparent=True)
+plt.savefig(
+    folder_plot + '/CFTD_4polmoms_' + str(elevation_deg) + '_' +
+    dates_str + '_' + hhmm_start + '-' + hhmm_end + '_' +
+    locations_str + ['', 'entr_'][filter_entr] + ['', 'mom_'][filter_moms] +
+    mod_names +
+    '.png', format='png', transparent=True)
 plt.close()
