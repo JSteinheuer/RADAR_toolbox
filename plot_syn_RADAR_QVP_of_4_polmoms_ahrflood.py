@@ -20,43 +20,78 @@ from PLOT_SYN_RADAR import plot_qvp_of_polarimetric_variable
 # --------------------------------------------------------------------------- #
 # INITIALIZATION                                                              #
 # --------------------------------------------------------------------------- #
-location = 'PRO'
-date = '20170725'
+location = 'ESS'
+date = '20210714'
+# hhmm_start = '12:00'
 hhmm_start = '00:00'
-hhmm_end = '10:00'
+# hhmm_end = '23:55'
+hhmm_end = '21:00'
 elevation_deg = 12
 top_height = 8
-# ------------------------------------ #
-# SYN data row 1                       #
-# ------------------------------------ #
-da_runs = ['ASS_2211']
-icon_emvorado_runs = ['MAIN_2411.0/EMVO_00000000.2']
-spin_up_mms = ['60']
-# ------------------------------------ #
-# SYN data row 2                       #
-# ------------------------------------ #
-da_runs.append('ASS_2211')
-icon_emvorado_runs.append('MAIN_2211.0/EMVO_00000000.2')
-spin_up_mms.append('60')
-# ------------------------------------ #
-# SYN data row 3                       #
-# ------------------------------------ #
-da_runs.append('ASS_2211')
-icon_emvorado_runs.append('MAIN_2308.1/EMVO_00400000.2')
-spin_up_mms.append('60')
-# ------------------------------------ #
-# SYN data row 4                       #
-# ------------------------------------ #
-da_runs.append('ASS_2211')
-icon_emvorado_runs.append('MAIN_2401.1/EMVO_00510000.2')
-spin_up_mms.append('60')
+da_runs = []
+icon_emvorado_runs = []
+spin_up_mms = []
 # ------------------------------------ #
 # SYN data row i                       #
 # ------------------------------------ #
-# da_runs.append('ASS_2211')
-# icon_emvorado_runs.append('MAIN_2411.0/EMVO_00000000.2')
-# spin_up_mms.append('60')
-# [...]
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_newererererRH8_MP-RUC1.0  /
+icon_emvorado_runs.append('MAIN_2411.0/EMVO_00010000.2')
+spin_up_mms.append('120')
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_newererererRH8_MP-RUC1.0  / # EMVO_dynwetgrow-BBold_sig-ice-25
+icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510000.2')
+spin_up_mms.append('120')
+
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_  / # EMVO_dynwetgrow-BBold_sig-ice-25
+icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510000.2')
+spin_up_mms.append('120')
+
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_  / # EMVO_dynwetgrow-BBold_sig-ice-25
+icon_emvorado_runs.append('MAIN_2411.03/EMVO_00510000.2')
+spin_up_mms.append('120')
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_  / #
+icon_emvorado_runs.append('MAIN_2411.03/EMVO_00510100.2')
+spin_up_mms.append('120')
+
+# ------------------------------------ #
+# SYN data row 2                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# MAIN_newererererRH8_MP-RUC1.0  / # EMVO_
+icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510200.2')
+spin_up_mms.append('120')
+
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# # MAIN_newererererRH8_MP-RUC1.0  / # EMVO_dynwetgrow-BBold_sig-ice-25
+icon_emvorado_runs.append('MAIN_2411.1/EMVO_00510000.2')
+spin_up_mms.append('120')
+# ------------------------------------ #
+# SYN data row i                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')  # ASS_newererer
+# # MAIN_newererererRH8_MP-RUC1.0  / # EMVO-neu
+icon_emvorado_runs.append('MAIN_2411.1/EMVO_00410000.2')
+spin_up_mms.append('120')
+
 # ------------------------------------ #
 year = date[0:4]
 mon = date[4:6]
@@ -71,7 +106,8 @@ mod_names = ''
 n_rows = len(da_runs)+1
 n_cols = 4
 # plt.figure(figsize=(n_cols * 9, n_rows * 7))
-plt.figure(figsize=(n_cols * 8, n_rows * 6))
+# plt.figure(figsize=(n_cols * 8, n_rows * 6))
+plt.figure(figsize=(n_cols * 11, n_rows * 6))
 n_i = 0
 current_row = 0
 
@@ -221,11 +257,13 @@ for da_run, icon_emvorado_run, spin_up_mm in zip(
             print('no file or too many -> return')
             continue
 
+    model_name_file = '-'.join([icon_emvorado_run.split('/')[0][9:],
+                                icon_emvorado_run.split('/')[1][5:]])
+    mod_names = '_'.join([mod_names, model_name_file])
     model_name = '-'.join([da_run[4:],
                            icon_emvorado_run.split('/')[0][5:],
                            icon_emvorado_run.split('/')[1][5:],
                            spin_up_mm + 'min'])
-    mod_names = '-'.join([mod_names, model_name])
     # ------------------------------------ #
     h_syn = syn_nc['height']
     qvp_zh_syn = syn_nc['zrsim'].sel(
@@ -331,6 +369,8 @@ for da_run, icon_emvorado_run, spin_up_mm in zip(
 plt.tight_layout()
 if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
+
+# mod_names ='alle'
 
 plt.savefig(
     folder_plot + 'QVP_4polmoms_' + str(elevation_deg) + '_' +

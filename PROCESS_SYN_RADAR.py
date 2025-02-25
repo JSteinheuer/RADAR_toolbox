@@ -44,27 +44,6 @@ def phidp_from_kdp(da):
                           kwargs=dict(dx=dr, initial=0.0, axis=-1),
                           ) * 2
 
-# var=xr.DataArray(np.random.random(360),dims='azimuth')
-# var=xr.DataArray(np.array([1,1000]),dims='azimuth')
-# # var=xr.DataArray(np.repeat(1,360),dims='azimuth')
-# # var=xr.DataArray(np.random(1,361),dims='azimuth')
-# var=xr.DataArray(np.arange(1,361),dims='azimuth')
-# var=xr.DataArray(np.arange(0,360),dims='azimuth')
-# dim='azimuth'
-# n_valid_values=0
-# # def calc_entropy(var, dim='azimuth', n_valid_values=30):
-# minimum = np.nanmin(var.data)
-# if minimum <= 0:
-#     var = xr.where(var.data <= 0, np.nan, var)
-#     print(' has values <= 0 which are set to '
-#                      'nan (minimum=' + str(minimum) + ')')
-#
-# var_normed = var / var.sum(dim, skipna=True)
-# values = -((var_normed * np.log10(var_normed)).sum(dim)) \
-#          / np.log10(var_normed[dim].size)
-# values2 = values.where(var_normed.count(dim=dim) >= n_valid_values)
-# print(values2)
-
 
 def entropy_of_vars(pol_vars, dim='azimuth', n_lowest=30):
     """
@@ -546,10 +525,10 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                      dir_data_in=header.dir_data_vol,
                      dir_data_out=header.dir_data_qvp,
                      ml_correction=False,
-                     overwrite_new='2025-02-16',
                      overwrite=False, merge=True, lowest_rhv=0.7,
                      lowest_zh=0, highest_zh=None,
-                     lowest_kdp=None, highest_kdp=None, n_lowest=30):
+                     lowest_kdp=0,
+                     highest_kdp=None, n_lowest=30):
     """
     Create QVP for one day out of 8 synthetic volume scans from EMVORADO and
     ICON data (each 4times 6hourly).
@@ -613,23 +592,6 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         else:
             overwrite_i = overwrite
 
-    # TODO
-    if not overwrite_i and type(overwrite_new) == str and os.path.isfile(dir_qvp + file_qvp_4):
-        out_of_date = dt.datetime.strptime(overwrite_new, '%Y-%m-%d')
-        file_date = dt.datetime.strptime(
-            time_p.strftime("%Y-%m-%d", time_p.localtime(
-                os.path.getctime(dir_qvp + file_qvp_4))), '%Y-%m-%d')
-        if out_of_date > file_date:
-            print(file_qvp_4 + ' exists;\n' +
-                  ' ... but out-of-date as ' +
-                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
-                  file_date.strftime("%Y-%m-%d"))
-            print('___________________________')
-            overwrite_i = True
-        else:
-            overwrite_i = False
-
-    # TODO
     if os.path.isfile(dir_qvp + file_qvp_4) and not overwrite_i:
         print(dir_qvp + file_qvp_4 + ' already exists;\n' +
               'set >overwrite=True< for recalculation')
@@ -682,24 +644,6 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
             else:
                 overwrite_i = overwrite
 
-        # TODO
-        if not overwrite_i and type(overwrite_new) == str and os.path.isfile(
-                dir_qvp + file_qvp):
-            out_of_date = dt.datetime.strptime(overwrite_new, '%Y-%m-%d')
-            file_date = dt.datetime.strptime(
-                time_p.strftime("%Y-%m-%d", time_p.localtime(
-                    os.path.getctime(dir_qvp + file_qvp))), '%Y-%m-%d')
-            if out_of_date > file_date:
-                print(file_qvp_4 + ' exists;\n' +
-                      ' ... but out-of-date as ' +
-                      out_of_date.strftime("%Y-%m-%d") + ' > ' +
-                      file_date.strftime("%Y-%m-%d"))
-                print('___________________________')
-                overwrite_i = True
-            else:
-                overwrite_i = False
-
-        # TODO
         if os.path.isfile(dir_qvp + file_qvp) and not overwrite_i:
             print(dir_qvp + file_qvp + ' already exists;\n' +
                   'set >overwrite=True< for recalculation')

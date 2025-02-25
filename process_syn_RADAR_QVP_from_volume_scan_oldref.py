@@ -15,11 +15,11 @@ from SET_SYN_RADAR import rad_dict
 
 # --------------------------------------------------------------------------- #
 # 11.02.25
-# radar_locs = list(rad_dict().keys())
-radar_locs = ['PRO']  # TODO
+radar_locs = list(rad_dict().keys())
+# radar_locs = ['PRO']  # TODO
 spin_up_mm = 60
 elevation_deg = 12
-overwrite = '2025-02-14'
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new,
@@ -53,6 +53,7 @@ for da_run in [
 # radar_locs = ['PRO']  # TODO
 # spin_up_mm = 30
 # elevation_deg = 12
+# overwrite = False
 # day = '20170725'
 # for da_run in [
 #     'ASS_2211',  # ASS_new
@@ -69,6 +70,7 @@ for da_run in [
 #                                  icon_emvorado_run=icon_emvorado_run,
 #                                  spin_up_mm=spin_up_mm,
 #                                  elevation_deg=elevation_deg,
+#                                  overwrite=overwrite,
 #                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -76,6 +78,7 @@ for da_run in [
 # radar_locs = ['PRO']
 # spin_up_mm = 30
 # elevation_deg = 12
+# overwrite = False
 # day = '20170725'
 # for da_run in [
 #     'ASS_2211',  # ASS_new
@@ -94,6 +97,7 @@ for da_run in [
 #                                  icon_emvorado_run=icon_emvorado_run,
 #                                  spin_up_mm=spin_up_mm,
 #                                  elevation_deg=elevation_deg,
+#                                  overwrite=overwrite,
 #                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -102,6 +106,7 @@ radar_locs = list(rad_dict().keys())
 # radar_locs = ['PRO']  # TODO
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new
@@ -118,6 +123,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -126,6 +132,7 @@ for da_run in [
 # radar_locs = ['PRO']
 # spin_up_mm = 30
 # elevation_deg = 12
+# overwrite = False
 # day = '20170725'
 # for da_run in [
 #     'ASS_2211',  # ASS_new
@@ -145,6 +152,7 @@ for da_run in [
 #                                  icon_emvorado_run=icon_emvorado_run,
 #                                  spin_up_mm=spin_up_mm,
 #                                  elevation_deg=elevation_deg,
+#                                  overwrite=overwrite,
 #                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -152,6 +160,7 @@ for da_run in [
 radar_locs = ['PRO']
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new
@@ -170,6 +179,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -178,6 +188,7 @@ radar_locs = list(rad_dict().keys())
 # radar_locs = ['PRO']  # TODO
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new
@@ -195,6 +206,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -204,6 +216,7 @@ radar_locs = list(rad_dict().keys())
 # radar_locs = ['PRO']  # TODO
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new
@@ -222,6 +235,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -230,6 +244,7 @@ radar_locs = list(rad_dict().keys())
 # radar_locs = ['PRO']  # TODO
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new,
@@ -249,6 +264,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -256,6 +272,7 @@ for da_run in [
 radar_locs = ['PRO']
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new,
@@ -274,6 +291,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -282,6 +300,7 @@ radar_locs = list(rad_dict().keys())
 # radar_locs = ['PRO']  # TODO
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new,
@@ -301,6 +320,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
@@ -309,6 +329,7 @@ radar_locs = list(rad_dict().keys())
 # radar_locs = ['PRO']  # TODO
 spin_up_mm = 60
 elevation_deg = 12
+overwrite = '2025-02-13'
 day = '20170725'
 for da_run in [
     'ASS_2211',  # ASS_new,
@@ -328,6 +349,7 @@ for da_run in [
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,
                                  elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #

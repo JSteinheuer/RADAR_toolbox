@@ -675,6 +675,14 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
                                            str(spin_up_mm) +
                                            'min_spinup/QVP_' +
                                            str(elevation_deg) + '_Syn_*', ]))
+            if paths_in == []:
+                print('nothing found in ' +
+                      '/'.join([header.dir_data_qvp + '*',
+                                da_icon_emvorado_run + '/' +
+                                str(spin_up_mm) +
+                                'min_spinup/QVP_' +
+                                str(elevation_deg) + '_Syn_*', ]))
+                return
 
     if not isinstance(paths_in, list):
         paths_in = [paths_in]
@@ -719,7 +727,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
                 date_start = '-'.join([year, mon, day, hhmm_start])
                 date_end = '-'.join([year, mon, day, hhmm_end])
             else:
-                # print('Not used: ' + path_in)
+                print('Not used: ' + path_in)
                 continue
 
         else:  # Observation

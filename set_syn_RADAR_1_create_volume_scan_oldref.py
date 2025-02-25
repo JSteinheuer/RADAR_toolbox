@@ -18,7 +18,7 @@ from SET_SYN_RADAR import \
     rad_dict
 
 # --------------------------------------------------------------------------- #
-# 10.02.25
+# 10.02.25  # only half of the day from JM!
 overwrite_EMV = False
 overwrite_ICON = False
 radar_locs = list(rad_dict().keys())

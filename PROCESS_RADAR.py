@@ -397,7 +397,7 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
 
     mask = ~ np.isnan(data['ZH_AC'])
     for var in list(data.data_vars):
-        if var not in ['KDP_NC', 'PHI_NC']:
+        if var not in []:#['KDP_NC', 'PHI_NC']:
             if data[var].dims == ('time', 'azimuth', 'range'):
                 mask = mask * (~ np.isnan(data[var]))
 

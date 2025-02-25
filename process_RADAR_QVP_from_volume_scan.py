@@ -16,7 +16,7 @@ from PROCESS_RADAR import qvp_from_radar_PPIs
 elevation_deg = 12
 overwrite = '2025-02-14'
 lowest_rhv = 0.7
-lowest_kdp = None
+lowest_kdp = 0
 highest_kdp = 10
 n_lowest = 30
 lowest_zh = 0
@@ -36,6 +36,7 @@ LOCATIONS = [
     'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
     'oft', 'ros', 'tur', 'umd',
 ]
+overwrite = '2025-02-24'
 for location in LOCATIONS:
     for date in DATES:
         print(location + ' ' + date + '' + str(elevation_deg))
