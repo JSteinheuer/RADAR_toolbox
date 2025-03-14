@@ -598,6 +598,9 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         return
 
     for hhmm_start in ['0000', '0600', '1200', '1800']:
+        # start
+        current_time = time_p.time()
+
         time_start = day + hhmm_start
         time_end = day + str(int(hhmm_start) + 555).zfill(4)
         filter_comments = 'PPI ICON data are only included, if ' \
@@ -912,7 +915,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         # ------------------------------------------------------------------- #
         # QVP: MERGE                                                          #
         # ------------------------------------------------------------------- #
-        qvp_nc = xr.merge([emv_nc, icon_nc])
+        qvp_nc = xr.merge([emv_nc, icon_nc]) # ,compat='override')
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc['min_entropy'] = qvp_entropy[-1, :]
         qvp_nc['min_entropy'] = qvp_nc['min_entropy'].assign_attrs(dict(
@@ -933,6 +936,8 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         Path(dir_qvp).mkdir(parents=True, exist_ok=True)
         qvp_nc.to_netcdf(dir_qvp + file_qvp, unlimited_dims='time')
         qvp_nc.close()
+        print(f"... which took "
+              f"{(time_p.time() - current_time) / 60:.2f} min ...")
 
     # ----------------------------------------------------------------------- #
     if merge:
@@ -940,7 +945,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                            xr.open_dataset(dir_qvp + files_qvp[1]),
                            xr.open_dataset(dir_qvp + files_qvp[2]),
                            xr.open_dataset(dir_qvp + files_qvp[3]),
-                           ])#, compat='override')
+                           ])  #, compat='override')
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc.to_netcdf(dir_qvp + file_qvp_4, unlimited_dims='time')
         qvp_nc.close()

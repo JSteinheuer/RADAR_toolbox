@@ -28,6 +28,8 @@ def plot_PPI(nc_file,
              ax=None,
              time_i=0,
              moment='KDP_NC',
+             lowest_zdr=None,
+             lowest_snr=10,
              cmap=None,  # 'jet',
              levels=None,
              norm=None,
@@ -39,6 +41,11 @@ def plot_PPI(nc_file,
         'sweep_' + str(int(sweep))].to_dataset().chunk('auto')
     ppi = vol.isel(time=time_i)
     ppi = ppi.transpose('azimuth', 'range')
+    if lowest_zdr:
+        ppi=ppi.where(ppi.ZDR_AC_OC>=lowest_zdr)
+
+    if lowest_snr:
+        ppi=ppi.where(ppi.SNRH>=lowest_snr)
 
     if type(moment) == list:
         for moment_i in moment:

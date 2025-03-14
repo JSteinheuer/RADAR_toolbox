@@ -898,7 +898,7 @@ def plot_CFAD_or_CFTD_from_QVP(
         bins_height=20,
         vmax=None,
         filter_entr_ML=False,
-        filter_ML=None,
+        filter_ML=False,
         filter2=False,
         ax=None,
         save=False,
@@ -1030,11 +1030,11 @@ def plot_CFAD_or_CFTD_from_QVP(
             syn_nc = xr.where(kdp < 8, syn_nc, np.nan)
 
             if moment == 'D0_r_Bringi_obs':
-                mom = d0_bringi(syn_nc['zdr'].transpose('time', ...))[
+                mom = d0_bringi(zdr.transpose('time', ...))[
                     'dm'].values
             elif moment == 'iwc_obs':
                 mom = ice_retrieval_carlin(
-                    syn_nc['zh'].transpose('time', ...),
+                    zh.transpose('time', ...),
                     syn_nc['zdr'].transpose('time', ...),
                     syn_nc['kdp'].transpose('time', ...))['iwc'].values
             elif moment == 'nt_obs':
