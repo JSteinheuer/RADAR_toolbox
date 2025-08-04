@@ -490,14 +490,8 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
                 data.RHOHV_NC2P, data.KDP_NC]
     qvp_entropy = entropy_of_vars(pol_vars=pol_vars, dim='azimuth',
                                   n_lowest=n_lowest)
-    for var in list(data.data_vars):
-        if 'azimuth' in data[var].dims:
-            count_values = data[var].count(dim='azimuth')
-            data[var] = data[var].median(dim='azimuth',
-                                         skipna=True, keep_attrs=True)
-            data[var] = data[var].where(count_values >= n_lowest)
-
     # Ice micro-physical retrieval cf. Carlin
+
     # search for lambda
     path_in_any = '/'.join(path_in.split('/')[:-1]) + '/*any*'
     files_any = sorted(glob.glob(path_in_any))
@@ -517,7 +511,7 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
             lamb = dttree.open_datatree(  # we need it in mm, i.e. *10
                 path_in_any)['how'].attrs['wavelength'] * 10
         except:
-            print('nothing in *any* found -> lambda=5')
+            print('nothing in *any* found -> lambda=50')
             lamb = 50
 
     zh_lin = 10 ** (0.1 * data.ZH_AC)
@@ -564,7 +558,7 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
         'hybrid retrieval cf. Carlin et al. (2021)'
 
     # LWC following Reimann et al. 2021
-    data['LWC'] = np.exp(0.058 * data.ZH_AC - 0.118 * data.ZDR_AC_OC - 2.36)
+    data['LWC'] = 10**(0.058 * data.ZH_AC - 0.118 * data.ZDR_AC_OC - 2.36)  # TODO check as Reimann used Carlin 2016 and log is log_10 and not ln
     data['LWC'].values = np.where(data.temp > 273.15,
                                   data['LWC'].values, np.nan)
     data.LWC.attrs["long_name"] = 'liquid water content'
@@ -572,6 +566,16 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
     data.LWC.attrs["standard_name"] = 'LWC'
     data.LWC.attrs["units"] = 'g m^-3'
     data.LWC.attrs["comments"] = 'retrieval cf. Reimann et al. (2021) Eq. 3.7'
+
+    data['LWC_KDP'] = 10**(0.568 * np.log10(data.KDP_NC) + 0.06)  # Reimann et al 2021(adjusted for Germany)
+    data['LWC_KDP'].values = np.where(data.temp > 273.15,
+                                  data['LWC_KDP'].values, np.nan)
+    data.LWC_KDP.attrs["long_name"] = 'liquid water content kdp-based'
+    data.LWC_KDP.attrs["short_name"] = 'LWC_KDP'
+    data.LWC_KDP.attrs["standard_name"] = 'LWC_KDP'
+    data.LWC_KDP.attrs["units"] = 'g m^-3'
+    data.LWC_KDP.attrs["comments"] = ('retrieval cf. Reimann et al. (2021) '
+                                      'Eq. 3.13')
 
     # Dm_rain following Bringi
     d0_br = d0_bringi(data.ZDR_AC_OC, mue=1 / 3)
@@ -600,7 +604,27 @@ def qvp_from_radar_PPIs(date='20170725', elevation_deg=12, location='pro',
                                      '(2009) with Eq. 11.14 from Ryzhkov ' \
                                      'and Zrnic (2019) for mue=1/3'
 
+    data['Nt_rain'] = (-2.37 + 0.1 * data.ZH_AC -
+                       2.89 * data.ZDR_AC_OC +
+                       1.28 * data.ZDR_AC_OC ** 2 -
+                       0.213 * data.ZDR_AC_OC ** 3)
+    data['Nt_rain'].values = np.where(data.temp > 273.15,
+                                        data['Nt_rain'].values, np.nan)
+    data.Nt_rain.attrs["long_name"] = 'total number concentration of rain'
+    data.Nt_rain.attrs["short_name"] = 'Nt_rain'
+    data.Nt_rain.attrs["standard_name"] = 'Nt_rain'
+    data.Nt_rain.attrs["units"] = 'log_10 (L^-1)'
+    data.Nt_rain.attrs["comments"] = ('Eq. 11 from Ryzhkov et al. (2020), '
+                                      'likely for S-band and without further '
+                                      'reference.')
     # do the qvp median!
+    for var in list(data.data_vars):                      # TODO: retry!
+        if 'azimuth' in data[var].dims: # TODO: retry!
+            count_values = data[var].count(dim='azimuth') # TODO: retry!
+            data[var] = data[var].median(dim='azimuth', # TODO: retry!
+                                         skipna=True, keep_attrs=True) # TODO: retry!
+            data[var] = data[var].where(count_values >= n_lowest) # TODO: retry!
+
     data = data.median('azimuth')
     data['min_entropy'] = qvp_entropy[-1, :]
     data['min_entropy'] = data['min_entropy'].assign_attrs(dict(

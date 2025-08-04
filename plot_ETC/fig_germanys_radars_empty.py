@@ -277,9 +277,9 @@ ax.set_ylim(ylim)
 
 plt.tight_layout()
 plt.savefig(
-    header.folder_plot + 'Radar_network_Germany_empty.pdf', format='pdf',
-    transparent=True)
+    header.folder_plot + 'RADOLAN/Radar_network_Germany_empty.pdf',
+    format='pdf',transparent=True)
 plt.savefig(
-    header.folder_plot + 'Radar_network_Germany_empty.png', format='png',
-    transparent=True)
+    header.folder_plot + 'RADOLAN/Radar_network_Germany_empty.png',
+    format='png', transparent=True)
 # plt.close()

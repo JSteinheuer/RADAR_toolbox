@@ -277,9 +277,9 @@ ax.set_ylim(ylim)
 
 plt.tight_layout()
 plt.savefig(
-    header.folder_plot + 'RW_rain_210713-210714_Germany.pdf', format='pdf',
-    transparent=True)
+    header.folder_plot + 'RADOLAN/RW_rain_210713-210714_Germany.pdf',
+    format='pdf',transparent=True)
 plt.savefig(
-    header.folder_plot + 'RW_rain_210713-210714_Germany.png', format='png',
-    transparent=True)
+    header.folder_plot + 'RADOLAN/RW_rain_210713-210714_Germany.png',
+    format='png',transparent=True)
 # plt.close()

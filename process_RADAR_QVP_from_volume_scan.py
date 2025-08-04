@@ -17,6 +17,7 @@ elevation_deg = 12
 overwrite = '2025-02-14'
 lowest_rhv = 0.7
 lowest_kdp = 0
+lowest_kdp = None
 highest_kdp = 10
 n_lowest = 30
 lowest_zh = 0
@@ -26,8 +27,8 @@ lowest_snr = 10
 # --------------------------------------------------------------------------- #
 # 14.02.25
 DATES = [
-    "20210713",  # case09
     "20210714",  # case09
+    "20210713",  # case09
     "20170725",  # caseX -> old OP HM 1 case
 ]
 LOCATIONS = [
@@ -39,7 +40,7 @@ LOCATIONS = [
 overwrite = '2025-02-24'
 for location in LOCATIONS:
     for date in DATES:
-        print(location + ' ' + date + '' + str(elevation_deg))
+        print(location + ' ' + date + ' ' + str(elevation_deg))
         qvp_from_radar_PPIs(date=date, elevation_deg=elevation_deg,
                             location=location,
                             overwrite=overwrite, lowest_rhv=lowest_rhv,
@@ -108,3 +109,42 @@ for location in LOCATIONS:
 
 # --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+
+overwrite = '2025-02-14'
+lowest_rhv = 0.7
+lowest_kdp = 0
+lowest_kdp = None
+highest_kdp = 10
+n_lowest = 30
+lowest_zh = 0
+highest_zh = None
+lowest_snr = 10
+
+# --------------------------------------------------------------------------- #
+# 14.02.25
+DATES = [
+    "20210714",  # case09
+    # "20210713",  # case09
+]
+LOCATIONS = [
+    'ess',
+    # 'pro',
+    # 'asb', 'boo', 'drs', 'eis', 'fbg',
+    # 'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
+    # 'oft', 'ros', 'tur', 'umd',
+]
+overwrite = '2025-02-24'
+for elevation_deg in [5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8, 12, 17, 25]:
+    for location in LOCATIONS:
+        for date in DATES:
+            print(location + ' ' + date + ' ' + str(elevation_deg))
+            qvp_from_radar_PPIs(date=date, elevation_deg=elevation_deg,
+                                location=location,
+                                overwrite=overwrite, lowest_rhv=lowest_rhv,
+                                lowest_snr=lowest_snr,
+                                lowest_kdp=lowest_kdp, highest_kdp=highest_kdp,
+                                lowest_zh=lowest_zh, highest_zh=highest_zh,
+                                n_lowest=n_lowest)
+
+# --------------------------------------------------------------------------- #

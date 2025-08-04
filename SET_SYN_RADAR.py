@@ -35,23 +35,24 @@ def rad_dict(xband_res=None):
         potentially the two Xbands (BOX:66nnn, JUX:67nnn).
     """
 
-    radar_dict = {'OFT': '010629',
-                  'PRO': '010392',
-                  'NEU': '010557',
-                  'FBG': '010908',
-                  'UMD': '010356',
-                  'ISN': '010873',
-                  'ROS': '010169',
-                  'MEM': '010950',
-                  'EIS': '010780',
-                  'ESS': '010410',
-                  'HNR': '010339',
-                  'FLD': '010440',
-                  'NHB': '010605',
-                  'DRS': '010488',
-                  'TUR': '010832',
-                  'BOO': '010132',
-                  }
+    radar_dict = {
+        'BOO': '010132',
+        'DRS': '010488',
+        'EIS': '010780',
+        'ESS': '010410',
+        'FBG': '010908',
+        'FLD': '010440',
+        'HNR': '010339',
+        'ISN': '010873',
+        'MEM': '010950',
+        'NEU': '010557',
+        'NHB': '010605',
+        'OFT': '010629',
+        'PRO': '010392',
+        'ROS': '010169',
+        'TUR': '010832',
+        'UMD': '010356',
+    }
     if xband_res is not None:
         if int(xband_res) < 1000:
             radar_dict['BOX'] = '066' + str(int(xband_res)).zfill(3)
@@ -62,7 +63,8 @@ def rad_dict(xband_res=None):
 
 def get_path_syn_volume(date, time, spin_up_mm,
                         radar_id, dir_data, da_run='',
-                        icon_run='', icon_emvorado_run=''):
+                        icon_run='', icon_emvorado_run='',
+                        icon_folder='ICONdata'):
     """Get paths to ICON/EMVORADO outputs for synthetic volume scans.
 
     Get the right path to the ICON forecast file and the synthetic C band
@@ -78,6 +80,7 @@ def get_path_syn_volume(date, time, spin_up_mm,
         da_run: subfolder specifying the data_assimilation run.
         icon_run: subfolder specifying the ICON run.
         icon_emvorado_run: subfolders specifying the EMVORADO run.
+        icon_folder: ICON folder string. Default 'ICONdata'
 
     Returns:
         A dict with corresponding folder names for the forecast of ICON and
@@ -114,7 +117,7 @@ def get_path_syn_volume(date, time, spin_up_mm,
     #             dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
     #             'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
     dir_of_fc = dir_data + '*/' + \
-                da_run + '/' + icon_run + '/ICONdata/' + \
+                da_run + '/' + icon_run + '/' + icon_folder + '/' + \
                 dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
                 'main0' + str(int(dti_da.strftime('%H')) % 3) + '00'
     dir_of_fc = glob.glob(dir_of_fc + '*')
@@ -148,7 +151,10 @@ def get_path_syn_volume(date, time, spin_up_mm,
                 file_fc = 'fc_R19B07.' + dti_da.strftime(
                     '%Y%m%d%H%M%S') + '_' + fc_time_str + '.RADOLAN'
                 if not os.path.isfile(dir_of_fc + file_fc):
-                    dir_of_fc = ''
+                    file_fc = 'fc_R19B07.' + dti_da.strftime(
+                        '%Y%m%d%H%M%S') + '_' + fc_time_str + '.SW'
+                    if not os.path.isfile(dir_of_fc + file_fc):
+                        dir_of_fc = ''
 
     # volume scan
     # dir_of_vol = dir_data + dti_fc.strftime('%Y%m%d') + '/' + \
@@ -973,7 +979,8 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                   radar_loc='ESS', radar_id='010410', spin_up_mm=120,
                   da_run='ASS_2411', icon_run='MAIN_2411',
                   icon_emvorado_run='MAIN_2411.1/EMVO_00510000.2',
-                  overwrite=False, include_icon=True, include_emv=False):
+                  overwrite=False, include_icon=True, include_emv=False,
+                  icon_folder='ICONdata'):
     """
     Create a synthetic volume scan from EMVORADO and ICON data.
 
@@ -995,6 +1002,7 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                    overwritten if its creation date is older than yyyy-mm-dd.
         include_icon: If True, ICON variables are included.
         include_emv: If True, synthetic pol. var from EVMORADO are included.
+        icon_folder: ICON folder string. Default 'ICONdata'
 
     Returns:
     """
@@ -1019,7 +1027,8 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
             return
     elif not include_emv:
         file_out = 'ICON_Vol_'
-        dir_out = dir_out.replace(icon_emvorado_run, icon_run + '/ICONdata')
+        dir_out = dir_out.replace(icon_emvorado_run,
+                                  icon_run + '/ICONdata')
     else:
         file_out = 'Syn_Vol_'
 
@@ -1061,7 +1070,8 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
         # file names
         dir_of_fc, file_fc, dir_of_vol, file_vol = \
             get_path_syn_volume(date, time, spin_up_mm, radar_id, dir_data_in,
-                                da_run, icon_run, icon_emvorado_run).values()
+                                da_run, icon_run, icon_emvorado_run,
+                                icon_folder).values()
 
         # initialization of volume necessary?
         if ('vol_scan' not in locals() and include_icon
@@ -1391,6 +1401,19 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
 
                         levels_fc = xr.open_dataset(
                             dir_data_in + '/grid/vgrd_R19B07.ICON-D2.nc')
+                elif single_fc.ncells.size == 100122:
+                    ncells = 100122  # ICON-SW LIFT
+                    grid_fc = xr.open_dataset(
+                        dir_data_in + '/grid/hgrd_R19B07.SW.nc')
+                    if grid_fc.cell.size == single_fc.ncells.size:
+                        if grid_fc.clon.units == 'radian':
+                            grid_fc.clon.data = np.rad2deg(grid_fc.clon.data)
+                            grid_fc.clon.attrs['units'] = 'degree'
+                        if grid_fc.clat.units == 'radian':
+                            grid_fc.clat.data = np.rad2deg(grid_fc.clat.data)
+
+                        levels_fc = xr.open_dataset(
+                            dir_data_in + '/grid/vgrd_R19B07.SW.nc')
                 else:
                     print('No forcast data, as differing ncells ' +
                           'were found in ' + dir_data_in + '/grid/')
@@ -1724,7 +1747,8 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(icon_emvorado_run, 4),
                          np.repeat(False, 4),
                          np.repeat(True, 4),
-                         np.repeat(False, 4))
+                         np.repeat(False, 4),
+                         np.repeat('ICONdata', 4))
                      )
         print('________________________________________')
         print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
@@ -1742,5 +1766,6 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(icon_emvorado_run, 4),
                          np.repeat(False, 4),
                          np.repeat(False, 4),
-                         np.repeat(True, 4))
+                         np.repeat(True, 4),
+                         np.repeat('ICONdata', 4))
                      )

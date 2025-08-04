@@ -58,7 +58,7 @@ filter_entr_ML = False
 
 # locations = list(rad_dict().keys())
 locations = list(rad_dict().keys())
-locations = ['ESS', 'NHB', 'OFT', 'FBG', 'FLD']
+# locations = ['ESS', 'NHB', 'OFT', 'FBG', 'FLD']
 # adjust ###################### adjust ###################### adjust ##########
 
 mode = 'vol'

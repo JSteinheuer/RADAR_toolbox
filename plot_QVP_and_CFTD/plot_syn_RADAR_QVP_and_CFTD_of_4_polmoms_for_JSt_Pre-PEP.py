@@ -367,12 +367,12 @@ if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
 
 plt.savefig(
-    folder_plot + 'QVP_4polmoms_' + str(elevation_deg) + '_' +
+    folder_plot + 'newQVP_4polmoms_' + str(elevation_deg) + '_' +
     date + '_' + hhmm_start + '-' + hhmm_end + '_' +
     location + mod_names +
     '.png', format='png', transparent=True)
 plt.savefig(
-    folder_plot + 'QVP_4polmoms_' + str(elevation_deg) + '_' +
+    folder_plot + 'newQVP_4polmoms_' + str(elevation_deg) + '_' +
     date + '_' + hhmm_start + '-' + hhmm_end + '_' +
     location + mod_names +
     '.pdf', format='pdf', transparent=True)
@@ -686,12 +686,12 @@ if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
 
 plt.savefig(
-    folder_plot + 'QVP_4polmoms_' + str(elevation_deg) + '_' +
+    folder_plot + 'newQVP_4polmoms_' + str(elevation_deg) + '_' +
     date + '_' + hhmm_start + '-' + hhmm_end + '_' +
     location + mod_names +
     '.png', format='png', transparent=True)
 plt.savefig(
-    folder_plot + 'QVP_4polmoms_' + str(elevation_deg) + '_' +
+    folder_plot + 'newQVP_4polmoms_' + str(elevation_deg) + '_' +
     date + '_' + hhmm_start + '-' + hhmm_end + '_' +
     location + mod_names +
     '.pdf', format='pdf', transparent=True)
@@ -968,13 +968,13 @@ else:
     locations_str = 'All_loc_'
 
 plt.savefig(
-    folder_plot + '/CFTD_4polmoms_' + str(elevation_deg) + '_' +
+    folder_plot + '/newCFTD_4polmoms_' + str(elevation_deg) + '_' +
     dates_str + '_' + hhmm_start + '-' + hhmm_end + '_' +
     locations_str + ['', 'entr_'][filter_entr] + ['', 'mom_'][filter_moms] +
     mod_names +
     '.pdf', format='pdf', transparent=True)
 plt.savefig(
-    folder_plot + '/CFTD_4polmoms_' + str(elevation_deg) + '_' +
+    folder_plot + '/newCFTD_4polmoms_' + str(elevation_deg) + '_' +
     dates_str + '_' + hhmm_start + '-' + hhmm_end + '_' +
     locations_str + ['', 'entr_'][filter_entr] + ['', 'mom_'][filter_moms] +
     mod_names +

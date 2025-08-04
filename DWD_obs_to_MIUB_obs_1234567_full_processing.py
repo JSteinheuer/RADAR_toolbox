@@ -33,12 +33,11 @@ DATES = [
     # "20220623", "20220624", "20220625",  # case05
     # "20220626", "20220627", "20220628",  # case06+07
     # "20220630", "20220701",  # case08
-    "20210713",  # case09
+    "20210713", "20210714",  # case09
     # "20221222",  # case10
     # "20170719",  # caseX -> old OP HM 1 case
     "20170725",  # caseX -> old OP HM 1 case
-    "20210714",  # case09
-    # "20181223",  # case -> PRISTINE
+    # "20181223", "20181224",  # caseX -> PRISTINE
 ]
 LOCATIONS = [
     'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
@@ -48,9 +47,7 @@ LOCATIONS = [
 ELEVATIONS = np.array([
     5.5,  # for pcp
     5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-    8.0,
-    12.0,
-    17.0, 25.0,
+    8.0, 12.0, 17.0, 25.0,
     5.5,  # for 90grad
 ])
 MODE = [
@@ -62,7 +59,8 @@ MODE = [
 overwrite = False
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 1
-moments = ['CMAP', 'DBSNRH', 'DBZH', 'RHOHV', 'UPHIDP', 'ZDR', 'SNRHC',
+moments = ['CMAP', 'DBSNRH', 'SNRHC',
+           'DBZH', 'RHOHV', 'UPHIDP', 'ZDR',
            'VRADH', ]
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 4
@@ -78,10 +76,13 @@ parts = 6
 merge = True
 remove_parts = True
 # --------------------------------------------------------------------------- #
+# Parameters for STEP 5
+overwrite_step5='2025-02-12'
+# --------------------------------------------------------------------------- #
 # Parameters for STEP 7
-other_zdr_off_day = ''
 n_zdr_lowest = 2000
-std_zdr_highest = 2
+other_zdr_off_day_default = ''
+std_zdr_highest_default = 2
 # --------------------------------------------------------------------------- #
 # START: Loop over cases, dates, and radars:                                  #
 # --------------------------------------------------------------------------- #
@@ -130,7 +131,7 @@ for date in DATES:
                 attenuation_correction(date=date, location=location,
                                        elevation_deg=elevation_deg,
                                        mode=mode,
-                                       overwrite='2025-02-12',
+                                       overwrite=overwrite_step5,
                                        dir_data_obs=header.dir_data_obs)
 
             # STEP 6
@@ -143,9 +144,8 @@ for date in DATES:
         for elevation_deg, mode in zip(ELEVATIONS, MODE):  # for Vol zdr calib.
             # STEP 7
             if mode != '90grad':
-                other_zdr_off_day = ''
-                n_zdr_lowest = 1000
-                std_zdr_highest = 2
+                other_zdr_off_day = other_zdr_off_day_default
+                std_zdr_highest = std_zdr_highest_default
                 method_zdr_priorities = ['PPI', 'BB',
                                          'SD_V', 'LR_V' 'SD_I', 'LR_I']
                 if (date == '20210604') & (location in ['asb']):
@@ -215,7 +215,7 @@ for date in DATES:
 
                 combine_pol_mom_nc(date=date, location=location,
                                    elevation_deg=elevation_deg, mode=mode,
-                                   overwrite='2025-02-12',  # TODO overwrite,
+                                   overwrite=overwrite_step5,
                                    n_zdr_lowest=n_zdr_lowest,
                                    std_zdr_highest=std_zdr_highest,
                                    other_zdr_off_day=other_zdr_off_day,

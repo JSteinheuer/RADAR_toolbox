@@ -854,6 +854,10 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                 ['time', 'range', 'azimuth', ], qn_dens[hm], dict(
                     standard_name=icon_nc['qn' + hm[0]].standard_name +
                                   ' per volume', units='m-3'))
+            # TODO: check qi threshold for calc diameters
+            mean_volume_diameter[hm]=np.where(icon_nc['q'+hm[0]]>1e-6,mean_volume_diameter[hm], 0)
+
+            # TODO: check qi threshold for calc diameters
             icon_nc['D0_' + hm[0]] = (
                 ['time', 'range', 'azimuth', ],
                 mean_volume_diameter[hm] * 1000,
@@ -915,7 +919,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         # ------------------------------------------------------------------- #
         # QVP: MERGE                                                          #
         # ------------------------------------------------------------------- #
-        qvp_nc = xr.merge([emv_nc, icon_nc]) # ,compat='override')
+        qvp_nc = xr.merge([emv_nc, icon_nc] ,compat='override')
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc['min_entropy'] = qvp_entropy[-1, :]
         qvp_nc['min_entropy'] = qvp_nc['min_entropy'].assign_attrs(dict(
@@ -945,7 +949,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                            xr.open_dataset(dir_qvp + files_qvp[1]),
                            xr.open_dataset(dir_qvp + files_qvp[2]),
                            xr.open_dataset(dir_qvp + files_qvp[3]),
-                           ])  #, compat='override')
+                           ])#, compat='override')
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc.to_netcdf(dir_qvp + file_qvp_4, unlimited_dims='time')
         qvp_nc.close()

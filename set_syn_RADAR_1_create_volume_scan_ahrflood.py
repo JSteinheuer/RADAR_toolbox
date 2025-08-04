@@ -126,7 +126,7 @@ for day in [
                                overwrite_ICON=overwrite_ICON)
 
 # --------------------------------------------------------------------------- #
-# 24.02.25 1
+# 24.02.25 1  # Done
 overwrite_EMV = False
 overwrite_ICON = False
 radar_locs = list(rad_dict().keys())  # TODO: '20210713'
@@ -207,7 +207,60 @@ for day in [
 #                            overwrite_ICON=overwrite_ICON)
 #
 # --------------------------------------------------------------------------- #
+# 08.05.25   # Done 12.05.25
+overwrite_EMV = False
+overwrite_ICON = False
+radar_locs = list(rad_dict().keys())
+spin_up_mm = 120
+for day in [
+    '20210714',
+    '20210713',
+]:
+    da_run = 'ASS_2411'  # ASS_newererer
+    icon_run = 'MAIN_2411.0'  # MAIN_newererererRH8_MP-RUC1.0
+    for emvorado_run in [
+        'EMVO_00410000.2',
+    ]:
+        icon_emvorado_run = icon_run + '/' + emvorado_run
+        create_8_vol_nc_of_day(day=day, da_run=da_run,
+                               icon_run=icon_run,
+                               icon_emvorado_run=icon_emvorado_run,
+                               spin_up_mm=spin_up_mm,
+                               radar_locs=radar_locs,
+                               dir_data_in=header.dir_data_mod,
+                               dir_data_out=header.dir_data_vol,
+                               overwrite_EMV=overwrite_EMV,
+                               overwrite_ICON=overwrite_ICON)
+
+# --------------------------------------------------------------------------- #
+# 13.05.25 # Kobras runs  # TODO
+overwrite_EMV = False
+overwrite_ICON = False
+radar_locs = list(rad_dict().keys())# TODO
+# radar_locs = ['ESS']
+spin_up_mm = 120
+for day in [
+    '20210714',
+    '20210713',
+]:
+    da_run = 'ASS_2411'  # ASS_newererer
+    icon_run = 'MAIN_2411.3'
+    for emvorado_run in [
+        'EMVO_00511300.2',
+        'EMVO_00521300.2',
+        'EMVO_01521300.2',
+    ]:
+        icon_emvorado_run = icon_run + '/' + emvorado_run
+        create_8_vol_nc_of_day(day=day, da_run=da_run,
+                               icon_run=icon_run,
+                               icon_emvorado_run=icon_emvorado_run,
+                               spin_up_mm=spin_up_mm,
+                               radar_locs=radar_locs,
+                               dir_data_in=header.dir_data_mod,
+                               dir_data_out=header.dir_data_vol,
+                               overwrite_EMV=overwrite_EMV,
+                               overwrite_ICON=overwrite_ICON)
 
 # --------------------------------------------------------------------------- #
 # CONTINUE?
-import process_syn_RADAR_QVP_from_volume_scan_ahrflood
+# import process_syn_RADAR_QVP_from_volume_scan_ahrflood

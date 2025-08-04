@@ -1215,7 +1215,7 @@ def phase_offset(phioff, rng=3000):
     )
 
 
-# Velibor Pejcic
+# Julian Steinheuer
 def proc_phidp_kdp(swp_cf, uh_tresh=0, rho_tresh=0.8, snr_tresh=15,
                    win_r=25, win_azi=None, wkdp_light=9, wkdp_heavy=25,
                    rng=3000, flip_default=1):
