@@ -277,4 +277,60 @@ gg.despine(bottom=True, left=True)
 # g.despine(bottom=True, left=True)
 
 
+schnitt_kmh=30
+schnitt_hoch_hmh=750
+schnitt_runter_hmh=-1000
 
+#Vulkan
+gesamtkm=65
+hoch_hmh=900
+runter_hmh=900-250
+gemessene_dauer=2.5
+
+print(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh)
+print(gesamtkm/(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh))
+
+#Neuenahr
+gesamtkm=68
+hoch_hmh=500
+runter_hmh=500
+gemessene_dauer=2.5
+
+print(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh)
+print(gesamtkm/(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh))
+
+#Paradies
+gesamtkm=47
+hoch_hmh=384
+runter_hmh=384
+gemessene_dauer=1.66
+
+print(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh)
+print(gesamtkm/(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh))
+
+#Siebengeb
+gesamtkm=49
+hoch_hmh=572
+runter_hmh=572
+gemessene_dauer=2
+
+print(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh)
+print(gesamtkm/(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh))
+
+#Siebengeb
+gesamtkm=49
+hoch_hmh=572
+runter_hmh=572
+gemessene_dauer=2
+
+print(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh)
+print(gesamtkm/(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh))
+
+# Kesseling
+gesamtkm=118
+hoch_hmh=886
+runter_hmh=886
+gemessene_dauer=4.5
+
+print(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh)
+print(gesamtkm/(gesamtkm/schnitt_kmh+hoch_hmh/schnitt_hoch_hmh+runter_hmh/schnitt_runter_hmh))
