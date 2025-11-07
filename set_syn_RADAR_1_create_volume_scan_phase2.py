@@ -23,7 +23,8 @@ from SET_SYN_RADAR import \
 overwrite_EMV = False
 overwrite_ICON = False
 # overwrite_ICON = '2025-01-28'  # TODO: recalculate everything?
-radar_locs = list(rad_dict().keys())
+radar_locs = list(rad_dict().keys())  # TODO
+radar_locs = ['ESS', 'NHB']
 spin_up_mm = 120
 for day in [
     '20181223',
@@ -33,8 +34,9 @@ for day in [
     icon_run = 'MAIN_2405.3'
     for emvorado_run in [
         'EMVO_00510000.2',
-        'EMVO_00510200.2',
-        'EMVO_00510300.2',
+        'EMVO_00512000.2',
+        'EMVO_00513000.2',
+        'EMVO_00513900.2',  # 29.10.25
     ]:
         icon_emvorado_run = icon_run + '/' + emvorado_run
         create_8_vol_nc_of_day(day=day, da_run=da_run,
@@ -43,7 +45,8 @@ for day in [
                                spin_up_mm=spin_up_mm,
                                radar_locs=radar_locs,
                                dir_data_in=header.dir_data_mod,
-                               dir_data_out=header.dir_data_vol,
+                               # dir_data_out=header.dir_data_vol,
+                               dir_data_out='/automount/agradar/operation_hydrometeors/data/Syn_vol/',
                                overwrite_EMV=overwrite_EMV,
                                overwrite_ICON=overwrite_ICON)
 
