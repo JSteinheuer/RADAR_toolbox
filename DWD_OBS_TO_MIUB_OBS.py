@@ -3194,7 +3194,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                        overwrite=False, dir_data_obs=header.dir_data_obs,
                        method_zdr_priorities=['PPI', 'BB', 'SD_V', 'LR_V',
                                               'SD_I', 'LR_I'],
-                       other_zdr_off_day='',
+                       other_zdr_off_day='',uh_tresh=0,
                        n_zdr_lowest=1000, std_zdr_highest=2):
     """
     .
@@ -3207,6 +3207,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
                     (as this is the sweep 0 for the volume).
     mode : set 'vol' for volume and 'pcp' for precipitation.
     overwrite : Bool;, if *allmoms*-output exists, it can be overwritten.
+    uh_tresh : ZH Threshold
     dir_data_obs : directory to search for input cases
                   (>dir_data_obs</*/yyyy/yyyy-mm/yyyy-mm-dd).
     """
@@ -3399,7 +3400,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
     data_temp2 = data_temp.interp(
         coords=data.drop(['longitude', 'latitude',
                           'altitude', 'elevation']).coords,
-        method='nearest')
+        method='nearest', kwargs={'fill_value': 'extrapolate'})
 
     # combine:
     remo_var = list(data_kdp.data_vars.keys())
@@ -3426,7 +3427,7 @@ def combine_pol_mom_nc(date, location, elevation_deg=5.5, mode='vol',
             other=data_rho.RHOHV_NC2P, method='nearest')})
     xr.set_options(keep_attrs=True)
     data_combined = data_combined.where(np.isnan(data.CMAP))
-    data_combined = data_combined.where(data.DBZH >= 0)
+    data_combined = data_combined.where(data.DBZH >= uh_tresh)
     data_combined = data_combined.assign(
         {'PHI_offset_median': np.nanmedian(data_kdp.PHI_OFFSET)})
     data_combined.PHI_offset_median.attrs["long_name"] = \
