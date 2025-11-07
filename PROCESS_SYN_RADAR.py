@@ -225,7 +225,17 @@ def adjust_icon_fields(infields, hymets=icon_hydromets(), spec2dens=1):
         x[x > hymets[key]['xmax']] = hymets[key]['xmax']
         qn[key] = q[key] / x
         q[key][q[key] < 1e-7] = 0.
-        qn[key][q[key] < 1e-7] = 1.  # for numeric stability.
+        qn[key][q[key] < 1e-7] = 1.  # for numeric stability.  # TODO: questioneing!!
+        # q[key][q[key] < 1e-7] = 0.
+        # qn[key][q[key] < 1e-7] = 1e-7  # for numeric stability.
+        # q[key][q[key] < 1e-7] = 0.
+        # qn[key][q[key] < 1e-6] = 1  # for numeric stability.
+        # q[key][q[key] < 1e-10] = 0.
+        # qn[key][q[key] < 1e-10] = 1  # for numeric stability.
+        # q[key][q[key] < 1e-6] = 0.
+        # qn[key][q[key] < 1e-6] = 1  # for numeric stability.
+        # q[key][q[key] < 1e-5] = 0.
+        # qn[key][q[key] < 1e-5] = 1  # for numeric stability.
     return q, qn
 
 
@@ -664,7 +674,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
             continue
 
         print('------------------------------------------------------')
-        print('QVP for ' + dir_emv + file_emv)
+        print('QVP(' + str(elevation_deg)+ ') for ' + dir_emv + file_emv)
         emv_nc = xr.open_dataset(dir_emv + file_emv)
         icon_nc = xr.open_dataset(dir_icon + file_icon)
 
@@ -854,8 +864,8 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                 ['time', 'range', 'azimuth', ], qn_dens[hm], dict(
                     standard_name=icon_nc['qn' + hm[0]].standard_name +
                                   ' per volume', units='m-3'))
-            # TODO: check qi threshold for calc diameters
-            mean_volume_diameter[hm]=np.where(icon_nc['q'+hm[0]]>1e-6,mean_volume_diameter[hm], 0)
+            # # TODO: check qi threshold for calc diameters
+            # mean_volume_diameter[hm]=np.where(icon_nc['q'+hm[0]]>1e-6,mean_volume_diameter[hm], 0)
 
             # TODO: check qi threshold for calc diameters
             icon_nc['D0_' + hm[0]] = (
