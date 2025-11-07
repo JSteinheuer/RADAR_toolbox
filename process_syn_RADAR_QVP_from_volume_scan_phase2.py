@@ -28,8 +28,8 @@ from SET_SYN_RADAR import rad_dict
 #     icon_run = 'MAIN_2405.3'
 #     for emvorado_run in [
 #         'EMVO_00510000.2',
-#         'EMVO_00510200.2',
-#         'EMVO_00510300.2',
+#         'EMVO_00512000.2',
+#         'EMVO_00513000.2',
 #     ]:
 #         icon_emvorado_run = icon_run + '/' + emvorado_run
 #         for radar_loc in radar_locs:
