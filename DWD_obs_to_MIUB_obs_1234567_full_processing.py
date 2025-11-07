@@ -33,30 +33,40 @@ DATES = [
     # "20220623", "20220624", "20220625",  # case05
     # "20220626", "20220627", "20220628",  # case06+07
     # "20220630", "20220701",  # case08
-    "20210713", "20210714",  # case09
+    # "20210713", "20210714",  # case09
     # "20221222",  # case10
     # "20170719",  # caseX -> old OP HM 1 case
-    "20170725",  # caseX -> old OP HM 1 case
-    # "20181223", "20181224",  # caseX -> PRISTINE
+    # "20170725",  # caseX -> old OP HM 1 case
+    "20181223", #"20181224",  # caseX -> PRISTINE
 ]
 LOCATIONS = [
-    'asb', 'boo', 'drs', 'eis', 'ess', 'fbg',
-    'fld', 'hnr', 'isn', 'mem', 'neu', 'nhb',
-    'oft', 'pro', 'ros', 'tur', 'umd',
+    # 'asb', 'boo', 'drs', 'eis',
+    'ess',
+    # 'fbg',
+    # 'fld', 'hnr', 'isn', 'mem', 'neu',
+    'nhb',
+    # 'oft', 'pro', 'ros', 'tur', 'umd',
 ]
 ELEVATIONS = np.array([
-    5.5,  # for pcp
-    5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
-    8.0, 12.0, 17.0, 25.0,
-    5.5,  # for 90grad
+    # 5.5,  # for pcp
+    # 5.5, 4.5, 3.5, 2.5, 1.5, 0.5,
+    8.0,
+    12.0,
+    17.0,
+    # 25.0,
+    # 5.5,  # for 90grad
 ])
 MODE = [
-    'pcp',
-    'vol', 'vol', 'vol', 'vol', 'vol', 'vol',
-    'vol', 'vol', 'vol', 'vol',
-    '90grad',
+    # 'pcp',
+    # 'vol', 'vol', 'vol', 'vol', 'vol', 'vol',
+    'vol',
+    'vol',
+    'vol',
+    # 'vol',
+    # '90grad',
 ]
-overwrite = False
+# overwrite = False
+overwrite = True
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 1
 moments = ['CMAP', 'DBSNRH', 'SNRHC',
@@ -64,9 +74,14 @@ moments = ['CMAP', 'DBSNRH', 'SNRHC',
            'VRADH', ]
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 4
-uh_tresh = 0
+
+uh_tresh = 0 # TODO use that!!!!!!
+uh_tresh = -20 # TODO pristine testing only !!!
+uh_tresh = -10 # TODO pristine testing only !!!
 rho_tresh = 0.8
-snr_tresh = 15
+snr_tresh = 15 # TODO use that!!!!!!
+snr_tresh = 0 # TODO pristine testing only !!!
+snr_tresh = 5 # TODO pristine testing only !!!
 win_r = 25  # VP or PARK?!
 win_azi = None
 rng = 3000
@@ -77,7 +92,7 @@ merge = True
 remove_parts = True
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 5
-overwrite_step5='2025-02-12'
+overwrite_step5='1025-02-12'
 # --------------------------------------------------------------------------- #
 # Parameters for STEP 7
 n_zdr_lowest = 2000
@@ -94,22 +109,22 @@ for date in DATES:
             load_all_moms(date=date, location=location,
                           elevation_deg=elevation_deg,
                           mode=mode, moments=moments,
-                          overwrite=overwrite,
+                          overwrite=False, # =overwrite,,
                           dir_data_obs=header.dir_data_obs,
                           dir_data_obs_realpep=header.dir_data_obs_realpep)
             # STEP 2
             if mode != '90grad':
                 correct_rho_hv(date=date, location=location,
                                elevation_deg=elevation_deg,
-                               mode=mode, overwrite=overwrite,
+                               mode=mode, overwrite=False, # =overwrite,,
                                dir_data_obs=header.dir_data_obs)
 
             # STEP 3
-            download_ERA5_temp(date=date, overwrite=overwrite,
+            download_ERA5_temp(date=date, overwrite=False, # =overwrite,
                                dir_out=header.dir_data_era5)
             era5_temp(date=date, location=location,
                       elevation_deg=elevation_deg,
-                      mode=mode, overwrite=overwrite,
+                      mode=mode, overwrite=False, # =overwrite,
                       dir_data_obs=header.dir_data_obs,
                       dir_data_era5=header.dir_data_era5)
             # STEP 4
@@ -220,6 +235,7 @@ for date in DATES:
                                    std_zdr_highest=std_zdr_highest,
                                    other_zdr_off_day=other_zdr_off_day,
                                    method_zdr_priorities=method_zdr_priorities,
+                                   uh_tresh=uh_tresh,
                                    dir_data_obs=header.dir_data_obs)
 
 # --------------------------------------------------------------------------- #
