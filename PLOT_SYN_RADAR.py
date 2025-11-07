@@ -446,30 +446,30 @@ def plot_syn_PPI(nc_file,
             norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
         if cmap is None:
             cmap = header.cmap_radar  # _smooth
-    elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
-            'qng' in moment.lower() or 'qnh' in moment.lower() or \
-            'qni' in moment.lower() or 'qns' in moment.lower():
-        if levels is None:
-            # levels = [10.0**i for i in np.arange(-4, 8, 1)]
-            levels = [i for i in np.arange(-2, 15, 1)]
-            ppi[moment] = np.log(ppi[moment])
-        if norm is None:
-            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
-        if cmap is None:
-            cmap = header.cmap_radar  # _smooth
-        log = True
-    elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
-            'qg' in moment.lower() or 'qh' in moment.lower() or \
-            'qi' in moment.lower() or 'qs' in moment.lower():
-        if levels is None:
-            # levels = [10.0**i for i in np.arange(-11, 3, 1)]
-            levels = [i for i in np.arange(-20, -3, 1)]
-            ppi[moment] = np.log(ppi[moment])
-        if norm is None:
-            norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
-        if cmap is None:
-            cmap = header.cmap_radar  # _smooth
-        log = True
+    # elif 'qnr' in moment.lower() or 'qnc' in moment.lower() or \
+    #         'qng' in moment.lower() or 'qnh' in moment.lower() or \
+    #         'qni' in moment.lower() or 'qns' in moment.lower():
+    #     if levels is None:
+    #         # levels = [10.0**i for i in np.arange(-4, 8, 1)]
+    #         levels = [i for i in np.arange(-2, 15, 1)]
+    #         ppi[moment] = np.log(ppi[moment])
+    #     if norm is None:
+    #         norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+    #     if cmap is None:
+    #         cmap = header.cmap_radar  # _smooth
+    #     log = True
+    # elif 'qr' in moment.lower() or 'qc' in moment.lower() or \
+    #         'qg' in moment.lower() or 'qh' in moment.lower() or \
+    #         'qi' in moment.lower() or 'qs' in moment.lower():
+    #     if levels is None:
+    #         # levels = [10.0**i for i in np.arange(-11, 3, 1)]
+    #         levels = [i for i in np.arange(-20, -3, 1)]
+    #         ppi[moment] = np.log(ppi[moment])
+    #     if norm is None:
+    #         norm = mpl.colors.BoundaryNorm(levels, len(levels) - 1)
+    #     if cmap is None:
+    #         cmap = header.cmap_radar  # _smooth
+    #     log = True
     # elif 'w' == moment.lower():
     #     if levels is None:
     #         levels = np.arange(-16, 16.1, 2)
@@ -612,13 +612,19 @@ def mom_plot_dict(mom_name='zh'):
         return dict(mom_name=mom_name, mom_min=0.925, mom_max=1.025,
                     bins_mom=25, )
                     # bins_mom=40, )
-    elif mom_name in ['vol_qntotice', 'Nt_totice', 'Nt_totice_qvp', ]:
-        return dict(mom_name=mom_name, mom_min=-2, mom_max=4.1,
-                    bins_mom=40, )
-    elif mom_name in ['vol_qtotice', 'IWC', 'IWC_qvp', ]:
+    elif mom_name in ['Nt_totice', 'Nt_totice_qvp','Nt_r','Nt_rain_qvp',
+                      'vol_qntotice', 'vol_qnr', 'vol_qnh', 'vol_qnc',
+                      'vol_qni', 'vol_qng', 'vol_qns', ]:
+        return dict(mom_name=mom_name, mom_min=-1.6, mom_max=2.1,bins_mom=40, )
+        # return dict(mom_name=mom_name, mom_min=-2, mom_max=4.1,bins_mom=40, )
+    elif mom_name in ['vol_qtotice', 'IWC', 'IWC_qvp',
+                      'LWC', 'LWC_qvp',  'vol_qr',
+                      'vol_qh', 'vol_qg', 'vol_qs', 'vol_qc', 'vol_qi',]:
         return dict(mom_name=mom_name, mom_min=0, mom_max=.45,
                     bins_mom=35, )
-    elif mom_name in ['D0_totice', 'Dm_totice', 'Dm_totice_qvp', ]:
+    elif mom_name in ['D0_totice', 'Dm_totice', 'Dm_totice_qvp',
+                      'D0_r','Dm_r', 'D0_bringi',
+                      'D0_h', 'D0_g', 'D0_s', 'D0_c', 'D0_i',]:
         return dict(mom_name=mom_name, mom_min=0, mom_max=3.3,
                     bins_mom=50, )
 
@@ -821,7 +827,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
                 kdp = file_nc['KDP_NC']
                 rho = file_nc['RHOHV_NC2P']
 
-            file_nc = xr.where(zh > 0, file_nc, np.nan)
+            file_nc = xr.where(zh > 10, file_nc, np.nan)
             file_nc = xr.where(zh < 80, file_nc, np.nan)
             file_nc = xr.where(zdr > -1, file_nc, np.nan)
             file_nc = xr.where(zdr < 8, file_nc, np.nan)
@@ -837,7 +843,20 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             mom = file_nc[moment].values
             if moment == 'vol_qtotice':  # m3 m-3
                 mom = mom*1000  # ~g m-3
+                mom = np.where(file_nc['vol_qntotice'].values,mom,np.nan)
+                mom = np.where(file_nc['D0_totice'].values,mom,np.nan)
             elif moment =='vol_qntotice': # m-3
+                mom = np.log10(mom/1000) # lg(L-1)
+                mom = np.where(file_nc['vol_qtotice'].values,mom,np.nan)
+                mom = np.where(file_nc['D0_totice'].values,mom,np.nan)
+            elif moment =='D0_totice': # m-3
+                mom = np.where(file_nc['vol_qtotice'].values,mom,np.nan)
+                mom = np.where(file_nc['vol_qntotice'].values,mom,np.nan)
+            elif moment in ['vol_qr', 'vol_qc', 'vol_qi', 'vol_qs',
+                            'vol_qg', 'vol_qh', ]:  # m3 m-3
+                mom = mom*1000  # ~g m-3
+            elif moment in ['vol_qnr', 'vol_qnc', 'vol_qni', 'vol_qns',
+                            'vol_qng', 'vol_qnh', ]: # m-3
                 mom = np.log10(mom/1000) # lg(L-1)
 
         elif moment == 'Nt_totice_qvp':
@@ -851,7 +870,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
                 0.004 * file_nc.KDP_NC * lamb / (1 - zdr_lin ** (-1))
             ).values
             mom[mom < 0] = np.nan
-            mom[file_nc['KDP_NC'].values < 0] = np.nan
+            mom[file_nc['KDP_NC'].values < 0.01] = np.nan
             # mom now: nt instead of iwc:
             mom = 6.69 - 3 + 2 * np.log10(mom) - 0.1 * file_nc.ZH_AC.values
         elif moment == 'Dm_totice_qvp':
@@ -870,6 +889,24 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
                 0.033 * (file_nc.KDP_NC * lamb) ** 0.67 * zh_lin ** 0.33,
                 0.004 * file_nc.KDP_NC * lamb / (1 - zdr_lin ** (-1))
             ).values
+            mom[mom<0]=np.nan
+            mom[file_nc['KDP_NC'].values < 0.01] = np.nan
+        elif moment == 'LWC_qvp':
+            print('LWC_qvp')
+            # Reimann Simmer Troemel 2021
+            mom = 10**(0.058 * file_nc.ZH_AC - 0.118 * file_nc.ZDR_AC_OC - 2.36).values
+            mom[mom<0]=np.nan
+            mom[file_nc['KDP_NC'].values<0]=np.nan
+        elif moment == 'Nt_rain_qvp':
+            print('Nt_rain_qvp')
+            mom = (-2.37 + 0.1 * file_nc.ZH_AC -
+                   2.89 * file_nc.ZDR_AC_OC +
+                   1.28 * file_nc.ZDR_AC_OC ** 2 -
+                   0.213 * file_nc.ZDR_AC_OC ** 3).values
+            mom[file_nc['KDP_NC'].values<0]=np.nan
+        elif moment == 'D0_bringi':
+            print('D0_bringi')
+            mom = d0_bringi(file_nc.ZDR_AC_OC.values)['d0']
             mom[mom<0]=np.nan
             mom[file_nc['KDP_NC'].values<0]=np.nan
         else:
@@ -1007,7 +1044,8 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
 
         if data_label:
             ax2.tick_params(axis='x', colors='gray')
-            ax2.text(.4, .9, 'data', color='gray', transform=ax.transAxes)
+            # ax2.text(.42, .9, 'data', color='gray', transform=ax.transAxes)
+            ax2.text(.42, 1.02, 'data', color='gray', transform=ax.transAxes)
             # ax2.set_title('data', color='gray')
         else:
             ax2.tick_params(axis='x', colors='gray')
