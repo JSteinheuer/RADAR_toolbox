@@ -31,6 +31,8 @@ os.environ["PROJ_NETWORK"] = 'ON'
 # --------------------------------------------------------------------------- #
 
 if getpass.getuser() == 's6justei':  # Bonner tower/network
+
+    # # OLD DIRECTORIES
     # dir_data_vol = '/automount/agradar/operation_hydrometeors/data/Syn_vol/'
     # dir_data_qvp = '/automount/agradar/operation_hydrometeors/data/QVP/'
     # dir_data_mod = '/automount/agradar/operation_hydrometeors/data/mod/'
@@ -42,6 +44,7 @@ if getpass.getuser() == 's6justei':  # Bonner tower/network
     # folder_qvp_plot = '/automount/agradar/operation_hydrometeors/plots/QVPs/'
     # folder_ppi_plot = '/automount/agradar/operation_hydrometeors/plots/PPIs/'
 
+    # # NEW DIRECTORIES
     dir_data_vol = '/automount/data02/agradar/operation_hydrometeors/data/Syn_vol/'
     dir_data_qvp = '/automount/data02/agradar/operation_hydrometeors/data/QVP/'
     dir_data_mod = '/automount/data02/agradar/operation_hydrometeors/data/mod/'
@@ -70,7 +73,14 @@ colors_radar = np.array(
      [1.00, 1.00, 0.00], [0.80, 0.80, 0.00], [1.00, 0.65, 0.00],  # yellows
      [1.00, 0.27, 0.00], [0.80, 0.22, 0.00], [0.55, 0.15, 0.00],  # reds
      [1.00, 0.00, 1.00], [0.58, 0.44, 0.86]])  # pinks
+
 cmap_radar = mpl.colors.ListedColormap(colors_radar)
+cmap_radar_white = mpl.colors.ListedColormap(
+    np.append(np.array([[1,1,1],]),colors_radar,axis=0))
+
+# ------------------------------------ #
+# pol. Moms                            #
+# ------------------------------------ #
 
 # Zh
 levels_zh = [-10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
@@ -80,6 +90,7 @@ norm_zh = mpl.colors.BoundaryNorm(levels_zh, len(levels_zh) - 1)
 levels_zdr = [-1, -.1, 0, .1, .2, .3, .4, .5, .6, .8, 1, 2, 3]
 norm_zdr = mpl.colors.BoundaryNorm(levels_zdr, len(levels_zdr) - 1)
 
+# ZDR22
 levels_zdr22 = np.array(levels_zdr)
 levels_zdr22 = np.sort(np.append(levels_zdr22,
                                  (levels_zdr22[:-1]+levels_zdr22[1:])/2))
@@ -99,70 +110,63 @@ norm_kdp = mpl.colors.BoundaryNorm(levels_kdp, len(levels_kdp) - 1)
 
 # PHI
 n_color = 14
-step = .25
-step = 1
-levels_phi = np.arange(-7, 30, step)
-# levels_phi = np.arange(-4, 20, step)
+# step = .25
 # step=2
+step = 1
+# levels_phi = np.arange(-4, 20, step)
 # levels_phi = np.arange(-step * 2, (n_color - 4) * step + 1, step)
+levels_phi = np.arange(-7, 30, step)
 cmap_radar_smooth = LinearSegmentedColormap.from_list('my_list', colors_radar,
                                                       N=levels_phi.size)
 norm_phi = mpl.colors.BoundaryNorm(levels_phi, len(levels_phi) - 1)
-
-# levels_kdp = [-2, -1, 0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9,
-#               1., 1.2, 1.4, 1.7]
-levels_kdp = [-.5, -.1, 0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 2, 3]
-norm_kdp = mpl.colors.BoundaryNorm(levels_kdp, len(levels_kdp) - 1)
 
 # RHOHV
 levels_rhohv = [.7, .8, .85, .9, .92, .94, .95, .96, .97, .98, .99, .995, .998]
 norm_rhohv = mpl.colors.BoundaryNorm(levels_rhohv, len(levels_rhohv) - 1)
 
+# ------------------------------------ #
+# diameters, q, qn, contents           #
+# ------------------------------------ #
 
-# D0
-levels_d0 = np.arange(0.2, 2.8, .2)
-norm_d0 = mpl.colors.BoundaryNorm(levels_d0, len(levels_d0) - 1)
-
-# D0_ice
-levels_d0_ice = np.arange(0, 5, .5)
-levels_d0_ice =  np.linspace(0, 6., 13)
-norm_d0_ice = mpl.colors.BoundaryNorm(levels_d0_ice, len(levels_d0_ice) - 1)
-
-# iwc
-levels_iwc = np.arange(0, 0.65, .05)
-levels_iwc = np.linspace(0, 0.6, 13)
-norm_iwc = mpl.colors.BoundaryNorm(levels_iwc, len(levels_iwc) - 1)
-
-# nt_ice
-levels_nt_iwc = np.arange(-2, 2, .25)
-levels_nt_iwc = np.linspace(-2, 4, 13)
-norm_nt_iwc = mpl.colors.BoundaryNorm(levels_nt_iwc, len(levels_nt_iwc) - 1)
-
-
-cmap_radar_white = mpl.colors.ListedColormap(np.append(np.array([[1,1,1],]),colors_radar,axis=0))
-# D0
-
+# d0
+# levels_d0 = np.arange(0.2, 2.8, .2)
 levels_d0 = np.arange(0.2, 3, .2)
 norm_d0 = mpl.colors.BoundaryNorm(levels_d0, len(levels_d0) - 1)
 
-# D0_ice
-levels_d0_ice = np.arange(0, 5.5, .5)
-levels_d0_ice =  np.linspace(0, 6., 13)
-levels_d0_ice =  np.linspace(0, 9., 13)
-levels_d0_ice =  np.linspace(0, 12, 13)
-levels_d0_ice =  np.linspace(0, 26, 13)
+# # d0_ice
+# levels_d0_ice = np.arange(0, 5.5, .5)
+# levels_d0_ice =  np.linspace(0, 9., 13)
+# levels_d0_ice =  np.linspace(0, 12, 13)
+# levels_d0_ice =  np.linspace(0, 26, 13)
+# levels_d0_ice = np.arange(0, 5, .5)
+# levels_d0_ice =  np.linspace(0, 6., 13)
+levels_d0_ice =  np.linspace(0, 6.5, 14)
 norm_d0_ice = mpl.colors.BoundaryNorm(levels_d0_ice, len(levels_d0_ice) - 1)
 
-# iwc
-levels_iwc = np.arange(0, 0.7, .05)
-levels_iwc = np.linspace(0, 0.6, 13)
+# # iwc
+# levels_iwc = np.linspace(0, .13, 14) # TODO remove
+# levels_iwc = np.linspace(0, 0.6, 13)
+# levels_iwc = np.arange(0, 0.65, .05)
+# levels_iwc = np.arange(0, 0.7, .05)
+# levels_iwc = np.linspace(0, 1.2, 13)
+levels_iwc = np.linspace(0, 1.3, 14)
 norm_iwc = mpl.colors.BoundaryNorm(levels_iwc, len(levels_iwc) - 1)
 
-# nt_ice
-levels_nt_iwc = np.arange(-2, 2.25, .25)
+# # nt_ice
+# levels_nt_iwc = np.arange(-2, 2, .25)
 levels_nt_iwc = np.linspace(-2, 4, 13)
-levels_nt_iwc = np.linspace(-3, 3, 13)
 norm_nt_iwc = mpl.colors.BoundaryNorm(levels_nt_iwc, len(levels_nt_iwc) - 1)
+
+# nt_ice
+# levels_nt_iwc = np.arange(-2, 2.25, .25)
+# levels_nt_iwc = np.linspace(-2, 4, 13)
+# levels_nt_iwc = np.linspace(-2.5, 3.5, 13)
+# levels_nt_iwc = np.linspace(-3, 3.5, 14)
+# levels_nt_iwc = np.linspace(-3, 3, 13)
+# levels_nt_iwc = np.linspace(-4.5, 2, 14)
+levels_nt_iwc = np.linspace(-9, 3, 13)
+norm_nt_iwc = mpl.colors.BoundaryNorm(levels_nt_iwc, len(levels_nt_iwc) - 1)
+
 # --------------------------------------------------------------------------- #
 # Colors DWD JM                                                               #
 # --------------------------------------------------------------------------- #
