@@ -21,35 +21,41 @@ from PLOT_SYN_RADAR import plot_qvp_of_polarimetric_variable
 # INITIALIZATION                                                              #
 # --------------------------------------------------------------------------- #
 location = 'PRO'
+location = 'ESS'
 date = '20170725'
 hhmm_start = '00:00'
 hhmm_end = '10:00'
+hhmm_end = '23:59'
 elevation_deg = 12
 top_height = 8
 # ------------------------------------ #
+da_runs = ['']
+icon_emvorado_runs = ['']
+spin_up_mms = ['']
+# ------------------------------------ #
 # SYN data row 1                       #
 # ------------------------------------ #
-da_runs = ['ASS_2211']
-icon_emvorado_runs = ['MAIN_2411.0/EMVO_00000000.2']
-spin_up_mms = ['60']
-# ------------------------------------ #
-# SYN data row 2                       #
-# ------------------------------------ #
-da_runs.append('ASS_2211')
-icon_emvorado_runs.append('MAIN_2211.0/EMVO_00000000.2')
-spin_up_mms.append('60')
-# ------------------------------------ #
-# SYN data row 3                       #
-# ------------------------------------ #
-da_runs.append('ASS_2211')
-icon_emvorado_runs.append('MAIN_2308.1/EMVO_00400000.2')
-spin_up_mms.append('60')
-# ------------------------------------ #
-# SYN data row 4                       #
-# ------------------------------------ #
-da_runs.append('ASS_2211')
-icon_emvorado_runs.append('MAIN_2401.1/EMVO_00510000.2')
-spin_up_mms.append('60')
+# da_runs.append('ASS_2211')
+# icon_emvorado_runs.append('MAIN_2411.0/EMVO_00000000.2')
+# spin_up_mms.append('60')
+# # ------------------------------------ #
+# # SYN data row 2                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2211')
+# icon_emvorado_runs.append('MAIN_2211.0/EMVO_00000000.2')
+# spin_up_mms.append('60')
+# # ------------------------------------ #
+# # SYN data row 3                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2211')
+# icon_emvorado_runs.append('MAIN_2308.1/EMVO_00400000.2')
+# spin_up_mms.append('60')
+# # ------------------------------------ #
+# # SYN data row 4                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2211')
+# icon_emvorado_runs.append('MAIN_2401.1/EMVO_00510000.2')
+# spin_up_mms.append('60')
 # ------------------------------------ #
 # SYN data row i                       #
 # ------------------------------------ #

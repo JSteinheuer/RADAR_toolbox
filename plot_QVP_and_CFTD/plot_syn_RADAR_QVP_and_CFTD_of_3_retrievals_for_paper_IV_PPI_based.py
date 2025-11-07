@@ -108,19 +108,19 @@ colors = []
 # ------------------------------------ #
 # SYN data row 2                       #
 # ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.0/EMVO_00410000.2')
-spin_up_mms.append('120')
-short_names.append('R0E2')
-colors.append('orange')
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.0/EMVO_00410000.2')
+# spin_up_mms.append('120')
+# short_names.append('R0E2')
+# colors.append('orange')
 # ------------------------------------ #
 # SYN data row 3                       #
 # ------------------------------------ #
-# da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510000.2')
-# spin_up_mms.append('120')
-# short_names.append('R0E3')
-# colors.append('green')
+da_runs.append('ASS_2411')
+icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510000.2')
+spin_up_mms.append('120')
+short_names.append('R0E3')
+colors.append('green')
 # # ------------------------------------ #
 # # SYN data row 4                       #
 # # ------------------------------------ #

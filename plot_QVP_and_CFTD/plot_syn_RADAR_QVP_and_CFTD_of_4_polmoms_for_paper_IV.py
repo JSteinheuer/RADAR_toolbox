@@ -102,9 +102,9 @@ icon_emvorado_runs.append('MAIN_2411.0/EMVO_00010000.2')
 spin_up_mms.append('120')
 short_names.append('R0E1')
 colors.append('red')
-# ------------------------------------ #
-# SYN data row 2                       #
-# ------------------------------------ #
+# # ------------------------------------ #
+# # SYN data row 2                       #
+# # ------------------------------------ #
 da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_00410000.2')
 spin_up_mms.append('120')
@@ -118,6 +118,7 @@ icon_emvorado_runs.append('MAIN_2411.0/EMVO_00510000.2')
 spin_up_mms.append('120')
 short_names.append('R0E3')
 colors.append('green')
+# colors.append('orange')
 # # ------------------------------------ #
 # # SYN data row 4                       #
 # # ------------------------------------ #
@@ -135,6 +136,7 @@ spin_up_mms.append('120')
 short_names.append('R2E3')
 # colors.append('blue')
 colors.append('cyan')
+# colors.append('red')
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -461,7 +463,9 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
 # --------------------------------------------------------------------------- #
 # QVPs SAVE                                                                   #
 # --------------------------------------------------------------------------- #
-hh_at=[2,4,6,8,10,12,14,16,18]
+
+hh_at=np.arange(int(hhmm_start_qvp[:2])+1, int(hhmm_end_qvp[:2]), 2)
+# hh_at=[2,4,6,8,10,12,14,16,18]
 hh_25=np.linspace(np.round(axs[-1,-1].get_xticks()[0]),
                    np.round(axs[-1,-1].get_xticks()[0])+1,25,endpoint=True)
 str_hh_at=[str(z).zfill(2) for z in hh_at]
@@ -513,7 +517,8 @@ n_cols = 4
 # fig = plt.figure(figsize=(n_cols * 3, n_rows * 3))
 # fig = plt.figure(figsize=(n_cols * 3.3, n_rows * 2.5), layout='constrained')
 # fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.5), layout='constrained')
-fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.2), layout='constrained')
+# fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.2), layout='constrained')
+fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.), layout='constrained')
 gs = fig.add_gridspec(n_rows, n_cols, hspace=0.03,wspace=0.03)
 axs = gs.subplots()
 # ------------------------------------ #
@@ -589,14 +594,14 @@ for t_i in range(len(y_mid)):
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean1.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.3,
+ax_mean1.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.2,
          linewidth=1, label='_nolegend_')
-# ax_mean1.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
+ax_mean1.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
+         linewidth=2,label='obs')
+ax_mean1.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.2,
+         linewidth=1, label='_nolegend_')
+# ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.2,
 #          linewidth=2, label='_nolegend_')
-ax_mean1.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.3,
-         linewidth=1, label='_nolegend_')
-ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid',
-         linewidth=2, label='obs')
 # --------------------------------------------------------------------------- #
 current_col = current_col + 1
 print(current_row)
@@ -642,14 +647,14 @@ for t_i in range(len(y_mid)):
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean2.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.3,
+ax_mean2.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.2,
          linewidth=1, label='_nolegend_')
-# ax_mean2.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-#          linewidth=2, label='_nolegend_')
-ax_mean2.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.3,
-         linewidth=1, label='_nolegend_')
-ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid',
+ax_mean2.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
          linewidth=2, label='obs')
+ax_mean2.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.2,
+         linewidth=1, label='_nolegend_')
+# ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.2,
+#          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
 current_col = current_col + 1
 print(current_row)
@@ -696,14 +701,14 @@ for t_i in range(len(y_mid)):
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean3.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.3,
+ax_mean3.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.2,
          linewidth=1, label='_nolegend_')
-# ax_mean3.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
+ax_mean3.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
+         linewidth=2,label='obs')
+ax_mean3.plot(quant_prof[2, ], y_mid, color=color, ls='dashed', alpha=0.2,
+         linewidth=1, label='_nolegend_')
+# ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
 #          linewidth=2, label='_nolegend_')
-ax_mean3.plot(quant_prof[2, ], y_mid, color=color, ls='dashed', alpha=0.3,
-         linewidth=1, label='_nolegend_')
-ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid',
-         linewidth=2, label='obs')
 # --------------------------------------------------------------------------- #
 current_col = current_col + 1
 print(current_row)
@@ -749,14 +754,14 @@ for t_i in range(len(y_mid)):
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean4.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.3,
+ax_mean4.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.2,
          linewidth=1, label='_nolegend_')
-# ax_mean4.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-#          linewidth=2, label='_nolegend_')
-ax_mean4.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.3,
-         linewidth=1, label='_nolegend_')
-ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid',
+ax_mean4.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
          linewidth=2, label='obs')
+ax_mean4.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.2,
+         linewidth=1, label='_nolegend_')
+# ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.2,
+#          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
 # CFTDs CBAND SYN row i                                                       #
 # --------------------------------------------------------------------------- #
@@ -818,15 +823,14 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-    ax_mean1.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.3,
+    ax_mean1.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    # ax_mean1.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-    #               linewidth=2, label='_nolegend_')
-    ax_mean1.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.3,
+    ax_mean1.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
+                  linewidth=2, label=short_name)
+    ax_mean1.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid',
-                  linewidth=2,
-                  label=short_name)
+    # ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+    #               linewidth=2,label='_nolegend_')
     # ----------------------------------------------------------------------- #
     current_col = current_col + 1
     print(current_row)
@@ -874,15 +878,14 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-    ax_mean2.plot(quant_prof[0,], y_mid, color=color, ls='dashed', alpha=0.3,
+    ax_mean2.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    # ax_mean2.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-    #               linewidth=2, label='_nolegend_')
-    ax_mean2.plot(quant_prof[2,], y_mid, color=color, ls='dashed', alpha=0.3,
+    ax_mean2.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
+                  linewidth=2, label=short_name)
+    ax_mean2.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid',
-                  linewidth=2,
-                  label=short_name)
+    # ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+    #               linewidth=2,label='_nolegend_')
     # ----------------------------------------------------------------------- #
     current_col = current_col + 1
     print(current_row)
@@ -930,15 +933,14 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-    ax_mean3.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.3,
+    ax_mean3.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    # ax_mean3.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-    #               linewidth=2, label='_nolegend_')
-    ax_mean3.plot(quant_prof[2,], y_mid, color=color, ls='dashed', alpha=0.3,
+    ax_mean3.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
+                  linewidth=2, label=short_name)
+    ax_mean3.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid',
-                  linewidth=2,
-                  label=short_name)
+    # ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+    #               linewidth=2,label='_nolegend_')
     # ----------------------------------------------------------------------- #
     current_col = current_col + 1
     print(current_row)
@@ -986,15 +988,14 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-    ax_mean4.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.3,
+    ax_mean4.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    # ax_mean4.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-    #               linewidth=2, label='_nolegend_')
-    ax_mean4.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.3,
+    ax_mean4.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
+                  linewidth=2, label=short_name)
+    ax_mean4.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.2,
                   linewidth=1, label='_nolegend_')
-    ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid',
-                  linewidth=2,
-                  label=short_name)
+    # ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+    #               linewidth=2,label='_nolegend_')
 
 # --------------------------------------------------------------------------- #
 # CFTDs SAVE                                                                  #
