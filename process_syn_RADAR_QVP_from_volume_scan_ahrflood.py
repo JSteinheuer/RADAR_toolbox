@@ -308,3 +308,35 @@ for elevation_deg in [5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8, 12, 17, 25]:
                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
+# 19.12.25  # R2E3
+radar_locs = ['ESS']
+spin_up_mm = 120
+overwrite = '2025-02-13'
+elevation_deg = 12 # DONE!
+# for elevation_deg in [5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8, 12, 17, 25]:
+for day in [
+    '20210714',
+    # '20210713',
+]:
+    da_run = 'ASS_2411'  # ASS_newererer
+    icon_run = 'MAIN_2411.3'
+    for emvorado_run in [
+        'EMVO_00510010.2',
+        'EMVO_00510020.2',
+        'EMVO_00510030.2',
+        'EMVO_00510040.2',
+        'EMVO_00510050.2',
+        'EMVO_00510060.2',
+        'EMVO_00510070.2',
+    ]:
+        icon_emvorado_run = icon_run + '/' + emvorado_run
+        for radar_loc in radar_locs:
+            qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                             icon_emvorado_run=icon_emvorado_run,
+                             spin_up_mm=spin_up_mm,
+                             elevation_deg=elevation_deg,
+                             overwrite=overwrite,
+                             radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
