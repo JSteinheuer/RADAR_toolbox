@@ -425,8 +425,8 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
 # hh_at=[2,4,6,8,10,12,14,16,18]
 #hh_at=[15,16,17,18]
 hh_25=np.linspace(axs[-1,-1].get_xticks()[0],
-                   axs[-1,-1].get_xticks()[1],5,endpoint=True)
-str_hh_at=['16:00', '16:15', '16:30', '16:45', '17:00']
+                   axs[-1,-1].get_xticks()[5],5,endpoint=True)
+str_hh_at=['16:10', '16:20', '16:30', '16:40', '16:50']
 axs[-1,-1].set_xticks(hh_25,str_hh_at)
 axs[-1,-1].set_xlabel('UTC [hh:mm]', fontsize=12 * scale_font)
 axs[-1,-2].set_xticks(hh_25,str_hh_at)
