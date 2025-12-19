@@ -45,7 +45,10 @@ elevation_deg = 12
 # for elevation_deg in [5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8, 12, 17, 25]:
 sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
                            float(elevation_deg))[0][0])
-letters='abcdefghijklmnopqrstuvwxyz\u03B1\u03B2'
+letters=('abcdefghijklmnopqrstuvwxyz'
+         '\u03B1\u03B2\u03B3\u03B4\u03B5\u03B6\u03B7\u03B8\u03B9'
+         '\u03BA\u03BB\u03BC\u03BD\u03BE\u03BF'
+         '\u03C1\u03C2\u03C3\u03C4\u03C5\u03C6\u03C7\u03C8\u03C9')
 filter_moms = False
 
 # ------------------------------------ #
