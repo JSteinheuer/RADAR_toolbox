@@ -279,6 +279,9 @@ for day in [
         'EMVO_00510020.2',
         'EMVO_00510010.2',
         'EMVO_005100NN.2',
+        'EMVO_00510050.2',
+        'EMVO_00510060.2',
+        'EMVO_00510070.2',
     ]:
         icon_emvorado_run = icon_run + '/' + emvorado_run
         create_8_vol_nc_of_day(day=day, da_run=da_run,
