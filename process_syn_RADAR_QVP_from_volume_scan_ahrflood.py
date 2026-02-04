@@ -20,7 +20,7 @@ radar_locs = list(rad_dict().keys())
 # radar_locs = ['ESS']
 spin_up_mm = 120
 overwrite = '2025-02-13'
-elevation_deg = 12 # DONE!
+elevation_deg = 12 # DONE!l
 for elevation_deg in [12, 8, 17]: # DONE!
     for day in [
         '20210714',
@@ -202,6 +202,7 @@ for elevation_deg in [12, 8, 17]:
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 # 21.02.25  # R2E3  # 10.03.25 Done
+# 22.01.26  # R2E3  new #
 radar_locs = list(rad_dict().keys())
 # radar_locs = ['ESS']
 spin_up_mm = 120
@@ -216,6 +217,7 @@ for elevation_deg in [12, 8, 17]:
         icon_run = 'MAIN_2411.3'
         for emvorado_run in [
             'EMVO_00510000.2',
+            'EMVO_20510000.2',
         ]:
             icon_emvorado_run = icon_run + '/' + emvorado_run
             for radar_loc in radar_locs:
@@ -300,6 +302,118 @@ for elevation_deg in [5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8, 12, 17, 25]:
         ]:
             icon_emvorado_run = icon_run + '/' + emvorado_run
             for radar_loc in radar_locs:
+                qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                                 icon_emvorado_run=icon_emvorado_run,
+                                 spin_up_mm=spin_up_mm,
+                                 elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
+                                 radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
+# 19.12.25  # R2E3
+radar_locs = ['ESS']
+spin_up_mm = 120
+overwrite = '2025-02-13'
+elevation_deg = 12 # DONE!
+# for elevation_deg in [5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8, 12, 17, 25]:
+for day in [
+    '20210714',
+    # '20210713',
+]:
+    da_run = 'ASS_2411'
+    icon_run = 'MAIN_2411.3'
+    for emvorado_run in [
+        'EMVO_00510010.2',
+        'EMVO_00510020.2',
+        'EMVO_00510030.2',
+        'EMVO_00510040.2',
+        'EMVO_00510050.2',
+        'EMVO_00510060.2',
+        'EMVO_00510070.2',
+        'EMVO_00510000.2GF',
+    ]:
+        icon_emvorado_run = icon_run + '/' + emvorado_run
+        for radar_loc in radar_locs:
+            qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                             icon_emvorado_run=icon_emvorado_run,
+                             spin_up_mm=spin_up_mm,
+                             elevation_deg=elevation_deg,
+                             overwrite=overwrite,
+                             radar_loc=radar_loc)
+
+# --------------------------------------------------------------------------- #
+# 27.01.26  # R2E3  all new
+spin_up_mm = 120
+overwrite = '2025-02-13'
+radar_locs=['ESS', 'NHB', 'FLD', 'FBG'] + list(rad_dict().keys())
+for elevation_deg in [12, 8, 17]:
+    for radar_loc in radar_locs:
+        for day in [
+            '20210714',
+            '20210713',
+        ]:
+            da_run = 'ASS_2411'
+            icon_run = 'MAIN_2411.3'
+            for emvorado_run in [
+                'EMVO_20510810.2',
+                'EMVO_20510820.2',
+            ]:
+                icon_emvorado_run = icon_run + '/' + emvorado_run
+                qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                                 icon_emvorado_run=icon_emvorado_run,
+                                 spin_up_mm=spin_up_mm,
+                                 elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
+                                 radar_loc=radar_loc)
+
+
+
+# --------------------------------------------------------------------------- #
+# 27.01.26  # R2E3  all new
+spin_up_mm = 120
+overwrite = '2025-02-13'
+radar_locs=['ESS', 'NHB', 'FLD', 'FBG'] + list(rad_dict().keys())
+for elevation_deg in [12, 8, 17]:
+    for radar_loc in radar_locs:
+        for day in [
+            '20210714',
+            '20210713',
+        ]:
+            da_run = 'ASS_2411'
+            icon_run = 'MAIN_2411.3'
+            for emvorado_run in [
+                'EMVO_20510000.2',
+                'EMVO_20510810.2',
+                'EMVO_20510820.2',
+            ]:
+                icon_emvorado_run = icon_run + '/' + emvorado_run
+                qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                                 icon_emvorado_run=icon_emvorado_run,
+                                 spin_up_mm=spin_up_mm,
+                                 elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
+                                 radar_loc=radar_loc)
+
+            icon_run = 'MAIN_2411.0'
+            for emvorado_run in [
+                'EMVO_20510000.2',
+                'EMVO_20010000.2',
+                'EMVO_20410000.2',
+            ]:
+                icon_emvorado_run = icon_run + '/' + emvorado_run
+                qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
+                                 icon_emvorado_run=icon_emvorado_run,
+                                 spin_up_mm=spin_up_mm,
+                                 elevation_deg=elevation_deg,
+                                 overwrite=overwrite,
+                                 radar_loc=radar_loc)
+
+            icon_run = 'MAIN_2411.1'
+            for emvorado_run in [
+                'EMVO_20510000.2',
+            ]:
+                icon_emvorado_run = icon_run + '/' + emvorado_run
                 qvp_from_syn_vol(day=day, da_run=da_run, icon_run=icon_run,
                                  icon_emvorado_run=icon_emvorado_run,
                                  spin_up_mm=spin_up_mm,

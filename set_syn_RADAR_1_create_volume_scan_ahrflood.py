@@ -262,23 +262,56 @@ from SET_SYN_RADAR import \
 #                                overwrite_ICON=overwrite_ICON)
 
 # --------------------------------------------------------------------------- #
-# 17.12.25 # new thresholds to get rid of graupel oversizes
+# # 17.12.25 # new thresholds to get rid of graupel oversizes
+# overwrite_EMV = False
+# overwrite_ICON = False
+# # radar_locs = list(rad_dict().keys())# TODO
+# radar_locs = ['ESS']
+# spin_up_mm = 120
+# for day in [
+#     '20210714',
+# ]:
+#     da_run = 'ASS_2411'  # ASS_newererer
+#     icon_run = 'MAIN_2411.3'
+#     for emvorado_run in [
+#         'EMVO_00510040.2',
+#         'EMVO_00510030.2',
+#         'EMVO_00510020.2',
+#         'EMVO_00510010.2',
+#         'EMVO_005100NN.2',
+#         'EMVO_00510050.2',
+#         'EMVO_00510060.2',
+#         'EMVO_00510070.2',
+#         'EMVO_00510000.2GF',
+#     ]:
+#         icon_emvorado_run = icon_run + '/' + emvorado_run
+#         create_8_vol_nc_of_day(day=day, da_run=da_run,
+#                                icon_run=icon_run,
+#                                icon_emvorado_run=icon_emvorado_run,
+#                                spin_up_mm=spin_up_mm,
+#                                radar_locs=radar_locs,
+#                                dir_data_in=header.dir_data_mod,
+#                                dir_data_out=header.dir_data_vol,
+#                                overwrite_EMV=overwrite_EMV,
+#                                overwrite_ICON=overwrite_ICON)
+
+# --------------------------------------------------------------------------- #
+# 27.01.26 # new thresholds to get rid of graupel oversizes FINAL! # Done!
 overwrite_EMV = False
 overwrite_ICON = False
-# radar_locs = list(rad_dict().keys())# TODO
-radar_locs = ['ESS']
+# radar_locs = ['ESS']  # DONE
+radar_locs = list(rad_dict().keys()) # DONE
 spin_up_mm = 120
 for day in [
     '20210714',
+    '20210713',
 ]:
-    da_run = 'ASS_2411'  # ASS_newererer
+    da_run = 'ASS_2411'
     icon_run = 'MAIN_2411.3'
     for emvorado_run in [
-        'EMVO_00510040.2',
-        'EMVO_00510030.2',
-        'EMVO_00510020.2',
-        'EMVO_00510010.2',
-        'EMVO_005100NN.2',
+        'EMVO_20510000.2',
+        'EMVO_20510810.2',
+        'EMVO_20510820.2',
     ]:
         icon_emvorado_run = icon_run + '/' + emvorado_run
         create_8_vol_nc_of_day(day=day, da_run=da_run,
@@ -289,9 +322,43 @@ for day in [
                                dir_data_in=header.dir_data_mod,
                                dir_data_out=header.dir_data_vol,
                                overwrite_EMV=overwrite_EMV,
-                               overwrite_ICON=overwrite_ICON)
+                               overwrite_ICON=overwrite_ICON,
+                               naming2026=True)
+
+    icon_run = 'MAIN_2411.0'
+    for emvorado_run in [
+        'EMVO_20510000.2',
+        'EMVO_20010000.2',
+        'EMVO_20410000.2',
+    ]:
+        icon_emvorado_run = icon_run + '/' + emvorado_run
+        create_8_vol_nc_of_day(day=day, da_run=da_run,
+                               icon_run=icon_run,
+                               icon_emvorado_run=icon_emvorado_run,
+                               spin_up_mm=spin_up_mm,
+                               radar_locs=radar_locs,
+                               dir_data_in=header.dir_data_mod,
+                               dir_data_out=header.dir_data_vol,
+                               overwrite_EMV=overwrite_EMV,
+                               overwrite_ICON=overwrite_ICON,
+                               naming2026=True)
+
+    icon_run = 'MAIN_2411.1'
+    for emvorado_run in [
+        'EMVO_20510000.2',
+    ]:
+        icon_emvorado_run = icon_run + '/' + emvorado_run
+        create_8_vol_nc_of_day(day=day, da_run=da_run,
+                               icon_run=icon_run,
+                               icon_emvorado_run=icon_emvorado_run,
+                               spin_up_mm=spin_up_mm,
+                               radar_locs=radar_locs,
+                               dir_data_in=header.dir_data_mod,
+                               dir_data_out=header.dir_data_vol,
+                               overwrite_EMV=overwrite_EMV,
+                               overwrite_ICON=overwrite_ICON,
+                               naming2026=True)
 
 # --------------------------------------------------------------------------- #
-
 # CONTINUE?
 # import process_syn_RADAR_QVP_from_volume_scan_ahrflood

@@ -64,7 +64,8 @@ def rad_dict(xband_res=None):
 def get_path_syn_volume(date, time, spin_up_mm,
                         radar_id, dir_data, da_run='',
                         icon_run='', icon_emvorado_run='',
-                        icon_folder='ICONdata'):
+                        icon_folder='ICONdata',
+                        naming2026=False):
     """Get paths to ICON/EMVORADO outputs for synthetic volume scans.
 
     Get the right path to the ICON forecast file and the synthetic C band
@@ -81,6 +82,8 @@ def get_path_syn_volume(date, time, spin_up_mm,
         icon_run: subfolder specifying the ICON run.
         icon_emvorado_run: subfolders specifying the EMVORADO run.
         icon_folder: ICON folder string. Default 'ICONdata'
+        naming2026: True for new naming convention of 2026 (PPI instead
+                       of volscan)
 
     Returns:
         A dict with corresponding folder names for the forecast of ICON and
@@ -157,6 +160,11 @@ def get_path_syn_volume(date, time, spin_up_mm,
                         dir_of_fc = ''
 
     # volume scan
+    if naming2026:
+        vol_name_ending='_PPI0080.nc'
+    else:
+        vol_name_ending='_volscan.nc'
+
     # dir_of_vol = dir_data + dti_fc.strftime('%Y%m%d') + '/' + \
     #              da_run + '/' + icon_emvorado_run + '/' + \
     #              dti_3hda.strftime('%Y%m%d%H%M%S') + '/' + \
@@ -197,7 +205,7 @@ def get_path_syn_volume(date, time, spin_up_mm,
     else:
         file_vol = 'cdfin_allsim_id-' + radar_id + '_' + \
                    dti_fc.strftime('%Y%m%d%H%M') + '_' + \
-                   dti_fc.strftime('%Y%m%d%H%M') + '_volscan.nc'
+                   dti_fc.strftime('%Y%m%d%H%M') + vol_name_ending
         if not os.path.isfile(dir_of_vol + file_vol):
             file_vol = ''
 
@@ -316,7 +324,7 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
                       radar_loc='PRO', radar_id='010392', spin_up_mm=30,
                       da_run='', icon_run='', icon_emvorado_run='',
                       overwrite=False, include_icon=True, include_emv=True,
-                      method='Nearest'):
+                      method='Nearest',naming2026=False):
     """
     Create a synthetic volume scan from EMVORADO and ICON data.
 
@@ -337,7 +345,8 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
         include_emv: If True, synthetic pol. var from EVMORADO are included.
         method: 'Nearest' or 'Linear' for method to interpolate mod fields to
                 rad grid.
-
+        naming2026: True for new naming convention of 2026 (PPI instead
+                       of volscan)
     Returns:
     """
 
@@ -372,7 +381,7 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
                   ' ... but out-of-date as ' +
                   out_of_date.strftime("%Y-%m-%d") + ' > ' +
                   file_date.strftime("%Y-%m-%d"))
-            print('___________________________')
+            # print('___________________________')
             overwrite = True
         else:
             overwrite = False
@@ -383,7 +392,7 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
         print(radar_loc, '   -   ', time_start, '-', time_end[-2:])
         print(file_out + ' exists;\n' +
               ' ... set: > overwrite = True < for recalculation')
-        print('___________________________')
+        # print('___________________________')
         return
 
     ncells = 0
@@ -393,7 +402,8 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
         print(radar_loc, ' - ', date, ' - ', time)
         dir_of_fc, file_fc, dir_of_vol, file_vol = \
             get_path_syn_volume(date, time, spin_up_mm, radar_id, dir_data_in,
-                                da_run, icon_run, icon_emvorado_run).values()
+                                da_run, icon_run, icon_emvorado_run,
+                                naming2026).values()
 
         if ('vol_scan' not in locals() and include_icon
             and not dir_of_fc + file_fc == '') or \
@@ -403,7 +413,7 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
                 print('No EMVORADO input for time')
                 continue
 
-            single_scan = xr.open_dataset(dir_of_vol + file_vol)
+            single_scan = xr.open_dataset(dir_of_vol + file_vol, lock=False)
             single_scan = single_scan.transpose('n_range', 'n_azimuth',
                                                 'records')
             print('Initialization of Variables')
@@ -639,7 +649,7 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
                 print('No EMVORADO input file for time')
                 continue
 
-            single_scan = xr.open_dataset(dir_of_vol + file_vol)
+            single_scan = xr.open_dataset(dir_of_vol + file_vol, lock=False)
             single_scan = single_scan.transpose('n_range', 'n_azimuth',
                                                 'records')
             # copy pol. variables
@@ -669,32 +679,36 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
                 print(' No input file for t=' + time)
                 continue
 
-            single_fc = xr.open_dataset(dir_of_fc + file_fc)
+            single_fc = xr.open_dataset(dir_of_fc + file_fc, lock=False)
 
             # check for ICON grid
             if not single_fc.ncells.size == ncells:
                 grid_fc = xr.open_dataset(
-                    dir_data_in + '/grid/hgrd_R19B07.RADOLAN.nc')
+                    dir_data_in + '/grid/hgrd_R19B07.RADOLAN.nc',
+                    lock=False)
                 if grid_fc.cell.size == single_fc.ncells.size:
                     fc_lon = np.rad2deg(grid_fc.clon.data)
                     fc_lat = np.rad2deg(grid_fc.clat.data)
                     ncells = grid_fc.cell.size
                     grid_fc.close()
                     levels_fc = xr.open_dataset(
-                        dir_data_in + '/grid/vgrd_R19B07.RADOLAN.nc')
+                        dir_data_in + '/grid/vgrd_R19B07.RADOLAN.nc',
+                        lock=False)
                     fc_alt = levels_fc.z_mc.data[0, :, :]
                     levels_fc.close()
                 else:
                     grid_fc.close()
                     grid_fc = xr.open_dataset(
-                        dir_data_in + '/grid/hgrd_R19B07.ICON-D2.nc')
+                        dir_data_in + '/grid/hgrd_R19B07.ICON-D2.nc',
+                        lock=False)
                     if grid_fc.cell.size == single_fc.ncells.size:
                         fc_lon = np.rad2deg(grid_fc.clon.data)
                         fc_lat = np.rad2deg(grid_fc.clat.data)
                         ncells = grid_fc.cell.size
                         grid_fc.close()
                         levels_fc = xr.open_dataset(
-                            dir_data_in + '/grid/vgrd_R19B07.ICON-D2.nc')
+                            dir_data_in + '/grid/vgrd_R19B07.ICON-D2.nc',
+                            lock=False)
                         fc_alt = levels_fc.z_mc.data[:, :]
                         levels_fc.close()
                     else:
@@ -784,7 +798,9 @@ def create_vol_nc_old(time_start='2017072500', time_end='2017072506',
 
     if 'vol_scan' in locals():
         Path(dir_out).mkdir(parents=True, exist_ok=True)
+        print('start saving')
         vol_scan.to_netcdf(dir_out + file_out, unlimited_dims='time')
+        print('saved')
         vol_scan.close()
         print('    ! Case done now !      ')
         print('___________________________')
@@ -827,7 +843,8 @@ def load_emvorado_to_radar_volume(path_or_data, rename=False):
     else:
         data_emvorado_xr = xr.open_mfdataset(path_or_data,
                                              concat_dim="time",
-                                             combine="nested")
+                                             combine="nested",
+                                             lock=False)
 
     try:
         data = data_emvorado_xr.rename_dims({"n_range": "range",
@@ -980,7 +997,7 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                   da_run='ASS_2411', icon_run='MAIN_2411',
                   icon_emvorado_run='MAIN_2411.1/EMVO_00510000.2',
                   overwrite=False, include_icon=True, include_emv=False,
-                  icon_folder='ICONdata'):
+                  icon_folder='ICONdata', naming2026=False):
     """
     Create a synthetic volume scan from EMVORADO and ICON data.
 
@@ -1003,6 +1020,8 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
         include_icon: If True, ICON variables are included.
         include_emv: If True, synthetic pol. var from EVMORADO are included.
         icon_folder: ICON folder string. Default 'ICONdata'
+        naming2026: True for new naming convention of 2026 (PPI instead
+                       of volscan)
 
     Returns:
     """
@@ -1071,7 +1090,7 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
         dir_of_fc, file_fc, dir_of_vol, file_vol = \
             get_path_syn_volume(date, time, spin_up_mm, radar_id, dir_data_in,
                                 da_run, icon_run, icon_emvorado_run,
-                                icon_folder).values()
+                                icon_folder, naming2026).values()
 
         # initialization of volume necessary?
         if ('vol_scan' not in locals() and include_icon
@@ -1356,7 +1375,8 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                 print(' No input file for t=' + time)
                 continue
 
-            single_fc = xr.open_dataset(dir_of_fc + file_fc, chunks="auto")
+            single_fc = xr.open_dataset(dir_of_fc + file_fc,
+                                        chunks="auto", lock=False)
             single_fc = single_fc.transpose('time', 'height', 'ncells', ...)
 
             # get rid of height_2 (half level center as in w)
@@ -1377,7 +1397,8 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                 if single_fc.ncells.size == 258775:
                     ncells = 258775  # RADOLAN
                     grid_fc = xr.open_dataset(
-                        dir_data_in + '/grid/hgrd_R19B07.RADOLAN.nc')
+                        dir_data_in + '/grid/hgrd_R19B07.RADOLAN.nc',
+                        lock=False)
                     if grid_fc.clon.units == 'radian':
                         grid_fc.clon.data = np.rad2deg(grid_fc.clon.data)
                         grid_fc.clon.attrs['units'] = 'degree'
@@ -1386,12 +1407,14 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                         grid_fc.clat.attrs['units'] = 'degree'
 
                     levels_fc = xr.open_dataset(
-                        dir_data_in + '/grid/vgrd_R19B07.RADOLAN.nc')
+                        dir_data_in + '/grid/vgrd_R19B07.RADOLAN.nc',
+                        lock=False)
                     levels_fc = levels_fc.isel(time=0)
                 elif single_fc.ncells.size == 542040:
                     ncells = 542040  # ICON-D2
                     grid_fc = xr.open_dataset(
-                        dir_data_in + '/grid/hgrd_R19B07.ICON-D2.nc')
+                        dir_data_in + '/grid/hgrd_R19B07.ICON-D2.nc',
+                        lock=False)
                     if grid_fc.cell.size == single_fc.ncells.size:
                         if grid_fc.clon.units == 'radian':
                             grid_fc.clon.data = np.rad2deg(grid_fc.clon.data)
@@ -1400,11 +1423,12 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                             grid_fc.clat.data = np.rad2deg(grid_fc.clat.data)
 
                         levels_fc = xr.open_dataset(
-                            dir_data_in + '/grid/vgrd_R19B07.ICON-D2.nc')
+                            dir_data_in + '/grid/vgrd_R19B07.ICON-D2.nc',
+                            lock=False)
                 elif single_fc.ncells.size == 100122:
                     ncells = 100122  # ICON-SW LIFT
                     grid_fc = xr.open_dataset(
-                        dir_data_in + '/grid/hgrd_R19B07.SW.nc')
+                        dir_data_in + '/grid/hgrd_R19B07.SW.nc', lock=False)
                     if grid_fc.cell.size == single_fc.ncells.size:
                         if grid_fc.clon.units == 'radian':
                             grid_fc.clon.data = np.rad2deg(grid_fc.clon.data)
@@ -1413,7 +1437,8 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
                             grid_fc.clat.data = np.rad2deg(grid_fc.clat.data)
 
                         levels_fc = xr.open_dataset(
-                            dir_data_in + '/grid/vgrd_R19B07.SW.nc')
+                            dir_data_in + '/grid/vgrd_R19B07.SW.nc',
+                            lock=False)
                 else:
                     print('No forcast data, as differing ncells ' +
                           'were found in ' + dir_data_in + '/grid/')
@@ -1530,11 +1555,15 @@ def create_vol_nc(time_start='2021071412', time_end='2021071418',
         # transpose for panoply reasons (why do not know)
         vol_scan = vol_scan.transpose(
             'time', 'range', 'azimuth', 'elevation', )
+        print('start saving')
         vol_scan.to_netcdf(dir_out + file_out, unlimited_dims='time')
+        print('saved')
         vol_scan.close()
         print('    ! Case done now !      ')
         print(f"... which took "
-              f"{(time_p.time() - current_time) / 60:.2f} min ...")
+              f"{(time_p.time() - current_time) / 60:.2f} min ..." 
+              f" ({time_p.strftime('%d/%m %H:%M', time_p.gmtime())} UTC)"
+              )
         print('___________________________')
         return dir_out + file_out
     else:
@@ -1558,6 +1587,7 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                            dir_data_out=header.dir_data_vol,
                            overwrite_EMV=False,
                            overwrite_ICON=False,
+                           naming2026=False,
                            ):
     """
     Create for day 8 synthetic volume scans from EMVORADO and ICON data.
@@ -1574,6 +1604,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
         dir_data_out: directory for the output.
         overwrite_EMV=overwrite EMVORADO? True, False, <yyyy-mm-dd>,
         overwrite_ICON=overwrite ICON? True, False, <yyyy-mm-dd>,
+        naming2026: True for new naming convention of 2026 (PPI instead
+                       of volscan)
 
     Returns:
     """
@@ -1593,7 +1625,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                           dir_data_out=dir_data_out,
                           radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
                           overwrite=overwrite_ICON,
-                          include_icon=True, include_emv=False)
+                          include_icon=True, include_emv=False,
+                          naming2026=naming2026)
             print('________________________________________')
             print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
                   str(spin_up_mm) + '_spinup/')
@@ -1606,7 +1639,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
                           dir_data_out=dir_data_out,
                           radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
                           overwrite=overwrite_EMV,
-                          include_icon=False, include_emv=True)
+                          include_icon=False, include_emv=True,
+                          naming2026=naming2026)
             time_start = time_end
 
 
@@ -1619,6 +1653,7 @@ def create_8_vol_nc_of_day_cdo(day='20170725', da_run='ASS_2211',
                                dir_data_out=header.dir_data_vol,
                                overwrite_EMV=False,
                                overwrite_ICON=False,
+                               naming2026=False,
                                ):
     """
     Create for day 8 synthetic volume scans from EMVORADO and ICON data.
@@ -1635,6 +1670,8 @@ def create_8_vol_nc_of_day_cdo(day='20170725', da_run='ASS_2211',
         dir_data_out: directory for the output.
         overwrite_EMV=overwrite EMVORADO? True, False, <yyyy-mm-dd>,
         overwrite_ICON=overwrite ICON? True, False, <yyyy-mm-dd>,
+        naming2026: True for new naming convention of 2026 (PPI instead
+                       of volscan)
 
     Returns:
     """
@@ -1660,15 +1697,17 @@ def create_8_vol_nc_of_day_cdo(day='20170725', da_run='ASS_2211',
                     dir_data_out=dir_data_out,
                     radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
                     overwrite=overwrite_ICON,
-                    include_icon=True, include_emv=False)
+                    include_icon=True, include_emv=False,
+                    naming2026=naming2026)
                 )
 
             new = list_icon[0][:-15] + 'neu' + list_icon[0][-15:]
             print('cdo merge ' + ' '.join(list_icon) + ' ' + new)
             os.system('cdo merge ' + ' '.join(list_icon) + ' ' + new)
             print(f"... which took "
-                  f"{(time_p.time() - current_time) / 60:.2f} min ...")
-
+                  f"{(time_p.time() - current_time) / 60:.2f} min ..."
+                  f" ({time_p.strftime('%d/%m %H:%M', time_p.gmtime())} UTC)"
+                  )
             print('________________________________________')
             print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
                   str(spin_up_mm) + '_spinup/')
@@ -1686,7 +1725,8 @@ def create_8_vol_nc_of_day_cdo(day='20170725', da_run='ASS_2211',
                     dir_data_out=dir_data_out,
                     radar_loc=radar_loc, radar_id=rad_dict()[radar_loc],
                     overwrite=overwrite_EMV,
-                    include_icon=False, include_emv=True)
+                    include_icon=False, include_emv=True,
+                    naming2026=naming2026)
                 )
 
             new = list_emv[0][:-15] + list_emv[0][-15:]
@@ -1701,7 +1741,8 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                                     spin_up_mm=30,
                                     radar_locs=list(rad_dict().keys()),
                                     dir_data_in=header.dir_data_mod,
-                                    dir_data_out=header.dir_data_vol
+                                    dir_data_out=header.dir_data_vol,
+                                    naming2026=False,
                                     ):
     """
     Create for day 8 synthetic volume scans from EMVORADO and ICON data.
@@ -1719,6 +1760,8 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
         dir_data_out: directory for the output.
         method: 'Nearest' or 'Linear' for method to interpolate mod fields to
                 rad grid.
+        naming2026: True for new naming convention of 2026 (PPI instead
+                       of volscan)
 
     Returns:
     """
@@ -1748,7 +1791,8 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(False, 4),
                          np.repeat(True, 4),
                          np.repeat(False, 4),
-                         np.repeat('ICONdata', 4))
+                         np.repeat('ICONdata', 4),
+                         np.repeat(naming2026, 4))
                      )
         print('________________________________________')
         print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
@@ -1767,5 +1811,6 @@ def create_8_vol_nc_of_day_paralell(day='20170725', da_run='ASS_2211',
                          np.repeat(False, 4),
                          np.repeat(False, 4),
                          np.repeat(True, 4),
-                         np.repeat('ICONdata', 4))
+                         np.repeat('ICONdata', 4),
+                         np.repeat(naming2026, 4))
                      )
