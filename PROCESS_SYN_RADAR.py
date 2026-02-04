@@ -17,6 +17,8 @@ import wradlib as wrl
 import xarray as xr
 import time as time_p
 import datetime as dt
+import warnings
+warnings.filterwarnings("ignore")
 
 import HEADER_RADAR_toolbox as header
 
@@ -675,8 +677,8 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
 
         print('------------------------------------------------------')
         print('QVP(' + str(elevation_deg)+ ') for ' + dir_emv + file_emv)
-        emv_nc = xr.open_dataset(dir_emv + file_emv)
-        icon_nc = xr.open_dataset(dir_icon + file_icon)
+        emv_nc = xr.open_dataset(dir_emv + file_emv, lock=False)
+        icon_nc = xr.open_dataset(dir_icon + file_icon, lock=False)
 
         # ------------------------------------------------------------------- #
         # PPI: common EMV and ICON mask                                       #
@@ -948,17 +950,21 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         emv_nc.close()
         icon_nc.close()
         Path(dir_qvp).mkdir(parents=True, exist_ok=True)
+        print('start saving')
         qvp_nc.to_netcdf(dir_qvp + file_qvp, unlimited_dims='time')
+        print('saved')
         qvp_nc.close()
         print(f"... which took "
-              f"{(time_p.time() - current_time) / 60:.2f} min ...")
+              f"{(time_p.time() - current_time) / 60:.2f} min ..." 
+              f" ({time_p.strftime('%d/%m %H:%M', time_p.gmtime())})"
+              )
 
     # ----------------------------------------------------------------------- #
     if merge:
-        qvp_nc = xr.merge([xr.open_dataset(dir_qvp + files_qvp[0]),
-                           xr.open_dataset(dir_qvp + files_qvp[1]),
-                           xr.open_dataset(dir_qvp + files_qvp[2]),
-                           xr.open_dataset(dir_qvp + files_qvp[3]),
+        qvp_nc = xr.merge([xr.open_dataset(dir_qvp + files_qvp[0], lock=False),
+                           xr.open_dataset(dir_qvp + files_qvp[1], lock=False),
+                           xr.open_dataset(dir_qvp + files_qvp[2], lock=False),
+                           xr.open_dataset(dir_qvp + files_qvp[3], lock=False),
                            ])#, compat='override')
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc.to_netcdf(dir_qvp + file_qvp_4, unlimited_dims='time')

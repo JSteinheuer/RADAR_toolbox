@@ -29,14 +29,14 @@ from statsmodels.stats.weightstats import DescrStatsW
 # ------------------------------------ #
 location = 'ESS'
 date = '20210714'
-hhmm_start_qvp = '16:00'
-hhmm_end_qvp = '17:00'
+hhmm_start_qvp = '00:00'
+hhmm_end_qvp = '20:00'
 year = date[0:4]
 mon = date[4:6]
 day = date[6:8]
 date_start = '-'.join([year, mon, day, hhmm_start_qvp])
 date_end = '-'.join([year, mon, day, hhmm_end_qvp])
-top_height = 12
+top_height = 8
 mode = 'vol'
 elevation_deg = 12
 # elevation_deg = 17
@@ -45,10 +45,7 @@ elevation_deg = 12
 # for elevation_deg in [5.5, 4.5, 3.5, 2.5, 1.5, 0.5, 8, 12, 17, 25]:
 sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
                            float(elevation_deg))[0][0])
-letters=('abcdefghijklmnopqrstuvwxyz'
-         '\u03B1\u03B2\u03B3\u03B4\u03B5\u03B6\u03B7\u03B8\u03B9'
-         '\u03BA\u03BB\u03BC\u03BD\u03BE\u03BF'
-         '\u03C1\u03C2\u03C3\u03C4\u03C5\u03C6\u03C7\u03C8\u03C9')
+letters='abcdefghijklmnopqrstuvwxyz\u03B1\u03B2'
 filter_moms = False
 
 # ------------------------------------ #
@@ -60,47 +57,21 @@ spin_up_mms = []
 short_names = []
 colors = []
 # ------------------------------------ #
-# SYN data rows 2-8                    #
+# SYN data row 2                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')
+icon_emvorado_runs.append('MAIN_2411.0/EMVO_00410000.2')
+spin_up_mms.append('120')
+short_names.append('R0E2')
+colors.append('orange')
+# ------------------------------------ #
+# SYN data row 5                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510000.2')
 spin_up_mms.append('120')
-short_names.append('00.2')
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510010.2')
-spin_up_mms.append('120')
-short_names.append('10.2')
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510020.2')
-spin_up_mms.append('120')
-short_names.append('20.2')
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510030.2')
-spin_up_mms.append('120')
-short_names.append('30.2')
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510040.2')
-spin_up_mms.append('120')
-short_names.append('40.2')
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510050.2')
-spin_up_mms.append('120')
-short_names.append('50.2')
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510060.2')
-spin_up_mms.append('120')
-short_names.append('60.2')
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510070.2')
-spin_up_mms.append('120')
-short_names.append('70.2')
+short_names.append('R2E3')
+colors.append('blue')
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -422,19 +393,18 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
 # --------------------------------------------------------------------------- #
 # QVPs SAVE                                                                   #
 # --------------------------------------------------------------------------- #
-# hh_at=[2,4,6,8,10,12,14,16,18]
-#hh_at=[15,16,17,18]
-hh_25=np.linspace(axs[-1,-1].get_xticks()[0],
-                   axs[-1,-1].get_xticks()[4],5,endpoint=True)
-str_hh_at=['16:10', '16:20', '16:30', '16:40', '16:50']
-axs[-1,-1].set_xticks(hh_25,str_hh_at)
-axs[-1,-1].set_xlabel('UTC [hh:mm]', fontsize=12 * scale_font)
-axs[-1,-2].set_xticks(hh_25,str_hh_at)
-axs[-1,-2].set_xlabel('UTC [hh:mm]', fontsize=12 * scale_font)
-axs[-1,-3].set_xticks(hh_25,str_hh_at)
-axs[-1,-3].set_xlabel('UTC [hh:mm]', fontsize=12 * scale_font)
-axs[-1,-4].set_xticks(hh_25,str_hh_at)
-axs[-1,-4].set_xlabel('UTC [hh:mm]', fontsize=12 * scale_font)
+hh_at=[2,4,6,8,10,12,14,16,18]
+hh_25=np.linspace(np.round(axs[-1,-1].get_xticks()[0]),
+                   np.round(axs[-1,-1].get_xticks()[0])+1,25,endpoint=True)
+str_hh_at=[str(z).zfill(2) for z in hh_at]
+axs[-1,-1].set_xticks(hh_25[hh_at],str_hh_at)
+axs[-1,-1].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
+axs[-1,-2].set_xticks(hh_25[hh_at],str_hh_at)
+axs[-1,-2].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
+axs[-1,-3].set_xticks(hh_25[hh_at],str_hh_at)
+axs[-1,-3].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
+axs[-1,-4].set_xticks(hh_25[hh_at],str_hh_at)
+axs[-1,-4].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
 if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
 
