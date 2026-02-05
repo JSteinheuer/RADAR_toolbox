@@ -27,8 +27,8 @@ from statsmodels.stats.weightstats import DescrStatsW
 # ------------------------------------ #
 # QVPs                                 #
 # ------------------------------------ #
-location = 'NHB'
-date = '20210713'
+location = 'ESS'
+date = '20210714'
 hhmm_start_qvp = '00:00'
 hhmm_end_qvp = '20:00'
 year = date[0:4]
@@ -53,7 +53,7 @@ elevation_degs = [8,12,17]
 # ------------------------------------ #
 # full: ------------------------------ #
 locations = list(rad_dict().keys())
-locations =['ESS', 'NHB', 'FLD', 'FBG', 'BOO', 'DRS', 'EIS',] # TODO
+# locations =['ESS', 'NHB', 'FLD', 'FBG', 'BOO', 'DRS', 'EIS',] # TODO
 dates = ['20210714', '20210713']
 data_max = 31000
 data_max = 125000
@@ -134,7 +134,7 @@ colors = []
 # SYN data row 5                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510000.2')
+icon_emvorado_runs.append('MAIN_2411.3/EMVO_00510000.2')
 spin_up_mms.append('120')
 short_names.append('R2E3')
 colors.append('cyan')
@@ -160,7 +160,8 @@ colors.append('blue')
 # QVPs                                                                        #
 # --------------------------------------------------------------------------- #
 
-for location in locations:
+# for location in locations:
+for location in [location]:
     # ------------------------------------ #
     # QVPs plot parameters                 #
     # ------------------------------------ #
