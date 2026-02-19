@@ -59,11 +59,11 @@ data_max = 31000
 data_max = 125000
 testing = False
 # testing: --------------------------- #
-locations = ['ESS']  # TODO: remove
-dates = ['20210714']  # TOD2O: remove
-data_max = 2200  # TODO: remove
-testing = True
-elevation_degs = [12,]
+# locations = ['ESS']  # TODO: remove
+# dates = ['20210714']  # TODO: remove
+# data_max = 2200  # TODO: remove
+# testing = True
+# elevation_degs = [12]
 # ------------------------------------ #
 
 # CFADs ? ---------------------------- #
@@ -144,7 +144,7 @@ colors.append('cyan')
 da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510810.2')
 spin_up_mms.append('120')
-short_names.append('R2E81')
+short_names.append('R2E4')
 colors.append('red')
 # ------------------------------------ #
 # SYN data row 7                       #
@@ -152,24 +152,25 @@ colors.append('red')
 da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510820.2')
 spin_up_mms.append('120')
-short_names.append('R2E82')
+short_names.append('R2E5')
 colors.append('green')
+# colors.append('blue')
 # ------------------------------------ #
 # SYN data row 8                       #
 # ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510830.2')
-spin_up_mms.append('120')
-short_names.append('R0E83')
-colors.append('orange')
-# ------------------------------------ #
-# SYN data row 9                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
-spin_up_mms.append('120')
-short_names.append('R1E84')
-colors.append('magenta')
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510830.2')
+# spin_up_mms.append('120')
+# short_names.append('R0E3')
+# colors.append('green')
+# # ------------------------------------ #
+# # SYN data row 9                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
+# spin_up_mms.append('120')
+# short_names.append('R1E3')
+# colors.append('magenta')
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 # QVPs                                                                        #
@@ -564,9 +565,10 @@ ax_mean1.set_xlim([mom_plot_dict('ZH')['mom_min'],
 ax_mean2 = axs[-1, 1]
 ax_mean2.set_ylabel('temperature [°C]')
 ax_mean2.set_xlabel('$Z_{DR}$ [dB]')
-ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],
-                   mom_plot_dict('ZDR')['mom_max']])
-ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],3.3])
+# ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],
+#                    mom_plot_dict('ZDR')['mom_max']])
+# ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],3.3])
+ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],2.1])
 ax_mean3 = axs[-1, 2]
 ax_mean3.set_ylabel('temperature [°C]')
 ax_mean3.set_xlabel('$K_{DP}$ [°/km]')
@@ -1072,7 +1074,6 @@ for i_r in range(n_rows):
 
         if i_c==1:
             axs[i_r,i_c].set_xlim([-.2, 2.3])
-            # axs[i_r,i_c].set_xlim([mom_plot_dict('ZDR')['mom_min'], 4.6])
 
 # cmap = mpl.cm.YlGnBu  #TODO
 cmap = mpl.cm.terrain_r  #TODO
