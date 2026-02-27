@@ -119,6 +119,15 @@ spin_up_mms.append('120')
 short_names.append('I1E3')
 # colors.append('yellow')
 # ------------------------------------ #
+# SYN data row 6                       #
+# ------------------------------------ #
+da_runs.append('ASS_2411')
+icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
+spin_up_mms.append('120')
+short_names.append('I2E42')
+# colors.append('magenta')
+
+# ------------------------------------ #
 # SYN data row 4                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')
@@ -150,6 +159,7 @@ colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 6))
 # colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
 
 
+colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 # QVPs                                                                        #
