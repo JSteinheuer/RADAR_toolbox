@@ -713,11 +713,6 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
     if not isinstance(elevation_deg, list):
         elevation_deg = [elevation_deg]
 
-    if da_icon_emvorado_run[-3:] == 'qnx':
-        qnx=True
-    else:
-        qnx=False
-
     # sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
     #                            float(elevation_deg))[0][0])
     sweeps = ['0' + str(np.where(header.ELEVATIONS_ALL ==
@@ -728,6 +723,11 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             paths_in = glob.glob('/'.join([header.dir_obs_qvp + '*', '*',
                                            '*', '*', '*', '*', '*', '*', ]))
         else:  # mod
+            if da_icon_emvorado_run[-3:] == 'qnx':
+                qnx = True
+            else:
+                qnx = False
+
             paths_in = glob.glob('/'.join([header.dir_data_qvp + '*',
                                            da_icon_emvorado_run + '/' +
                                            str(spin_up_mm) +
