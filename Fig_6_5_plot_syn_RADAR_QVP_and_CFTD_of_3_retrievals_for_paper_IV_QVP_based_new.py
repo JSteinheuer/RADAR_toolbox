@@ -111,7 +111,7 @@ da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
 spin_up_mms.append('120')
 short_names.append('I1E2')
-# colors.append('green')
+colors.append('green')
 # # ------------------------------------ #
 # # SYN data row 3                       #
 # # ------------------------------------ #
