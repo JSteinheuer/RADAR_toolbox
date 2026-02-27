@@ -447,43 +447,43 @@ from SET_SYN_RADAR import rad_dict
 #                                  radar_loc=radar_loc)
 
 # --------------------------------------------------------------------------- #
-# 25.02.26  # R2E4,5 for ICON
-spin_up_mm = 120
-overwrite = '2025-02-13'
-radar_locs=['ESS', 'NHB', 'FLD', 'FBG'] + list(rad_dict().keys())
-for elevation_deg in [12, 8, 17]:
-    for day in [
-        '20210714',
-        '20210713',
-    ]:
-        da_run = 'ASS_2411'
-        icon_run = 'MAIN_2411.3'
-        emvorado_run = 'EMVO_20510840.2'
-        for radar_loc in radar_locs:
-            icon_emvorado_run = icon_run + '/' + emvorado_run
-            qvp_from_syn_vol_with_qn_qnx(
-                day=day, da_run=da_run, icon_run=icon_run,
-                icon_emvorado_run=icon_emvorado_run,
-                spin_up_mm=spin_up_mm,
-                elevation_deg=elevation_deg,
-                overwrite=overwrite,
-                radar_loc=radar_loc,
-                qn_i=1e-0,
-                q_i=1e-7,
-                qn_c=1e-0,
-                q_c=1e-7,
-                qn_r=1e-0,
-                q_r=1e-7,
-                qn_s=1e-0,
-                q_s=1e-7,
-                qn_g=1e-0,
-                q_g=1e-7,
-                qn_h=1e-3,
-                q_h=1e-5,
-            )
+# # 25.02.26  # R2E4,5 for ICON
+# spin_up_mm = 120
+# overwrite = '2025-02-13'
+# radar_locs=['ESS', 'NHB', 'FLD', 'FBG'] + list(rad_dict().keys())
+# for elevation_deg in [12, 8, 17]:
+#     for day in [
+#         '20210714',
+#         '20210713',
+#     ]:
+#         da_run = 'ASS_2411'
+#         icon_run = 'MAIN_2411.3'
+#         emvorado_run = 'EMVO_20510840.2'
+#         for radar_loc in radar_locs:
+#             icon_emvorado_run = icon_run + '/' + emvorado_run
+#             qvp_from_syn_vol_with_qn_qnx(
+#                 day=day, da_run=da_run, icon_run=icon_run,
+#                 icon_emvorado_run=icon_emvorado_run,
+#                 spin_up_mm=spin_up_mm,
+#                 elevation_deg=elevation_deg,
+#                 overwrite=overwrite,
+#                 radar_loc=radar_loc,
+#                 qn_i=1e-0,
+#                 q_i=1e-7,
+#                 qn_c=1e-0,
+#                 q_c=1e-7,
+#                 qn_r=1e-0,
+#                 q_r=1e-7,
+#                 qn_s=1e-0,
+#                 q_s=1e-7,
+#                 qn_g=1e-0,
+#                 q_g=1e-7,
+#                 qn_h=1e-3,
+#                 q_h=1e-5,
+#             )
 
 # --------------------------------------------------------------------------- #
-# 27.01.26  # R2E3  all for paper (including ASB, and qnx)
+# 27.02.26 all for paper (including ASB, and qnx)
 spin_up_mm = 120
 overwrite = '2025-02-13'
 radar_locs=['ESS', 'NHB', 'FLD', 'FBG'] + list(rad_dict().keys())
