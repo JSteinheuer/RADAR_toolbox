@@ -11,6 +11,7 @@
 import os
 import xarray as xr
 import HEADER_RADAR_toolbox as header
+import ColorBlindFriendlyRadarColorMaps as radar_colors
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import glob
@@ -47,23 +48,18 @@ sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
 # ------------------------------------ #
 hhmm_start_cftds = '00:00'
 hhmm_end_cftds = '23:59'
-elevation_degs = [8,12,17]
-elevation_degs = [12] # TODO
-
-# ------------------------------------ #
 # full: ------------------------------ #
 locations = list(rad_dict().keys())
-locations =['ESS', 'NHB', 'FLD', 'FBG', 'BOO', 'DRS', 'EIS', 'HNR', 'ISN', 'MEM', 'NEU', 'OFT'] # TODO
 dates = ['20210714', '20210713']
-data_max = 31000 # TODO
-# data_max = 125000
+data_max = 125000
+elevation_degs = [8,12,17]
 testing = False
 # testing: --------------------------- #
-# locations = ['ESS']  # TODO: remove
-# dates = ['20210714']  # TODO: remove
-# data_max = 2200  # TODO: remove
-# testing = True
-# elevation_degs = [12]
+locations = ['ESS']  # TODO: remove
+dates = ['20210714']  # TODO: remove
+data_max = 2200  # TODO: remove
+elevation_degs = [12]  # TODO: remove
+testing = True
 # ------------------------------------ #
 
 # CFADs ? ---------------------------- #
@@ -105,7 +101,7 @@ da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_20010000.2')
 spin_up_mms.append('120')
 short_names.append('I1E1')
-colors.append('red')
+# colors.append('cyan')
 # ------------------------------------ #
 # SYN data row 2                       #
 # ------------------------------------ #
@@ -113,7 +109,7 @@ da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
 spin_up_mms.append('120')
 short_names.append('I1E2')
-colors.append('orange')
+# colors.append('green')
 # ------------------------------------ #
 # SYN data row 3                       #
 # ------------------------------------ #
@@ -121,63 +117,44 @@ da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_20510000.2')
 spin_up_mms.append('120')
 short_names.append('I1E3')
-colors.append('green')
+# colors.append('yellow')
 # ------------------------------------ #
 # SYN data row 4                       #
-# ------------------------------------ #
-# da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.1/EMVO_20510000.2')
-# spin_up_mms.append('120')
-# short_names.append('R1E3')
-# colors.append('magenta')
-# ------------------------------------ #
-# SYN data row 5                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510000.2')
 spin_up_mms.append('120')
 short_names.append('I2E3')
-colors.append('cyan')
+# colors.append('orange')
 # ------------------------------------ #
-# SYN data row 6                       #
-# ------------------------------------ #
-# da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510810.2')
-# spin_up_mms.append('120')
-# short_names.append('R2E4')
-# colors.append('red')
-# ------------------------------------ #
-# SYN data row 7                       #
+# SYN data row 5                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
 spin_up_mms.append('120')
 short_names.append('I2E4')
-colors.append('magenta')
-# colors.append('blue')
+# colors.append('red')
 # ------------------------------------ #
-# SYN data row 8                       #
+# SYN data row 5                       #
 # ------------------------------------ #
-# da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510830.2')
-# spin_up_mms.append('120')
-# short_names.append('R0E3')
-# colors.append('green')
-# # ------------------------------------ #
-# # SYN data row 9                       #
-# # ------------------------------------ #
-# da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
-# spin_up_mms.append('120')
-# short_names.append('R1E3')
-# colors.append('magenta')
+da_runs.append('ASS_2411')
+icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
+spin_up_mms.append('120')
+short_names.append('I2E4')
+# colors.append('red')
+# ------------------------------------ #
+
+colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 5))
+colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
+
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 # QVPs                                                                        #
 # --------------------------------------------------------------------------- #
 
-# for location in locations:
+# for location in ['ESS', 'NHB']:
 for location in [location]:
+# for location in []:
     # ------------------------------------ #
     # QVPs plot parameters                 #
     # ------------------------------------ #
@@ -236,11 +213,11 @@ for location in [location]:
     current_col = 0
     plot_qvp_of_polarimetric_variable(
         mom=qvp_zh_obs,
-        cmap=header.cmap_radar,
-        norm=header.norm_zh,
-        levels=header.levels_zh,
-        # mom_cs=qvp_zh_obs,
-        levels_cs=np.arange(-50, 60, 5),
+        cmap=radar_colors.cmap_radar,
+        norm=radar_colors.norm_zh,
+        levels=radar_colors.levels_zh,
+        mom_cs=qvp_zh_obs,
+        levels_cs=np.arange(-50, 60, 25),
         mom_cf=qvp_temp_obs,
         levels_cf=np.arange(-50, 60, 5),
         cbar_title='$Z_{H}$ [dBZ]',
@@ -259,11 +236,11 @@ for location in [location]:
     current_col = current_col + 1
     plot_qvp_of_polarimetric_variable(
         mom=qvp_zdr_obs,
-        cmap=header.cmap_radar,
-        norm=header.norm_zdr,
-        levels=header.levels_zdr,
-        # mom_cs=qvp_zh_obs,
-        levels_cs=np.arange(-50, 60, 5),
+        cmap=radar_colors.cmap_radar,
+        norm=radar_colors.norm_zdr,
+        levels=radar_colors.levels_zdr,
+        mom_cs=qvp_zh_obs,
+        levels_cs=np.arange(-50, 60, 25),
         mom_cf=qvp_temp_obs,
         levels_cf=np.arange(-50, 60, 5),
         cbar_title='$Z_{DR}$ [dB]',
@@ -283,11 +260,11 @@ for location in [location]:
     current_col = current_col + 1
     plot_qvp_of_polarimetric_variable(
         mom=qvp_kdp_obs,
-        cmap=header.cmap_radar,
-        norm=header.norm_kdp,
-        levels=header.levels_kdp,
-        # mom_cs=qvp_zh_obs,
-        levels_cs=np.arange(-50, 60, 5),
+        cmap=radar_colors.cmap_radar,
+        norm=radar_colors.norm_kdp,
+        levels=radar_colors.levels_kdp,
+        mom_cs=qvp_zh_obs,
+        levels_cs=np.arange(-50, 60, 25),
         mom_cf=qvp_temp_obs,
         levels_cf=np.arange(-50, 60, 5),
         cbar_title='$K_{DP}$ [°/km]',
@@ -307,11 +284,11 @@ for location in [location]:
     current_col = current_col + 1
     plot_qvp_of_polarimetric_variable(
         mom=qvp_rho_obs,
-        cmap=header.cmap_radar,
-        norm=header.norm_rhohv,
-        levels=header.levels_rhohv,
-        # mom_cs=qvp_zh_obs,
-        levels_cs=np.arange(-50, 60, 5),
+        cmap=radar_colors.cmap_radar_rho,
+        norm=radar_colors.norm_rhohv,
+        levels=radar_colors.levels_rhohv,
+        mom_cs=qvp_zh_obs,
+        levels_cs=np.arange(-50, 60, 25),
         mom_cf=qvp_temp_obs,
         levels_cf=np.arange(-50, 60, 5),
         cbar_title='$\u03C1_{HV}$ [1]',
@@ -337,10 +314,19 @@ for location in [location]:
             da_runs, icon_emvorado_runs, spin_up_mms, short_names):
         date_start = '-'.join([year, mon, day, hhmm_start_qvp])
         date_end = '-'.join([year, mon, day, hhmm_end_qvp])
-        path_mod = '/'.join([header.dir_data_qvp + date, da_run, icon_emvorado_run,
-                             str(spin_up_mm) + 'min_spinup', 'QVP_' +
-                             str(elevation_deg) + '_Syn_' + location + '_' +
-                             date + '0000_' + date + '2355.nc'])
+        if icon_emvorado_run[-3:] == 'qnx':
+            path_mod = '/'.join(
+                [header.dir_data_qvp + date, da_run, icon_emvorado_run[:-3],
+                 str(spin_up_mm) + 'min_spinup', 'QVPqnx_' +
+                 str(elevation_deg) + '_Syn_' + location + '_' +
+                 date + '0000_' + date + '2355.nc'])
+
+        else:
+            path_mod = '/'.join([header.dir_data_qvp + date, da_run, icon_emvorado_run,
+                                 str(spin_up_mm) + 'min_spinup', 'QVP_' +
+                                 str(elevation_deg) + '_Syn_' + location + '_' +
+                                 date + '0000_' + date + '2355.nc'])
+
         path_mod = sorted(glob.glob(path_mod))
         if len(path_mod) == 1:
             path_mod = path_mod[0]
@@ -402,11 +388,11 @@ for location in [location]:
         current_col = 0
         plot_qvp_of_polarimetric_variable(
             mom=qvp_zh_syn,
-            cmap=header.cmap_radar,
-            norm=header.norm_zh,
-            levels=header.levels_zh,
-            # mom_cs=qvp_zh_syn,
-            levels_cs=np.arange(-50, 60, 5),
+            cmap=radar_colors.cmap_radar,
+            norm=radar_colors.norm_zh,
+            levels=radar_colors.levels_zh,
+            mom_cs=qvp_zh_syn,
+            levels_cs=np.arange(-50, 60, 25),
             mom_cf=qvp_temp_syn,
             levels_cf=np.arange(-50, 60, 5),
             cbar_title='$Z_{H}$ [dBZ]',
@@ -425,11 +411,11 @@ for location in [location]:
         current_col = current_col +1
         plot_qvp_of_polarimetric_variable(
             mom=qvp_zdr_syn,
-            cmap=header.cmap_radar,
-            norm=header.norm_zdr,
-            levels=header.levels_zdr,
-            # mom_cs=qvp_zh_syn,
-            levels_cs=np.arange(-50, 60, 5),
+            cmap=radar_colors.cmap_radar,
+            norm=radar_colors.norm_zdr,
+            levels=radar_colors.levels_zdr,
+            mom_cs=qvp_zh_syn,
+            levels_cs=np.arange(-50, 60, 25),
             mom_cf=qvp_temp_syn,
             levels_cf=np.arange(-50, 60, 5),
             cbar_title='$Z_{DR}$ [dB]',
@@ -449,11 +435,11 @@ for location in [location]:
         current_col = current_col +1
         plot_qvp_of_polarimetric_variable(
             mom=qvp_kdp_syn,
-            cmap=header.cmap_radar,
-            norm=header.norm_kdp,
-            levels=header.levels_kdp,
-            # mom_cs=qvp_zh_syn,
-            levels_cs=np.arange(-50, 60, 5),
+            cmap=radar_colors.cmap_radar,
+            norm=radar_colors.norm_kdp,
+            levels=radar_colors.levels_kdp,
+            mom_cs=qvp_zh_syn,
+            levels_cs=np.arange(-50, 60, 25),
             mom_cf=qvp_temp_syn,
             levels_cf=np.arange(-50, 60, 5),
             cbar_title='$K_{DP}$ [°/km]',
@@ -473,11 +459,11 @@ for location in [location]:
         current_col = current_col +1
         plot_qvp_of_polarimetric_variable(
             mom=qvp_rho_syn,
-            cmap=header.cmap_radar,
-            norm=header.norm_rhohv,
-            levels=header.levels_rhohv,
-            # mom_cs=qvp_zh_syn,
-            levels_cs=np.arange(-50, 60, 5),
+            cmap=radar_colors.cmap_radar_rho,
+            norm=radar_colors.norm_rhohv,
+            levels=radar_colors.levels_rhohv,
+            mom_cs=qvp_zh_syn,
+            levels_cs=np.arange(-50, 60, 25),
             mom_cf=qvp_temp_syn,
             levels_cf=np.arange(-50, 60, 5),
             cbar_title='$\u03C1_{HV}$ [1]',
@@ -499,8 +485,7 @@ for location in [location]:
     # QVPs SAVE                                                                   #
     # --------------------------------------------------------------------------- #
 
-    hh_at=np.arange(int(hhmm_start_qvp[:2])+1, int(hhmm_end_qvp[:2]), 2)
-    # hh_at=[2,4,6,8,10,12,14,16,18]
+    hh_at=np.arange(int(hhmm_start_qvp[:2])+2, int(hhmm_end_qvp[:2])+2, 2)
     hh_25=np.linspace(np.round(axs[-1,-1].get_xticks()[0]),
                        np.round(axs[-1,-1].get_xticks()[0])+1,25,endpoint=True)
     str_hh_at=[str(z).zfill(2) for z in hh_at]
@@ -549,10 +534,6 @@ mod_names = ''
 letters_i=0
 n_rows = len(da_runs) + 1 + 1  # add one once more for mean of all
 n_cols = 4
-# fig = plt.figure(figsize=(n_cols * 3, n_rows * 3))
-# fig = plt.figure(figsize=(n_cols * 3.3, n_rows * 2.5), layout='constrained')
-# fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.5), layout='constrained')
-# fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.2), layout='constrained')
 fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.), layout='constrained')
 gs = fig.add_gridspec(n_rows, n_cols, hspace=0.03,wspace=0.03)
 axs = gs.subplots()
@@ -568,7 +549,7 @@ ax_mean2.set_xlabel('$Z_{DR}$ [dB]')
 # ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],
 #                    mom_plot_dict('ZDR')['mom_max']])
 # ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],3.3])
-ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],2.1])
+ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],2.1])  # JM wish
 ax_mean3 = axs[-1, 2]
 ax_mean3.set_ylabel('temperature [°C]')
 ax_mean3.set_xlabel('$K_{DP}$ [°/km]')
@@ -632,8 +613,10 @@ for t_i in range(len(y_mid)):
 
 ax_mean1.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
          linewidth=1, label='_nolegend_')
-ax_mean1.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-         linewidth=2,label='obs')
+
+print(2+(n_rows-current_row-3)/4)
+ax_mean1.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4,label='obs')
 ax_mean1.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
 # ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
@@ -685,8 +668,8 @@ for t_i in range(len(y_mid)):
 
 ax_mean2.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
-ax_mean2.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-         linewidth=2, label='obs')
+ax_mean2.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='obs')
 ax_mean2.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
 # ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
@@ -739,8 +722,8 @@ for t_i in range(len(y_mid)):
 
 ax_mean3.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
          linewidth=1, label='_nolegend_')
-ax_mean3.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-         linewidth=2,label='obs')
+ax_mean3.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4,label='obs')
 ax_mean3.plot(quant_prof[2, ], y_mid, color=color, ls='dashed', alpha=0.8,
          linewidth=1, label='_nolegend_')
 # ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
@@ -792,8 +775,8 @@ for t_i in range(len(y_mid)):
 
 ax_mean4.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
-ax_mean4.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-         linewidth=2, label='obs')
+ax_mean4.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='obs')
 ax_mean4.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
 # ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
@@ -861,8 +844,9 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
 
     ax_mean1.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    ax_mean1.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-                  linewidth=2, label=short_name)
+    print(2+(n_rows-current_row-3)/4)
+    ax_mean1.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+                  linewidth=2+(n_rows-current_row-3)/4, label=short_name)
     ax_mean1.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
     # ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
@@ -916,8 +900,8 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
 
     ax_mean2.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    ax_mean2.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-                  linewidth=2, label=short_name)
+    ax_mean2.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+                  linewidth=2+(n_rows-current_row-3)/4, label=short_name)
     ax_mean2.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
     # ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
@@ -971,8 +955,8 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
 
     ax_mean3.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    ax_mean3.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-                  linewidth=2, label=short_name)
+    ax_mean3.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+                  linewidth=2+(n_rows-current_row-3)/4, label=short_name)
     ax_mean3.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
     # ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
@@ -1026,8 +1010,8 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
 
     ax_mean4.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    ax_mean4.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-                  linewidth=2, label=short_name)
+    ax_mean4.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+                  linewidth=2+(n_rows-current_row-3)/4, label=short_name)
     ax_mean4.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
     # ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,

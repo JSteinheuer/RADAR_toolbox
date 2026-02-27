@@ -226,8 +226,8 @@ def adjust_icon_fields(infields, hymets=icon_hydromets(), spec2dens=1):
         x[x < hymets[key]['xmin']] = hymets[key]['xmin']
         x[x > hymets[key]['xmax']] = hymets[key]['xmax']
         qn[key] = q[key] / x
-        q[key][q[key] < 1e-7] = 0.
-        qn[key][q[key] < 1e-7] = 1.  # for numeric stability.  # TODO: questioneing!!
+        # q[key][q[key] < 1e-7] = 0.
+        # qn[key][q[key] < 1e-7] = 1.  # for numeric stability.  # TODO: questioneing!!
         # q[key][q[key] < 1e-7] = 0.
         # qn[key][q[key] < 1e-7] = 1e-7  # for numeric stability.
         # q[key][q[key] < 1e-7] = 0.
@@ -851,6 +851,19 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         # ------------------------------------------------------------------- #
         # PPI: qi,qni -> diameters                                            #
         # ------------------------------------------------------------------- #
+        # now this form 'adjust_icon_fields' is here
+        # q[key][q[key] < 1e-7] = 0.
+        # qn[key][q[key] < 1e-7] = 1.  # for numeric stability.
+        for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
+            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+                icon_nc['q' + hm[0]] >= 1e-7, 0)
+            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+                icon_nc['qn' + hm[0]] >= 1e-7, 1)
+            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+                icon_nc['q' + hm[0]] >= 1e-7, 1)
+            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+                icon_nc['qn' + hm[0]] >= 1e-7, 0)
+
         q_dens, qn_dens = adjust_icon_fields(icon_nc)
         multi_params = mgdparams(q_dens, qn_dens)
         moments = calc_moments(mgd=multi_params)
@@ -966,6 +979,512 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                            xr.open_dataset(dir_qvp + files_qvp[2], lock=False),
                            xr.open_dataset(dir_qvp + files_qvp[3], lock=False),
                            ])#, compat='override')
+        qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
+        qvp_nc.to_netcdf(dir_qvp + file_qvp_4, unlimited_dims='time')
+        qvp_nc.close()
+        for file_qvp in files_qvp:
+            os.remove(dir_qvp + file_qvp)
+
+    return
+
+
+def qvp_from_syn_vol_with_qn_qnx(day='20170725', da_run='ASS_2211',
+                     icon_run='MAIN_2211.0',
+                     icon_emvorado_run='MAIN_2211.0/EMVO_00000000.2',
+                     spin_up_mm=30, elevation_deg=12, radar_loc='PRO',
+                     dir_data_in=header.dir_data_vol,
+                     dir_data_out=header.dir_data_qvp,
+                     ml_correction=False,
+                     overwrite=False, merge=True, lowest_rhv=0.7,
+                     lowest_zh=0, highest_zh=None,
+                     lowest_kdp=0,
+                     highest_kdp=None, n_lowest=30,
+                     qn_i=1e-0,
+                     q_i=1e-7,
+                     qn_c=1e-0,
+                     q_c=1e-7,
+                     qn_r=1e-0,
+                     q_r=1e-7,
+                     qn_s=1e-0,
+                     q_s=1e-7,
+                     qn_g=1e-0,
+                     q_g=1e-7,
+                     qn_h=1e-3,
+                     q_h=1e-5,
+                     ):
+    """
+    Create QVP for one day out of 8 synthetic volume scans from EMVORADO and
+    ICON data (each 4times 6hourly).
+
+     Args:
+        day: day in >yyyymmdd<.
+        da_run: subfolder specifying the data_assimilation run.
+        icon_run: subfolder specifying the ICON run.
+        icon_emvorado_run: subfolders specifying the EMVORADO run.
+        spin_up_mm: lower threshold for the time that must have elapsed
+                    since the last DA.
+        elevation_deg: elevation angle to be choosen from Syn_vol for QVP
+                       [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 8.0, 12.0, 17.0, 25.0].
+        radar_loc: string >RRR< naming the radar.
+        dir_data_in: directory with folder >yyyymmdd< of the day outputs.
+        dir_data_out: directory for the output.
+        ml_correction: bool; if True, an ML-correctin is additionally done
+        overwrite: If True, then process only if output is not existing.
+        merge: If True, the 4 QVPs of the day will be merged.
+        lowest_rhv: If not None, it is the lowest acceptable value not
+                    filtered.
+        lowest_kdp: If not None, it is the lowest acceptable value not
+                    filtered.
+        highest_kdp: If not None, it is the highest acceptable value not
+                     filtered.
+        n_lowest: lowest nr of valid values for returning a non nan value per
+                  360 azimuths.
+        qn_i=1e-0,
+        q_i=1e-7,
+        qn_c=1e-0,
+        q_c=1e-7,
+        qn_r=1e-0,
+        q_r=1e-7,
+        qn_s=1e-0,
+        q_s=1e-7,
+        qn_g=1e-0,
+        q_g=1e-7,
+        qn_h=1e-3,
+        q_h=1e-5,
+
+    Returns:
+    """
+    time_start = day + '0000'
+    time_end = day + '2355'
+    spin_up_mm = str(spin_up_mm)
+    dti_start = pd.to_datetime(time_start, format="%Y%m%d%H%M")
+    dti_end = pd.to_datetime(time_end, format="%Y%m%d%H%M")
+    dti = pd.date_range(dti_start, dti_end, freq="5min", inclusive='both')
+    dir_qvp = dir_data_out + dti[0].strftime('%Y%m%d') + '/' + \
+              da_run + '/' + icon_emvorado_run + '/' + \
+              str(spin_up_mm) + 'min_spinup/'
+    file_qvp_4 = 'QVPqnx_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
+                 dti[0].strftime('%Y%m%d%H%M') + '_' + \
+                 dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+    files_qvp = []
+    if type(overwrite) == str and os.path.isfile(dir_qvp + file_qvp_4):
+        out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+        file_date = dt.datetime.strptime(
+            time_p.strftime("%Y-%m-%d", time_p.localtime(
+                os.path.getctime(dir_qvp + file_qvp_4))), '%Y-%m-%d')
+        if out_of_date > file_date:
+            print(file_qvp_4 + ' exists;\n' +
+                  ' ... but out-of-date as ' +
+                  out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                  file_date.strftime("%Y-%m-%d"))
+            print('___________________________')
+            overwrite_i = True
+        else:
+            overwrite_i = False
+    else:
+        if type(overwrite) == str:
+            overwrite_i = False
+        else:
+            overwrite_i = overwrite
+
+    if os.path.isfile(dir_qvp + file_qvp_4) and not overwrite_i:
+        print(dir_qvp + file_qvp_4 + ' already exists;\n' +
+              'set >overwrite=True< for recalculation')
+        return
+
+    for hhmm_start in ['0000', '0600', '1200', '1800']:
+        # start
+        current_time = time_p.time()
+
+        time_start = day + hhmm_start
+        time_end = day + str(int(hhmm_start) + 555).zfill(4)
+        filter_comments = 'PPI ICON data are only included, if ' \
+                          'corresponding EMVORADO PPI data exists. '
+        # ------------------------------------------------------------------- #
+        # open nc files                                                       #
+        # ------------------------------------------------------------------- #
+        dti_start = pd.to_datetime(time_start, format="%Y%m%d%H%M")
+        dti_end = pd.to_datetime(time_end, format="%Y%m%d%H%M")
+        dti = pd.date_range(dti_start, dti_end, freq="5min", inclusive='both')
+        dir_emv = dir_data_in + dti[0].strftime('%Y%m%d') + '/' + \
+                  da_run + '/' + icon_emvorado_run + '/' + \
+                  str(spin_up_mm) + 'min_spinup/'
+        dir_icon = dir_data_in + dti[0].strftime('%Y%m%d') + '/' + \
+                   da_run + '/' + icon_run + '/ICONdata/' + \
+                   str(spin_up_mm) + 'min_spinup/'
+        file_emv = 'EMV_Vol_' + radar_loc + '_' + \
+                   dti[0].strftime('%Y%m%d%H%M') + '_' + \
+                   dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+        file_icon = 'ICON_Vol_' + radar_loc + '_' + \
+                    dti[0].strftime('%Y%m%d%H%M') + '_' + \
+                    dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+        file_qvp = 'QVPqnx_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
+                   dti[0].strftime('%Y%m%d%H%M') + '_' + \
+                   dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+        files_qvp.append(file_qvp)
+        if type(overwrite) == str and os.path.isfile(dir_qvp + file_qvp):
+            out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
+            file_date = dt.datetime.strptime(
+                time_p.strftime("%Y-%m-%d", time_p.localtime(
+                    os.path.getctime(dir_qvp + file_qvp))), '%Y-%m-%d')
+            if out_of_date > file_date:
+                print(file_qvp + ' exists;\n' +
+                      ' ... but out-of-date as ' +
+                      out_of_date.strftime("%Y-%m-%d") + ' > ' +
+                      file_date.strftime("%Y-%m-%d"))
+                print('___________________________')
+                overwrite_i = True
+            else:
+                overwrite_i = False
+        else:
+            if type(overwrite) == str:
+                overwrite_i = False
+            else:
+                overwrite_i = overwrite
+
+        if os.path.isfile(dir_qvp + file_qvp) and not overwrite_i:
+            print(dir_qvp + file_qvp + ' already exists;\n' +
+                  'set >overwrite=True< for recalculation')
+            continue
+
+        if not os.path.isfile(dir_emv + file_emv):
+            print(dir_emv + file_emv + ' not found')
+            merge = False
+            continue
+
+        if not os.path.isfile(dir_icon + file_icon):
+            print(dir_emv + file_emv + ' found but not ' +
+                  dir_icon + file_icon)
+            merge = False
+            continue
+
+        print('------------------------------------------------------')
+        print('QVP(' + str(elevation_deg) + ') for ' + dir_emv + file_emv)
+        emv_nc = xr.open_dataset(dir_emv + file_emv, lock=False)
+        icon_nc = xr.open_dataset(dir_icon + file_icon, lock=False)
+
+        # ------------------------------------------------------------------- #
+        # PPI: common EMV and ICON mask                                       #
+        # ------------------------------------------------------------------- #
+        emv_nc = emv_nc.sel(elevation=elevation_deg, drop=True)
+        icon_nc = icon_nc.sel(elevation=elevation_deg, drop=True)
+        emv_nc.attrs['elevation'] = str(elevation_deg) + ' degrees'
+        emv_nc.attrs['icon_run'] = icon_nc.icon_run
+        if 'phidpsim' not in list(emv_nc.data_vars):
+            kdpsim = emv_nc.kdpsim.fillna(0)
+            emv_nc['phidpsim'] = (['time', 'range', 'azimuth', ],
+                                  phidp_from_kdp(kdpsim).transpose('time',
+                                                                   'range',
+                                                                   'azimuth'
+                                                                   ).data,
+                                  dict(
+                                      standard_name='Differential propagation phase shift',
+                                      comments='PHIDP from KDP',
+                                      units='deg/km'))
+
+        emv_nc = emv_nc.transpose('time', 'range', 'azimuth')
+        if lowest_rhv is not None:
+            emv_nc['rhvsim'] = \
+                emv_nc['rhvsim'].where(emv_nc['rhvsim'] >= lowest_rhv)
+            filter_comments = filter_comments + 'rhvsim >= ' + \
+                              str(lowest_rhv) + '. '
+
+        if lowest_kdp is not None:
+            emv_nc['kdpsim'] = \
+                emv_nc['kdpsim'].where(emv_nc['kdpsim'] >= lowest_kdp)
+            filter_comments = filter_comments + 'kdpsim >= ' + \
+                              str(lowest_kdp) + ' . '
+
+        if highest_kdp is not None:
+            emv_nc['kdpsim'] = \
+                emv_nc['kdpsim'].where(emv_nc['kdpsim'] <= highest_kdp)
+            filter_comments = filter_comments + 'kdpsim <= ' + \
+                              str(highest_kdp) + ' . '
+
+        if lowest_zh is not None:
+            emv_nc['zrsim'] = \
+                emv_nc['zrsim'].where(emv_nc['zrsim'] >= lowest_zh)
+            filter_comments = filter_comments + 'zrsim >= ' + \
+                              str(lowest_zh) + ' . '
+
+        if highest_zh is not None:
+            emv_nc['zrsim'] = \
+                emv_nc['zrsim'].where(emv_nc['zrsim'] <= highest_zh)
+            filter_comments = filter_comments + 'zrsim <= ' + \
+                              str(highest_zh) + ' . '
+
+        mask = ~ np.isnan(emv_nc['zrsim'])
+        for var in list(emv_nc.data_vars):
+            if emv_nc[var].dims == ('time', 'range', 'azimuth'):
+                mask = mask * (~ np.isnan(emv_nc[var]))
+
+        for var in list(emv_nc.data_vars):
+            if emv_nc[var].dims == ('time', 'range', 'azimuth'):
+                emv_nc[var] = emv_nc[var].where(mask)
+
+        filter_comments = filter_comments + 'QVP needs at least ' + \
+                          str(n_lowest) + ' of 360 valid values per median' + \
+                          ' calculation on azimuth. '
+        emv_nc['height'] = (['range'], emv_nc['range'].data *
+                            np.sin(elevation_deg * np.pi / 180.) / 1000.,
+                            dict(standard_name='height above radar',
+                                 units='km'))
+        # --------------------------------------------------------------- #
+        # QVP: Melting layer correction: TS method; not really working    #
+        # --------------------------------------------------------------- #
+        if ml_correction:
+            # Wolfensberger
+            qvp_first_nc = emv_nc.copy()
+            qvp_first_nc = qvp_first_nc.swap_dims({'range': 'height'})
+            for var in ['zrsim', 'phidpsim', 'rhvsim']:
+                count_values = qvp_first_nc[var].count(dim='azimuth')
+                qvp_first_nc[var] = qvp_first_nc[var].median(
+                    dim='azimuth', skipna=True, keep_attrs=True)
+                qvp_first_nc[var] = qvp_first_nc[var].where(
+                    count_values >= n_lowest)
+            qvp_first_nc = qvp_first_nc.swap_dims({'range': 'height'})
+            qvp_first_nc = melting_layer_qvp_X_new(ds=qvp_first_nc,
+                                                   all_data=False)
+            emv_nc['mlh_top'] = qvp_first_nc.mlh_top
+            emv_nc['mlh_bottom'] = qvp_first_nc.mlh_bottom
+            emv_nc['height'] = (['range'], emv_nc['range'].data *
+                                np.sin(elevation_deg * np.pi / 180.) / 1000.,
+                                dict(standard_name='height above radar',
+                                     units='km'))
+            emv_nc['phidpsim_ml_corrected'] = \
+                ml_interpolate2(qvp_first_nc, emv_nc, 'phidpsim',
+                                method='linear')
+            emv_nc = emv_nc.transpose('time', 'azimuth', 'range')
+            kdp_new = wrl.dp.kdp_from_phidp(
+                emv_nc['phidpsim_ml_corrected'].data,
+                winlen=13,  # cband
+                min_periods=3)
+            kdp_new[np.where(np.isnan(emv_nc['kdpsim'].data))] = np.nan
+            emv_nc['kdpsim_ml_corrected'] = (
+                ['time', 'azimuth', 'range'], kdp_new, dict(
+                    standard_name=emv_nc['kdpsim'].standard_name,
+                    units=emv_nc['kdpsim'].units,
+                    comments=emv_nc['kdpsim'].comments +
+                             '; Melting layer corrected'))
+            # Giagrande
+            cut_ml = qvp_first_nc.where(qvp_first_nc.height <
+                                        qvp_first_nc.mlh_top)
+            cut_ml = cut_ml.where(qvp_first_nc.height >
+                                  qvp_first_nc.mlh_bottom)
+            min_height_ML = cut_ml.rhvsim.idxmin(dim="height")
+            new_cut_below_min_ML = qvp_first_nc.where(qvp_first_nc.height >
+                                                      min_height_ML)
+            new_cut_above_min_ML = qvp_first_nc.where(qvp_first_nc.height <
+                                                      min_height_ML)
+            new_cut_below_min_ML_filter = new_cut_below_min_ML.rhvsim.where(
+                (new_cut_below_min_ML.rhvsim >= 0.97) &
+                (new_cut_below_min_ML.rhvsim <= 1))
+            new_cut_above_min_ML_filter = new_cut_above_min_ML.rhvsim.where(
+                (new_cut_above_min_ML.rhvsim >= 0.97) &
+                (new_cut_above_min_ML.rhvsim <= 1))
+            filter_comments = filter_comments + 'ML refinement from ' + \
+                              'Giagrande with rhvsim >= 0.97. '
+            panda_below_min = \
+                new_cut_below_min_ML_filter.to_pandas().transpose()
+            first_valid_height_ml = pd.DataFrame(panda_below_min).apply(
+                pd.Series.first_valid_index)
+            first_valid_height_ml = first_valid_height_ml.to_xarray()
+            first_valid_height_ml = xr.where(
+                first_valid_height_ml == None, emv_nc['mlh_top'].data,
+                first_valid_height_ml)
+            # ML BOTTOM Giagrande refinement
+            panda_above_min = \
+                new_cut_above_min_ML_filter.to_pandas().transpose()
+            last_valid_height_ml = pd.DataFrame(panda_above_min).apply(
+                pd.Series.last_valid_index)
+            last_valid_height_ml = last_valid_height_ml.to_xarray()
+            last_valid_height_ml = xr.where(last_valid_height_ml.data == None,
+                                            emv_nc['mlh_bottom'].data,
+                                            last_valid_height_ml)
+            emv_nc['mlh_top_gia'] = \
+                (["time"], first_valid_height_ml.data, dict(
+                    standard_name=emv_nc['mlh_top'].standard_name + ' refined',
+                    units=emv_nc['mlh_top'].units,
+                    omments=emv_nc['mlh_top'].comments +
+                            ' Refined with Giagrande.'))
+            emv_nc['mlh_bottom_gia'] = \
+                (["time"], last_valid_height_ml.data, dict(
+                    standard_name=emv_nc['mlh_bottom'].standard_name +
+                                  ' refined',
+                    units=emv_nc['mlh_bottom'].units,
+                    comments=emv_nc['mlh_bottom'].comments +
+                             ' Refined with Giagrande.'))
+
+        # ------------------------------------------------------------------- #
+        # QVP: EMV                                                            #
+        # ------------------------------------------------------------------- #
+        pol_vars = [10 ** (0.1 * emv_nc.zrsim), 10 ** (0.1 * emv_nc.zdrsim),
+                    emv_nc.rhvsim, emv_nc.kdpsim]
+        qvp_entropy = entropy_of_vars(pol_vars, dim='azimuth',
+                                      n_lowest=n_lowest)
+        for var in list(emv_nc.data_vars):
+            if 'azimuth' in emv_nc[var].dims:
+                count_values = emv_nc[var].count(dim='azimuth')
+                emv_nc[var] = emv_nc[var].median(dim='azimuth',
+                                                 skipna=True, keep_attrs=True)
+                emv_nc[var] = emv_nc[var].where(count_values >= n_lowest)
+
+        emv_nc['azimuth'] = emv_nc['azimuth'].median(dim='azimuth',
+                                                     skipna=True,
+                                                     keep_attrs=True)
+        emv_nc['azimuth'].data = np.nan
+
+        # ------------------------------------------------------------------- #
+        # PPI: qi,qni -> diameters                                            #
+        # ------------------------------------------------------------------- #
+        for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
+            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+                icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+                icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+                icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+                icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+
+        q_dens, qn_dens = adjust_icon_fields(icon_nc)
+        multi_params = mgdparams(q_dens, qn_dens)
+        moments = calc_moments(mgd=multi_params)
+        multimoments = calc_multimoments(moments)
+        mean_volume_diameter = calc_Dmean(multimoments)
+        for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
+            icon_nc['vol_q' + hm[0]] = (
+                ['time', 'range', 'azimuth', ], q_dens[hm], dict(
+                    standard_name='volume ' + icon_nc[
+                        'q' + hm[0]].standard_name,
+                    units='m3 m-3'))
+            icon_nc['vol_qn' + hm[0]] = (
+                ['time', 'range', 'azimuth', ], qn_dens[hm], dict(
+                    standard_name=icon_nc['qn' + hm[0]].standard_name +
+                                  ' per volume', units='m-3'))
+            # # TODO: check qi threshold for calc diameters
+            # mean_volume_diameter[hm]=np.where(icon_nc['q'+hm[0]]>1e-6,mean_volume_diameter[hm], 0)
+
+            # TODO: check qi threshold for calc diameters
+            icon_nc['D0_' + hm[0]] = (
+                ['time', 'range', 'azimuth', ],
+                mean_volume_diameter[hm] * 1000,
+                dict(standard_name='mean volume diameter of ' +
+                                   icon_nc['qn' + hm[0]].standard_name[21:],
+                     units='mm'))
+
+            # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            #
+            # icon_nc['vol_q' + hm[0]] = icon_nc['vol_q' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['vol_qn' + hm[0]] = icon_nc['vol_qn' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            # icon_nc['vol_qn' + hm[0]] = icon_nc['vol_qn' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['vol_q' + hm[0]] = icon_nc['vol_q' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            #
+            # icon_nc['D0_' + hm[0]] = icon_nc['D0_' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            # icon_nc['D0_' + hm[0]] = icon_nc['D0_' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+
+        # TODO: usefull? it differs somehow
+        icon_nc['D0_rain_new'] = (
+            ['time', 'range', 'azimuth', ],
+            ICON2D0rain(icon_nc['qr'], icon_nc['qnr'], icon_nc['qc']
+                        ).data[:] * 1000,
+            dict(standard_name='mean volume diameter of rain new',
+                 units='mm'))
+        # TODO: usefull? it differs somehow
+
+        vol_qtotice = xr.concat(
+            [icon_nc.vol_qi, icon_nc.vol_qs, icon_nc.vol_qh,
+             icon_nc.vol_qg], dim="ice_hydrometeors")
+        vol_qtotice = vol_qtotice.sum(dim="ice_hydrometeors", skipna=False)
+        icon_nc['vol_qtotice'] = (['time', 'range', 'azimuth', ],
+                                  vol_qtotice.data, dict(
+            standard_name='volume specific total ice water content',
+            comments='vol_qg + vol_qh + vol_qi + vol_qs',
+            units='m3 m-3'))
+        vol_qntotice = xr.concat([icon_nc.vol_qni, icon_nc.vol_qns,
+                                  icon_nc.vol_qnh, icon_nc.vol_qng],
+                                 dim="ice_hydrometeors")
+        vol_qntotice = vol_qntotice.sum(dim="ice_hydrometeors", skipna=False)
+        icon_nc['vol_qntotice'] = (['time', 'range', 'azimuth', ],
+                                   vol_qntotice.data, dict(
+            standard_name='number concentration total ice water content',
+            comments='vol_qng + vol_qnh + vol_qni + vol_qns',
+            units='m-3'))
+        icon_nc['D0_totice'] = (['time', 'range', 'azimuth', ],
+                                mean_volume_diameter['totice'] * 1000, dict(
+            standard_name='mean volume diameter of total ice',
+            units='mm'))
+        for var in list(icon_nc.data_vars):
+            if icon_nc[var].dims == ('time', 'range', 'azimuth'):
+                icon_nc[var] = icon_nc[var].where(mask)
+
+        # ------------------------------------------------------------------- #
+        # QVP: ICON                                                           #
+        # ------------------------------------------------------------------- #
+        for var, da in icon_nc.data_vars.items():
+            if 'azimuth' in icon_nc[var].dims:
+                count_values = icon_nc[var].count(dim='azimuth')
+                icon_nc[var] = icon_nc[var].median(dim='azimuth',
+                                                   skipna=True,
+                                                   keep_attrs=True)
+                icon_nc[var] = icon_nc[var].where(count_values >= n_lowest)
+
+        icon_nc['azimuth'] = icon_nc['azimuth'].median(dim='azimuth',
+                                                       skipna=True,
+                                                       keep_attrs=True)
+        icon_nc['azimuth'] = np.nan
+
+        # ------------------------------------------------------------------- #
+        # QVP: MERGE                                                          #
+        # ------------------------------------------------------------------- #
+        qvp_nc = xr.merge([emv_nc, icon_nc], compat='override')
+        qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
+        qvp_nc['min_entropy'] = qvp_entropy[-1, :]
+        qvp_nc['min_entropy'] = qvp_nc['min_entropy'].assign_attrs(dict(
+            units='1', standard_name='minimum of Entropy',
+            comments='Minimum of Shaonon information Entropy, calculated for '
+                     'each of the four pol. variables (lin zh, lin zdr, rho, '
+                     'K_DP) on azimuth.  Note that K_DP<0 is filtered.'))
+        qvp_nc.attrs['filter_comments'] = filter_comments
+        qvp_nc = qvp_nc.swap_dims({'range': 'height'})
+        qvp_nc = qvp_nc.drop_vars('range')
+        qvp_nc = qvp_nc.drop_vars('azimuth')
+
+        # ------------------------------------------------------------------- #
+        # QVP: SAVE                                                           #
+        # ------------------------------------------------------------------- #
+        emv_nc.close()
+        icon_nc.close()
+        Path(dir_qvp).mkdir(parents=True, exist_ok=True)
+        print('start saving')
+        qvp_nc.to_netcdf(dir_qvp + file_qvp, unlimited_dims='time')
+        print('saved')
+        qvp_nc.close()
+        print(f"... which took "
+              f"{(time_p.time() - current_time) / 60:.2f} min ..."
+              f" ({time_p.strftime('%d/%m %H:%M', time_p.gmtime())})"
+              )
+
+    # ----------------------------------------------------------------------- #
+    if merge:
+        qvp_nc = xr.merge([xr.open_dataset(dir_qvp + files_qvp[0], lock=False),
+                           xr.open_dataset(dir_qvp + files_qvp[1], lock=False),
+                           xr.open_dataset(dir_qvp + files_qvp[2], lock=False),
+                           xr.open_dataset(dir_qvp + files_qvp[3], lock=False),
+                           ])  # , compat='override')
         qvp_nc.attrs['processing_date'] = str(pd.Timestamp.today())[:16]
         qvp_nc.to_netcdf(dir_qvp + file_qvp_4, unlimited_dims='time')
         qvp_nc.close()

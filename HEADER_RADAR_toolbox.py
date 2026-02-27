@@ -14,6 +14,7 @@ import sys
 import matplotlib as mpl
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+import wradlib as wrl  # for special colormaps: ChaseSpectral
 
 # --------------------------------------------------------------------------- #
 # preamble necessary for wrl.georef.reproject: Tell the shell where to find   #
@@ -73,10 +74,55 @@ colors_radar = np.array(
      [1.00, 1.00, 0.00], [0.80, 0.80, 0.00], [1.00, 0.65, 0.00],  # yellows
      [1.00, 0.27, 0.00], [0.80, 0.22, 0.00], [0.55, 0.15, 0.00],  # reds
      [1.00, 0.00, 1.00], [0.58, 0.44, 0.86]])  # pinks
-
 cmap_radar = mpl.colors.ListedColormap(colors_radar)
+
+colors_radar1 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 16))[2:]
+colors_radar2 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 16))[2:]
+colors_radar3 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 16))[2:]
+colors_radar4 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 17))[2:-1]
+
+colors_radar1 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 15))[1:]
+colors_radar2 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 15))[1:]
+colors_radar3 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 15))[1:]
+colors_radar4 = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 15))[:-1]
+
+cmap_radar1 = mpl.colors.ListedColormap(colors_radar1)
+cmap_radar2 = mpl.colors.ListedColormap(colors_radar2)
+cmap_radar3 = mpl.colors.ListedColormap(colors_radar3)
+cmap_radar4 = mpl.colors.ListedColormap(colors_radar4)
+colors_radar_ice = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 16))[2:]
+colors_radar_ice = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[3:-2] # good
+colors_radar_ice = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 18))[1:-2] #
+colors_radar_ice = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[1:-3] #
+colors_radar_ice = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[2:-2] #
+colors_radar_ice_nt = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 9))#[3:-2]
+
+# cmap_radar_white = mpl.colors.ListedColormap(
+#     np.append(np.array([[1,1,1],]),colors_radar,axis=0))
 cmap_radar_white = mpl.colors.ListedColormap(
-    np.append(np.array([[1,1,1],]),colors_radar,axis=0))
+    np.append(np.array([[1,1,1,1],]),colors_radar_ice,axis=0))
+
+# colors_radar_icedm = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[1:-4] # good
+colors_radar_icedm = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[0:-5] # good
+cmap_radar_icedm_white = mpl.colors.ListedColormap(
+    np.append(np.array([[1,1,1,1],]),colors_radar_icedm,axis=0))
+
+colors_radar_iwc = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[3:-2] # good
+colors_radar_iwc = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[2:-3] # good
+colors_radar_iwc = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[1:-4] # good
+# colors_radar_iwc = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 19))[2:-3] # good
+cmap_radar_iwc_white = mpl.colors.ListedColormap(
+    np.append(np.array([[1,1,1,1],]),colors_radar_iwc,axis=0))
+
+# colors_radar_icent = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[2:-3] # good
+# colors_radar_icent = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 15))[2:-2] # good
+# colors_radar_icent = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 18))[2:-1] # okay
+# colors_radar_icent = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 19))[2:-1] # okay
+colors_radar_icent = mpl.colormaps._cmaps['ChaseSpectral_r'](np.linspace(0, 1, 15))[2:-1] # okay
+cmap_radar_icent = mpl.colors.ListedColormap(
+    colors_radar_icent)
+cmap_radar_icent_white = mpl.colors.ListedColormap(
+    np.append(np.array([[1,1,1,1],]),colors_radar_icent,axis=0))
 
 # ------------------------------------ #
 # pol. Moms                            #
@@ -150,6 +196,8 @@ norm_d0_ice = mpl.colors.BoundaryNorm(levels_d0_ice, len(levels_d0_ice) - 1)
 # levels_iwc = np.arange(0, 0.7, .05)
 # levels_iwc = np.linspace(0, 1.2, 13)
 levels_iwc = np.linspace(0, 1.3, 14)
+levels_iwc = np.array([0, 0.000001, 0.001, 0.01, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,])
+levels_iwc = np.array([0, 0.01, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1])
 norm_iwc = mpl.colors.BoundaryNorm(levels_iwc, len(levels_iwc) - 1)
 
 # # nt_ice
@@ -161,11 +209,16 @@ norm_nt_iwc = mpl.colors.BoundaryNorm(levels_nt_iwc, len(levels_nt_iwc) - 1)
 # levels_nt_iwc = np.arange(-2, 2.25, .25)
 # levels_nt_iwc = np.linspace(-2, 4, 13)
 # levels_nt_iwc = np.linspace(-2.5, 3.5, 13)
-# levels_nt_iwc = np.linspace(-3, 3.5, 14)
+levels_nt_iwc = np.linspace(-3, 3.5, 14)
+levels_nt_iwc = np.linspace(-3, 2.5, 12)
+# levels_nt_iwc = np.linspace(-3, 2., 11)
 # levels_nt_iwc = np.linspace(-3, 3, 13)
 # levels_nt_iwc = np.linspace(-4.5, 2, 14)
-levels_nt_iwc = np.linspace(-9, 3, 13)
+# levels_nt_iwc = np.linspace(-9, 3, 13)
 norm_nt_iwc = mpl.colors.BoundaryNorm(levels_nt_iwc, len(levels_nt_iwc) - 1)
+
+levels_nt2_iwc = np.linspace(-5, 3, 9)
+norm_nt2_iwc = mpl.colors.BoundaryNorm(levels_nt2_iwc, len(levels_nt2_iwc) - 1)
 
 # --------------------------------------------------------------------------- #
 # Colors DWD JM                                                               #
@@ -224,27 +277,27 @@ norm_nt_iwc = mpl.colors.BoundaryNorm(levels_nt_iwc, len(levels_nt_iwc) - 1)
 #      ])
 # cmap_radar = mpl.colors.ListedColormap(colors_radar)
 #
-colors_radar2 = np.array(
-    [[1.00, 1.00, 1.00, 1],
-     [0.6, 1.0, 1.0, 1.],
-     [0.2, 1.0, 1.0, 1.],
-     [0.0, 0.7921569, 0.7921569, 1.],
-     [0.0, 0.6, 0.20392157, 1.],
-     [0.3019608, 0.7490196, 0.101960786, 1.],
-     [0.6, 0.8, 0.0, 1.],
-     [0.8, 0.9019608, 0.0, 1.],
-     [1.0, 1.0, 0.0, 1.],
-     [1.0, 0.76862746, 0.0, 1.],
-     [1.0, 0.5372549, 0.0, 1.],
-     [1.0, 0.0, 0.0, 1.],
-     [0.7058824, 0.0, 0.0, 1.],
-     [0.28235295, 0.28235295, 1.0, 1.],
-     [0.0, 0.0, 0.7921569, 1.],
-     [0.6, 0.0, 0.6, 1.],
-     [1.0, 0.2, 1.0, 1.],
-     [1.0, 0.8, 1.0, 1.],
-     ])
-cmap_radar2 = mpl.colors.ListedColormap(colors_radar2)
+# colors_radar2 = np.array(
+#     [[1.00, 1.00, 1.00, 1],
+#      [0.6, 1.0, 1.0, 1.],
+#      [0.2, 1.0, 1.0, 1.],
+#      [0.0, 0.7921569, 0.7921569, 1.],
+#      [0.0, 0.6, 0.20392157, 1.],
+#      [0.3019608, 0.7490196, 0.101960786, 1.],
+#      [0.6, 0.8, 0.0, 1.],
+#      [0.8, 0.9019608, 0.0, 1.],
+#      [1.0, 1.0, 0.0, 1.],
+#      [1.0, 0.76862746, 0.0, 1.],
+#      [1.0, 0.5372549, 0.0, 1.],
+#      [1.0, 0.0, 0.0, 1.],
+#      [0.7058824, 0.0, 0.0, 1.],
+#      [0.28235295, 0.28235295, 1.0, 1.],
+#      [0.0, 0.0, 0.7921569, 1.],
+#      [0.6, 0.0, 0.6, 1.],
+#      [1.0, 0.2, 1.0, 1.],
+#      [1.0, 0.8, 1.0, 1.],
+#      ])
+# cmap_radar2 = mpl.colors.ListedColormap(colors_radar2)
 
 # # Zh
 # levels_zh = np.append(np.arange(1., 56., 4.5), np.array([60., 65., 75., 85.]))

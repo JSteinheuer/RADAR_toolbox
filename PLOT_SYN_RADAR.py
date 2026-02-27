@@ -32,6 +32,7 @@ import xarray as xr
 import dask.array as da
 xr.set_options(keep_attrs=True)
 
+colors_radar = mpl.colormaps._cmaps['ChaseSpectral'](np.linspace(0, 1, 16))[2:]
 
 # --------------------------------------------------------------------------- #
 
@@ -1015,11 +1016,13 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
 
     ax.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',
              linewidth=1, label='$Q_{0.2}$')
-    ax.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
+    ax.plot(quant_prof[1, ], y_mid, color='black',ls='solid',
+             linewidth=2.2, label='')
+    ax.plot(quant_prof[1, ], y_mid, color=color,ls='solid',  # TODO: mean and median swapped
              linewidth=2, label='$Q_{0.5}$')
     ax.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',
              linewidth=1, label='$Q_{0.8}$')
-    ax.plot(mean_prof, y_mid, color=color, ls='solid',
+    ax.plot(mean_prof, y_mid, color=color, ls='dashdot', # TODO: mean and median swapped
              linewidth=2, label='$\mu$')
 
     if vmax and np.max(h2d) > vmax:

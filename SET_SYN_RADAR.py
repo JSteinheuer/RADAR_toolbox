@@ -36,6 +36,7 @@ def rad_dict(xband_res=None):
     """
 
     radar_dict = {
+        'ASB': '010103',
         'BOO': '010132',
         'DRS': '010488',
         'EIS': '010780',
@@ -1614,6 +1615,8 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
         for i in range(4):
             time_end = time_start + pd.Timedelta('6h')
             print('________________________________________')
+            print(radar_loc)
+
             print(day + '/' + da_run + '/' + icon_run + '/ICONdata/' +
                   str(spin_up_mm) + '_spinup/')
             create_vol_nc(time_start=time_start.strftime('%Y%m%d%H'),
@@ -1630,6 +1633,7 @@ def create_8_vol_nc_of_day(day='20170725', da_run='ASS_2211',
             print('________________________________________')
             print(day + '/' + da_run + '/' + icon_emvorado_run + '/' +
                   str(spin_up_mm) + '_spinup/')
+            print(radar_loc)
             create_vol_nc(time_start=time_start.strftime('%Y%m%d%H'),
                           time_end=time_end.strftime('%Y%m%d%H'),
                           spin_up_mm=spin_up_mm, da_run=da_run,

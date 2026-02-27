@@ -160,7 +160,7 @@ def get_radar_locations():
              'lon': 11.176091,
              'lat': 52.160096,
              'alt': 185}
-    radars['UMM'] = radar
+    radars['UMD'] = radar
 
     return radars
 
