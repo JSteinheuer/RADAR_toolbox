@@ -731,7 +731,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             paths_in = glob.glob('/'.join([header.dir_data_qvp + '*',
                                            da_icon_emvorado_run + '/' +
                                            str(spin_up_mm) +
-                                           'min_spinup/QVP'+'qnx'[qnx]+'_*_Syn_*', ]))
+                                           'min_spinup/QVP'+['','qnx'][qnx]+'_*_Syn_*', ]))
 
             if paths_in == []:
                 print('nothing found in ' +
@@ -780,7 +780,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             if da_icon_emvorado_run:  # Synthetic
                 date = file_in.split('_')[4][:8]
                 if (da_icon_emvorado_run + '/' + str(spin_up_mm) +
-                    'min_spinup/QVP'+'qnx'[qnx]+'_' in path_in) \
+                    'min_spinup/QVP'+['','qnx'][qnx]+'_' in path_in) \
                         and (file_in.split('_')[1] in
                              [str(e) for e in elevation_deg]) \
                         and (file_in.split('_')[3] in locations) \
