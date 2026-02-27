@@ -56,8 +56,8 @@ elevation_degs = [8,12,17]
 data_max = None
 testing = False
 # testing: --------------------------- #
-locations = ['ESS']  # TODO: remove
-dates = ['20210714']  # TODO: remove
+# locations = ['ESS']  # TODO: remove
+# dates = ['20210714']  # TODO: remove
 elevation_degs = [12,]
 testing = True
 # ------------------------------------ #
@@ -107,11 +107,11 @@ colors.append('cyan')
 # ------------------------------------ #
 # # SYN data row 2                       #
 # # ------------------------------------ #
-# da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
-# spin_up_mms.append('120')
-# short_names.append('I1E2')
-# # colors.append('green')
+da_runs.append('ASS_2411')
+icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
+spin_up_mms.append('120')
+short_names.append('I1E2')
+# colors.append('green')
 # # ------------------------------------ #
 # # SYN data row 3                       #
 # # ------------------------------------ #
