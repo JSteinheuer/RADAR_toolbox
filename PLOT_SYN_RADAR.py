@@ -723,7 +723,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             paths_in = glob.glob('/'.join([header.dir_obs_qvp + '*', '*',
                                            '*', '*', '*', '*', '*', '*', ]))
         else:  # mod
-            if da_icon_emvorado_run[-3:] == 'qnx':
+            if da_icon_emvorado_run[:-3] == 'qnx':
                 da_icon_emvorado_run = da_icon_emvorado_run[-3:]
                 qnx = True
             else:
