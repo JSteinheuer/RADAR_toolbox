@@ -724,6 +724,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
                                            '*', '*', '*', '*', '*', '*', ]))
         else:  # mod
             if da_icon_emvorado_run[-3:] == 'qnx':
+                da_icon_emvorado_run = da_icon_emvorado_run[-3:]
                 qnx = True
             else:
                 qnx = False
@@ -738,7 +739,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
                       '/'.join([header.dir_data_qvp + '*',
                                 da_icon_emvorado_run + '/' +
                                 str(spin_up_mm) +
-                                'min_spinup/QVP_*_Syn_*', ]))
+                                'min_spinup/QVP'+['','qnx'][qnx]+'_*_Syn_*', ]))
                 return
 
     if not isinstance(paths_in, list):
