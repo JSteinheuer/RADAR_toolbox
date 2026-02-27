@@ -723,10 +723,17 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             paths_in = glob.glob('/'.join([header.dir_obs_qvp + '*', '*',
                                            '*', '*', '*', '*', '*', '*', ]))
         else:  # mod
-            paths_in = glob.glob('/'.join([header.dir_data_qvp + '*',
-                                           da_icon_emvorado_run + '/' +
-                                           str(spin_up_mm) +
-                                           'min_spinup/QVP_*_Syn_*', ]))
+            if da_icon_emvorado_run[-3:] == 'qnx':
+                paths_in = glob.glob('/'.join([header.dir_data_qvp + '*',
+                                               da_icon_emvorado_run + '/' +
+                                               str(spin_up_mm) +
+                                               'min_spinup/QVPqnx_*_Syn_*', ]))
+            else:
+                paths_in = glob.glob('/'.join([header.dir_data_qvp + '*',
+                                               da_icon_emvorado_run + '/' +
+                                               str(spin_up_mm) +
+                                               'min_spinup/QVP_*_Syn_*', ]))
+
             if paths_in == []:
                 print('nothing found in ' +
                       '/'.join([header.dir_data_qvp + '*',
