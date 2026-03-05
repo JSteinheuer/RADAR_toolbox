@@ -7,6 +7,12 @@
 #                                                                             #
 # [...] Description here [...]                                                #
 # --------------------------------------------------------------------------- #
+import sys
+for entry in sys.path.copy():
+    if '/RADAR_toolbox/' in entry:
+        entry_folders=entry.split('/')
+        index_mother=entry_folders.index('RADAR_toolbox')+1
+        sys.path.extend(['/'.join(entry_folders[:index_mother])])
 
 import HEADER_RADAR_toolbox as header
 import xarray as xr

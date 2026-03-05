@@ -8,6 +8,13 @@
 # Run the QVP functions in PLOT_SYN_RADAR.py for generating specific QVP plot.#
 # --------------------------------------------------------------------------- #
 
+import sys
+for entry in sys.path.copy():
+    if '/RADAR_toolbox/' in entry:
+        entry_folders=entry.split('/')
+        index_mother=entry_folders.index('RADAR_toolbox')+1
+        sys.path.extend(['/'.join(entry_folders[:index_mother])])
+
 import os
 import xarray as xr
 import HEADER_RADAR_toolbox as header
@@ -58,8 +65,8 @@ testing = False
 # testing: --------------------------- #
 # locations = ['ESS']  # TODO: remove
 # dates = ['20210714']  # TODO: remove
-elevation_degs = [12,]
-testing = True
+# elevation_degs = [12,]
+# testing = True
 # ------------------------------------ #
 
 # CFADs ? ---------------------------- #
@@ -107,11 +114,11 @@ colors.append('cyan')
 # ------------------------------------ #
 # # SYN data row 2                       #
 # # ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
-spin_up_mms.append('120')
-short_names.append('I1E2')
-colors.append('green')
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
+# spin_up_mms.append('120')
+# short_names.append('I1E2')
+# colors.append('green')
 # # ------------------------------------ #
 # # SYN data row 3                       #
 # # ------------------------------------ #
@@ -131,11 +138,11 @@ colors.append('orange')
 # ------------------------------------ #
 # SYN data row 5                       #
 # ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
-spin_up_mms.append('120')
-short_names.append('I2E4')
-colors.append('purple')
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
+# spin_up_mms.append('120')
+# short_names.append('I2E4')
+# colors.append('purple')
 # ------------------------------------ #
 # ------------------------------------ #
 # SYN data row 5                       #
@@ -143,9 +150,12 @@ colors.append('purple')
 da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
 spin_up_mms.append('120')
-short_names.append('I2E4qnx')
+short_names.append('I2E4')
 colors.append('red')
 # ------------------------------------ #
+colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 5))
+colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
+colors = colors[np.array([0,-2,-1])]
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -163,8 +173,9 @@ current_row = -1
 current_col = -1
 scale_font = 1.
 scale_numbers = 1.
-fig = plt.figure(figsize=(n_cols * 2.7, n_rows * 2.7), layout='constrained')
-gs = fig.add_gridspec(n_rows, n_cols, hspace=0.002,wspace=0.002)
+factor=.75
+fig = plt.figure(figsize=(factor*n_cols * 2.7, factor*n_rows * 2.7), layout='constrained')
+gs = fig.add_gridspec(n_rows, n_cols, hspace=0.0, wspace=0.05)
 axs = gs.subplots(sharex=True, sharey=True)
 
 # --------------------------------------------------------------------------- #
@@ -252,7 +263,7 @@ plot_qvp_of_polarimetric_variable(
     norm=radar_colors.norm_dm,
     levels=radar_colors.levels_dm,
     mom_cs=qvp_zdr_obs,
-    levels_cs=np.arange(-50, 60, 1),
+    levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
     cbar_title='$D_{m,\,totice}\,[mm]$',
@@ -274,7 +285,7 @@ plot_qvp_of_polarimetric_variable(
     norm=radar_colors.norm_cont,
     levels=radar_colors.levels_cont,
     mom_cs=qvp_zdr_obs,
-    levels_cs=np.arange(-5, 6, 1),
+    levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
     cbar_title='$IWC\,[g\,m^{-3}]$',
@@ -297,7 +308,7 @@ plot_qvp_of_polarimetric_variable(
     norm=radar_colors.norm_nt,
     levels=radar_colors.levels_nt,
     mom_cs=qvp_zdr_obs,
-    levels_cs=np.arange(-5, 6, 1),
+    levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
     cbar_title='$N_{t,\,totice}\,[log_{10}(L^{-1})]$',
@@ -357,11 +368,6 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
     if filter_entr:
         syn_nc = syn_nc.where(syn_nc['min_entropy'] > filter_entr_at)
 
-    #TODO
-    # filter for low ice:
-    # syn_nc = syn_nc.where(syn_nc['qg'] + syn_nc['qh'] + syn_nc['qi'] + syn_nc['qs'] > 1E-6)
-    #TODO
-
     model_name_file = '-'.join([icon_emvorado_run.split('/')[0][9:],
                                 icon_emvorado_run.split('/')[1][5:]])
     mod_names = '_'.join([mod_names, model_name_file])
@@ -414,7 +420,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         norm=radar_colors.norm_dm,
         levels=radar_colors.levels_dm,
         mom_cs=qvp_zdr_syn,
-        levels_cs=np.arange(-5, 6, 1),
+        levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
         cbar_title='$D_{m,\,totice}\,[mm]$',
@@ -436,7 +442,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         norm=radar_colors.norm_cont,
         levels=radar_colors.levels_cont,
         mom_cs=qvp_zdr_syn,
-        levels_cs=np.arange(-5, 6, 1),
+        levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
         cbar_title='$IWC\,[g\,m^{-3}]$',
@@ -459,7 +465,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         norm=radar_colors.norm_nt,
         levels=radar_colors.levels_nt,
         mom_cs=qvp_zdr_syn,
-        levels_cs=np.arange(-5, 6, 1),
+        levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
         cbar_title='$N_{t,\,totice}\,[log_{10}(L^{-1})]$',
@@ -484,11 +490,11 @@ hh_25 = np.linspace(np.round(axs[-1, -1].get_xticks()[0]),
                     np.round(axs[-1, -1].get_xticks()[0]) + 1, 25,
                     endpoint=True)
 str_hh_at = [str(z).zfill(2) for z in hh_at]
-axs[-1,-1].set_xticks(hh_25[hh_at],str_hh_at)
+axs[-1,-1].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
 axs[-1,-1].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-axs[-1,-2].set_xticks(hh_25[hh_at],str_hh_at)
+axs[-1,-2].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
 axs[-1,-2].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-axs[-1,-3].set_xticks(hh_25[hh_at],str_hh_at)
+axs[-1,-3].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
 axs[-1,-3].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
 if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
@@ -525,10 +531,14 @@ plt.close()
 # ------------------------------------ #
 mod_names = ''
 letters_i=0
-n_rows = len(da_runs) + 1 + 1  # add one once more for mean of all
+n_rows = len(da_runs) + 1 + 1   # add one once more for mean of all
+
+y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
+tot_IWC = np.zeros([len(da_runs) + 1, len(y_mid)])
+
 n_cols = 3
-# fig = plt.figure(figsize=(n_cols * 3, n_rows * 3))
-fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.))
+factor=0.7
+fig = plt.figure(figsize=(factor*n_cols * 2.8, factor*n_rows * 2.4),)
 gs = fig.add_gridspec(n_rows, n_cols, hspace=0.03,wspace=0.03)
 axs = gs.subplots()
 # ------------------------------------ #
@@ -596,24 +606,24 @@ letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
 y_step=y_bins[1]-y_bins[0]
 y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
-quant_prof = np.zeros([3, len(y_mid)])
-quant_prof[:] = np.nan
+quant_prof_obs1 = np.zeros([3, len(y_mid)])
+quant_prof_obs1[:] = np.nan
 mean_prof = np.repeat(np.nan, len(y_mid))
 for t_i in range(len(y_mid)):
     x_layer=x[(y>y_mid[t_i]-y_step/2) * (y<=y_mid[t_i]+y_step/2)]
     if x_layer.size>3:
         wq = DescrStatsW(data=x_layer)
-        quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+        quant_prof_obs1[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-ax_mean1.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.2,
-         linewidth=1, label='_nolegend_')
-ax_mean1.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-         linewidth=2,label='obs')
-ax_mean1.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.2,
-         linewidth=1, label='_nolegend_')
-# ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.2,
+# ax_mean1.plot(quant_prof_obs1[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+ax_mean1.plot(quant_prof_obs1[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4,label='obs')
+# ax_mean1.plot(quant_prof_obs1[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+# ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
 #          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
 current_col = current_col + 1
@@ -651,24 +661,26 @@ letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
 y_step=y_bins[1]-y_bins[0]
 y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
-quant_prof = np.zeros([3, len(y_mid)])
-quant_prof[:] = np.nan
+quant_prof_obs2 = np.zeros([3, len(y_mid)])
+quant_prof_obs2[:] = np.nan
 mean_prof = np.repeat(np.nan, len(y_mid))
 for t_i in range(len(y_mid)):
     x_layer=x[(y>y_mid[t_i]-y_step/2) * (y<=y_mid[t_i]+y_step/2)]
     if x_layer.size>3:
         wq = DescrStatsW(data=x_layer)
-        quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+        quant_prof_obs2[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                          return_pandas=False)
+        print(x_layer.size)
+        tot_IWC[current_row, t_i] = sum(x_layer)
         mean_prof[t_i] = wq.mean
 
-ax_mean2.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.2,
-         linewidth=1, label='_nolegend_')
-ax_mean2.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-         linewidth=2, label='obs')
-ax_mean2.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.2,
-         linewidth=1, label='_nolegend_')
-# ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.2,
+# ax_mean2.plot(quant_prof_obs2[0, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+ax_mean2.plot(quant_prof_obs2[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='obs')
+# ax_mean2.plot(quant_prof_obs2[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+# ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
 #          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
 current_col = current_col + 1
@@ -702,29 +714,30 @@ x ,y = plot_CFAD_or_CFTD_from_QVP_with_list(
     data_label=True,
     panel=letters[letters_i] + ') obs',
 )
+ax.set_xticks([-1,0,1], [-1,0,1])
 # ------------------------------------ #
 letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
 y_step=y_bins[1]-y_bins[0]
 y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
-quant_prof = np.zeros([3, len(y_mid)])
-quant_prof[:] = np.nan
+quant_prof_obs3 = np.zeros([3, len(y_mid)])
+quant_prof_obs3[:] = np.nan
 mean_prof = np.repeat(np.nan, len(y_mid))
 for t_i in range(len(y_mid)):
     x_layer=x[(y>y_mid[t_i]-y_step/2) * (y<=y_mid[t_i]+y_step/2)]
     if x_layer.size>3:
         wq = DescrStatsW(data=x_layer)
-        quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+        quant_prof_obs3[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-ax_mean3.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.2,
-         linewidth=1, label='_nolegend_')
-ax_mean3.plot(quant_prof[1, ], y_mid, color=color, ls='dashdot',
-         linewidth=2,label='obs')
-ax_mean3.plot(quant_prof[2, ], y_mid, color=color, ls='dashed', alpha=0.2,
-         linewidth=1, label='_nolegend_')
-# ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+# ax_mean3.plot(quant_prof_obs3[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+ax_mean3.plot(quant_prof_obs3[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='obs')
+# ax_mean3.plot(quant_prof[2, ], y_mid, color=color, ls='dashed', alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+# ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
 #          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
 # CFTDs CBAND SYN row i                                                       #
@@ -789,13 +802,13 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
                                              return_pandas=False)
             mean_prof[t_i] = wq.mean
 
-    ax_mean1.plot(quant_prof[0,], y_mid, color=color, ls='dashed', alpha=0.2,
+    ax_mean1.plot(quant_prof[0,], y_mid, color=color, ls='dashed', alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    ax_mean1.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-                  linewidth=2, label=short_name)
-    ax_mean1.plot(quant_prof[2,], y_mid, color=color, ls='dashed', alpha=0.2,
+    ax_mean1.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+                  linewidth=2+(n_rows-current_row-3)/4, label=short_name)
+    ax_mean1.plot(quant_prof[2,], y_mid, color=color, ls='dashed', alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    # ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+    # ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
     #               linewidth=2, label='_nolegend_')
     # ----------------------------------------------------------------------- #
     current_col = current_col + 1
@@ -842,17 +855,20 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
             (y > y_mid[t_i] - y_step / 2) * (y <= y_mid[t_i] + y_step / 2)]
         if x_layer.size > 3:
             wq = DescrStatsW(data=x_layer)
+            print(x_layer.size)
+            print(sum(x_layer))
+            tot_IWC[current_row, t_i] = sum(x_layer)
             quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                              return_pandas=False)
             mean_prof[t_i] = wq.mean
 
-    ax_mean2.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.2,
+    ax_mean2.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    ax_mean2.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-                  linewidth=2, label=short_name)
-    ax_mean2.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.2,
+    ax_mean2.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+                  linewidth=2+(n_rows-current_row-3)/4, label=short_name)
+    ax_mean2.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    # ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+    # ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
     #               linewidth=2,label='_nolegend_')
     # ----------------------------------------------------------------------- #
     current_col = current_col + 1
@@ -886,6 +902,7 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
         data_max=data_max,
         panel= letters[letters_i] +') ' + short_name,
     )
+    ax.set_xticks([-1, 0, 1], [-1, 0, 1])
     letters_i=letters_i+1
     # ------------------------------------ #
     y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
@@ -903,19 +920,42 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
                                              return_pandas=False)
             mean_prof[t_i] = wq.mean
 
-    ax_mean3.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.2,
+    ax_mean3.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    ax_mean3.plot(quant_prof[1,], y_mid, color=color, ls='dashdot',
-                  linewidth=2, label=short_name)
-    ax_mean3.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.2,
+    ax_mean3.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+                  linewidth=2+(n_rows-current_row-3)/4, label=short_name)
+    ax_mean3.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
                   linewidth=1, label='_nolegend_')
-    # ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.2,
+    # ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
     #               linewidth=2,label='_nolegend_')
 
 
 # --------------------------------------------------------------------------- #
 # CFTDs SAVE                                                                  #
 # --------------------------------------------------------------------------- #
+
+current_row=1
+
+ax_mean1.plot(quant_prof_obs1[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+ax_mean1.plot(quant_prof_obs1[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
+ax_mean1.plot(quant_prof_obs1[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+
+ax_mean2.plot(quant_prof_obs2[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+ax_mean2.plot(quant_prof_obs2[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
+ax_mean2.plot(quant_prof_obs2[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+
+ax_mean3.plot(quant_prof_obs3[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+ax_mean3.plot(quant_prof_obs3[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='', alpha=.5)
+ax_mean3.plot(quant_prof_obs3[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
 
 ax_mean1.invert_yaxis()
 p = plt.text(.04, .9, letters[letters_i] +')', transform=ax_mean1.transAxes)
@@ -1008,3 +1048,25 @@ plt.close()
 # CFTDs END                                                                   #
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
+
+fig = plt.figure(figsize=(4,4),)
+gs = fig.add_gridspec(1, 1)
+axs = gs.subplots()
+plt.plot(np.transpose(tot_IWC),
+         np.transpose(np.repeat(y_mid[None, ...],tot_IWC.shape[0],axis=0)),
+         label=['obs', 'I1E1', 'I2E3', 'I2E4'],
+         )
+axs.set_ylabel('temperature [°C]')
+axs.invert_yaxis()
+axs.set_xlabel('total IWC [g $m^{-3}$]')
+axs.legend()
+plt.savefig(
+    folder_plot +
+    '/total_IWC_' + str(n_rows) + 'x3iceretrievals_QVP_' +
+    str(elevation_degs) + '°_' + dates_str + locations_str +
+    ['', 'entr_'][filter_entr] +
+    ['', str(filter_entr_at) + '_'][filter_entr] +
+    ['', 'mom_'][filter_moms] + mod_names[1:] +
+    ['', '_2e14'][testing] +
+    '.png', format='png', transparent=True, dpi=300, bbox_inches='tight')
+plt.close()

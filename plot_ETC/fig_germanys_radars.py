@@ -214,13 +214,14 @@ bounds = np.concatenate(
     (np.arange(0, 50, 10),
      np.arange(50, 225, 25),))
 norm = mpl.colors.BoundaryNorm(bounds, len(bounds), extend='max')
-fig = plt.figure(figsize=(7, 6))
+# fig = plt.figure(figsize=(7, 6))
+fig = plt.figure(figsize=(5, 4))
 ax = fig.add_subplot(111, projection=map_proj)
-plot = ds_sum.RW.plot(ax=ax,
-                      cmap=cmap, norm=norm)
+plot = ds_sum.RW.plot(ax=ax, cmap=cmap, norm=norm,
+                      add_colorbar=True, cbar_kwargs=dict(fraction=0.05))
 plot.colorbar.set_ticks(bounds)
 plot.colorbar.set_label('rain [mm]')
-plt.title('accumulated rain 13-14 July 2021')
+# plt.title('accumulated rain 13-14 July 2021')
 
 # plot borders etc
 #ax = plt.gca()
@@ -281,5 +282,5 @@ plt.savefig(
     format='pdf',transparent=True)
 plt.savefig(
     header.folder_plot + 'RADOLAN/RW_rain_210713-210714_Germany.png',
-    format='png',transparent=True)
+    format='png',dpi=300, transparent=True)
 # plt.close()

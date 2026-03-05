@@ -19,10 +19,10 @@ import wradlib as wrl  # for special colormaps: ChaseSpectral
 # --------------------------------------------------------------------------- #
 # preamble necessary for wrl.georef.reproject: Tell the shell where to find   #
 # the projection maps.                                                        #
-path = sys.executable.split("/")[:-2]
-path.extend(["share", "proj"])
-path = "/".join(path)
-os.environ["PROJ_LIB"] = path
+path_env = sys.executable.split("/")[:-2]
+path_env.extend(["share", "proj"])
+path_env = "/".join(path_env)
+os.environ["PROJ_LIB"] = path_env
 os.environ["PROJ_NETWORK"] = 'ON'
 # preamble ends.                                                              #
 # --------------------------------------------------------------------------- #

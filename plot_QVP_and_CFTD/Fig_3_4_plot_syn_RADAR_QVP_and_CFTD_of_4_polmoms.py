@@ -8,6 +8,13 @@
 # Run the QVP functions in PLOT_SYN_RADAR.py for generating specific QVP plot.#
 # --------------------------------------------------------------------------- #
 
+import sys
+for entry in sys.path.copy():
+    if '/RADAR_toolbox/' in entry:
+        entry_folders=entry.split('/')
+        index_mother=entry_folders.index('RADAR_toolbox')+1
+        sys.path.extend(['/'.join(entry_folders[:index_mother])])
+
 import os
 import xarray as xr
 import HEADER_RADAR_toolbox as header
@@ -130,7 +137,8 @@ short_names.append('I2E3')
 # SYN data row 5                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
+# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
+icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
 spin_up_mms.append('120')
 short_names.append('I2E4')
 # colors.append('red')
@@ -140,13 +148,13 @@ colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
 # ------------------------------------ #
 # SYN data row 6                       #
 # ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
-spin_up_mms.append('120')
-short_names.append('I2E42')
-# colors.append('magenta')
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
+# spin_up_mms.append('120')
+# short_names.append('I2E42')
+# # colors.append('magenta')
 # ------------------------------------ #
-colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 6))
+# colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 6))
 # colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
 
 
@@ -169,8 +177,10 @@ for location in [location]:
     current_col = -1
     scale_font = 1.
     scale_numbers = 1.
-    fig = plt.figure(figsize=(n_cols * 2.7, n_rows * 2.7), layout='constrained')
-    gs = fig.add_gridspec(n_rows, n_cols, hspace=0.002,wspace=0.002)
+    factor=.8
+    fig = plt.figure(figsize=(factor*n_cols * 2.7, factor*n_rows * 2.7), layout='constrained')
+    gs = fig.add_gridspec(n_rows, n_cols, hspace=0.0,wspace=0.06)
+    # gs = fig.add_gridspec(n_rows, n_cols)
     axs = gs.subplots(sharex=True, sharey=True)
     # ------------------------------------ #
 
@@ -492,13 +502,13 @@ for location in [location]:
     hh_25=np.linspace(np.round(axs[-1,-1].get_xticks()[0]),
                        np.round(axs[-1,-1].get_xticks()[0])+1,25,endpoint=True)
     str_hh_at=[str(z).zfill(2) for z in hh_at]
-    axs[-1,-1].set_xticks(hh_25[hh_at],str_hh_at)
+    axs[-1,-1].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
     axs[-1,-1].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-    axs[-1,-2].set_xticks(hh_25[hh_at],str_hh_at)
+    axs[-1,-2].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
     axs[-1,-2].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-    axs[-1,-3].set_xticks(hh_25[hh_at],str_hh_at)
+    axs[-1,-3].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
     axs[-1,-3].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-    axs[-1,-4].set_xticks(hh_25[hh_at],str_hh_at)
+    axs[-1,-4].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
     axs[-1,-4].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
     if not os.path.exists(folder_plot):
         os.makedirs(folder_plot)
@@ -537,7 +547,9 @@ mod_names = ''
 letters_i=0
 n_rows = len(da_runs) + 1 + 1  # add one once more for mean of all
 n_cols = 4
-fig = plt.figure(figsize=(n_cols * 2.8, n_rows * 2.), layout='constrained')
+factor=0.75
+# fig = plt.figure(figsize=(factor*n_cols * 2.8, factor*n_rows * 2.), layout='constrained')
+fig = plt.figure(figsize=(factor*n_cols * 2.8, factor*n_rows * 2.4), layout='constrained')
 gs = fig.add_gridspec(n_rows, n_cols, hspace=0.03,wspace=0.03)
 axs = gs.subplots()
 # ------------------------------------ #
@@ -605,23 +617,22 @@ letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
 y_step=y_bins[1]-y_bins[0]
 y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
-quant_prof = np.zeros([3, len(y_mid)])
+quant_prof_obs1 = np.zeros([3, len(y_mid)])
 mean_prof = np.zeros(len(y_mid))
 for t_i in range(len(y_mid)):
     x_layer=x[(y>y_mid[t_i]-y_step/2) * (y<=y_mid[t_i]+y_step/2)]
     wq = DescrStatsW(data=x_layer)
-    quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+    quant_prof_obs1[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean1.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
-         linewidth=1, label='_nolegend_')
-
+# ax_mean1.plot(quant_prof_obs1[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
+#          linewidth=1, label='_nolegend_')
 print(2+(n_rows-current_row-3)/4)
-ax_mean1.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+ax_mean1.plot(quant_prof_obs1[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4,label='obs')
-ax_mean1.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
-         linewidth=1, label='_nolegend_')
+# ax_mean1.plot(quant_prof_obs1[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
 # ax_mean1.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
 #          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
@@ -660,21 +671,21 @@ letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
 y_step=y_bins[1]-y_bins[0]
 y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
-quant_prof = np.zeros([3, len(y_mid)])
+quant_prof_obs2 = np.zeros([3, len(y_mid)])
 mean_prof = np.zeros(len(y_mid))
 for t_i in range(len(y_mid)):
     x_layer=x[(y>y_mid[t_i]-y_step/2) * (y<=y_mid[t_i]+y_step/2)]
     wq = DescrStatsW(data=x_layer)
-    quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+    quant_prof_obs2[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean2.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.8,
-         linewidth=1, label='_nolegend_')
-ax_mean2.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+# ax_mean2.plot(quant_prof_obs2[0, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+ax_mean2.plot(quant_prof_obs2[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4, label='obs')
-ax_mean2.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
-         linewidth=1, label='_nolegend_')
+# ax_mean2.plot(quant_prof_obs2[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
 # ax_mean2.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
 #          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
@@ -714,21 +725,21 @@ letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
 y_step=y_bins[1]-y_bins[0]
 y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
-quant_prof = np.zeros([3, len(y_mid)])
+quant_prof_obs3 = np.zeros([3, len(y_mid)])
 mean_prof = np.zeros(len(y_mid))
 for t_i in range(len(y_mid)):
     x_layer=x[(y>y_mid[t_i]-y_step/2) * (y<=y_mid[t_i]+y_step/2)]
     wq = DescrStatsW(data=x_layer)
-    quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+    quant_prof_obs3[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean3.plot(quant_prof[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
-         linewidth=1, label='_nolegend_')
-ax_mean3.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+# ax_mean3.plot(quant_prof_obs3[0, ], y_mid, color=color, ls='dashed', alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+ax_mean3.plot(quant_prof_obs3[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4,label='obs')
-ax_mean3.plot(quant_prof[2, ], y_mid, color=color, ls='dashed', alpha=0.8,
-         linewidth=1, label='_nolegend_')
+# ax_mean3.plot(quant_prof_obs3[2, ], y_mid, color=color, ls='dashed', alpha=0.8,
+#          linewidth=1, label='_nolegend_')
 # ax_mean3.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
 #          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
@@ -767,21 +778,21 @@ letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
 y_step=y_bins[1]-y_bins[0]
 y_mid = np.linspace(temp_min+1,temp_max-1,bins_temp)
-quant_prof = np.zeros([3, len(y_mid)])
+quant_prof_obs4 = np.zeros([3, len(y_mid)])
 mean_prof = np.zeros(len(y_mid))
 for t_i in range(len(y_mid)):
     x_layer=x[(y>y_mid[t_i]-y_step/2) * (y<=y_mid[t_i]+y_step/2)]
     wq = DescrStatsW(data=x_layer)
-    quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+    quant_prof_obs4[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
                                      return_pandas=False)
     mean_prof[t_i] = wq.mean
 
-ax_mean4.plot(quant_prof[0, ], y_mid, color=color, ls='dashed',alpha=0.8,
-         linewidth=1, label='_nolegend_')
-ax_mean4.plot(quant_prof[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
+# ax_mean4.plot(quant_prof_obs4[0, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
+ax_mean4.plot(quant_prof_obs4[1, ], y_mid, color=color, ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4, label='obs')
-ax_mean4.plot(quant_prof[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
-         linewidth=1, label='_nolegend_')
+# ax_mean4.plot(quant_prof_obs4[2, ], y_mid, color=color, ls='dashed',alpha=0.8,
+#          linewidth=1, label='_nolegend_')
 # ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid',alpha=0.8,
 #          linewidth=2, label='_nolegend_')
 # --------------------------------------------------------------------------- #
@@ -1011,12 +1022,12 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
                                          return_pandas=False)
         mean_prof[t_i] = wq.mean
 
-    ax_mean4.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
-                  linewidth=1, label='_nolegend_')
+    # ax_mean4.plot(quant_prof[0,], y_mid, color=color, ls='dashed',alpha=0.8,
+    #               linewidth=1, label='_nolegend_')
     ax_mean4.plot(quant_prof[1,], y_mid, color=color, ls='solid',# TODO: mean and median swapped
                   linewidth=2+(n_rows-current_row-3)/4, label=short_name)
-    ax_mean4.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
-                  linewidth=1, label='_nolegend_')
+    # ax_mean4.plot(quant_prof[2,], y_mid, color=color, ls='dashed',alpha=0.8,
+    #               linewidth=1, label='_nolegend_')
     # ax_mean4.plot(mean_prof, y_mid, color=color, ls='solid', alpha=0.8,
     #               linewidth=2,label='_nolegend_')
 
@@ -1024,10 +1035,39 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
 # CFTDs SAVE                                                                  #
 # --------------------------------------------------------------------------- #
 
+current_row=1
+
+ax_mean1.plot(quant_prof_obs1[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+ax_mean1.plot(quant_prof_obs1[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
+ax_mean1.plot(quant_prof_obs1[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+
+ax_mean2.plot(quant_prof_obs2[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+ax_mean2.plot(quant_prof_obs2[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
+ax_mean2.plot(quant_prof_obs2[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+
+ax_mean3.plot(quant_prof_obs3[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+ax_mean3.plot(quant_prof_obs3[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='', alpha=.5)
+ax_mean3.plot(quant_prof_obs3[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+
+ax_mean4.plot(quant_prof_obs4[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+ax_mean4.plot(quant_prof_obs4[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
+         linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
+ax_mean4.plot(quant_prof_obs4[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
+         linewidth=1, label='_nolegend_')
+
 ax_mean1.invert_yaxis()
 p = plt.text(.04, .9, letters[letters_i] +')', transform=ax_mean1.transAxes)
 p.set_bbox(dict(facecolor='white', alpha=0.8, linewidth=0.1))
-# ax_mean1.legend()
 letters_i=letters_i +1
 
 ax_mean2.invert_yaxis()
@@ -1039,13 +1079,11 @@ letters_i=letters_i +1
 ax_mean3.invert_yaxis()
 p = plt.text(.04, .9, letters[letters_i] +')', transform=ax_mean3.transAxes)
 p.set_bbox(dict(facecolor='white', alpha=0.8, linewidth=0.1))
-# ax_mean3.legend()
 letters_i=letters_i +1
 
 ax_mean4.invert_yaxis()
 p = plt.text(.04, .9, letters[letters_i] +')', transform=ax_mean4.transAxes)
 p.set_bbox(dict(facecolor='white', alpha=0.8, linewidth=0.1))
-# ax_mean4.legend()
 letters_i=letters_i +1
 
 for i_r in range(n_rows):
@@ -1062,26 +1100,18 @@ for i_r in range(n_rows):
         if i_c==1:
             axs[i_r,i_c].set_xlim([-.2, 2.3])
 
-# cmap = mpl.cm.YlGnBu  #TODO
 cmap = mpl.cm.terrain_r  #TODO
-# norm = mpl.colors.Normalize(vmin=0, vmax=15)
 norm = mpl.colors.Normalize(vmin=0, vmax=16)
 fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
              ax=axs[-1,-1], orientation='vertical', label='frequency [%]',
              extend='max')
 axs[-1,-1].set_xlim([mom_plot_dict('RHOHV')['mom_min'], 1.005])
 
-
 axs[0,2].get_shared_y_axes().get_siblings(axs[0,2])[0].set_xticks(
     axs[0,2].get_shared_y_axes().get_siblings(axs[0,2])[0].get_xticks(),
     [str(int(i/1000))+'k' for i in
          axs[0,2].get_shared_y_axes().get_siblings(axs[0,2])[0].get_xticks()
      ],color='gray')
-    # ['0','25k','50k', '75k', '100k'],color='gray')
-
-# ax2 = axs[0,2].twiny()
-# ax2.set_xticks(axs[0,2].get_shared_y_axes().get_siblings(axs[0,2])[0].get_xticks(),
-#                ['0','25k','50k', '75k', '100k'],color='gray')
 
 gs.tight_layout(fig, rect=[0, 0, 0.5, 1.0])
 if not os.path.exists(folder_plot):

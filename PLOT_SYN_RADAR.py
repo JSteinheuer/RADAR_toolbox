@@ -93,8 +93,8 @@ def plot_qvp_of_polarimetric_variable(
         cs = mom_cs.plot.contour(y=y_coord, colors='black',
                                  levels=levels_cs, ax=ax,
                                  extend=extend, linewidths=.5)
-        ax.clabel(cs, **dict(fmt=r'%2.0f', inline=True,
-                             fontsize=8 * scale_numbers))
+        # ax.clabel(cs, **dict(fmt=r'%2.0f', inline=True,
+        #                      fontsize=8 * scale_numbers))
 
     if mom_cf is not None:
         cf = mom_cf.plot.contour(y=y_coord, colors='darkslategray',
@@ -347,7 +347,11 @@ def plot_syn_PPI(nc_file,
                  range_max=None,
                  # func='contourf',
                  func='pcolormesh',
-                 extend='both'
+                 extend='both',
+                 add_colorbar=True,
+                 xlabel=True,
+                 ylabel=True,
+                 panel=None,
                  ):
     # sweep = nc_file.split('/')[-2]
     vol = nc_file
@@ -527,23 +531,36 @@ def plot_syn_PPI(nc_file,
         ax = plt.gca()
 
     if range_max:
-        img.wrl.vis.plot(ax=ax, cmap=cmap, levels=levels, norm=norm,
+        pcm=img.wrl.vis.plot(ax=ax, cmap=cmap, levels=levels, norm=norm,
                          extend=extend, func=func,
                          ylim=[-range_max, range_max],
-                         xlim=[-range_max, range_max])
+                         xlim=[-range_max, range_max], add_colorbar=add_colorbar)
     else:
-        img.wrl.vis.plot(ax=ax, cmap=cmap, levels=levels, norm=norm,
-                         extend=extend, func=func)
+        pcm=img.wrl.vis.plot(ax=ax, cmap=cmap, levels=levels, norm=norm,
+                         extend=extend, func=func, add_colorbar=add_colorbar)
 
     if title:
         plt.title(title)
+    else:
+        plt.title('')
 
-    ax.set_xlabel("easting [km]")
-    ax.set_ylabel("northing [km]")
+    # if xlabel:
+    #     ax.set_xlabel("easting [km]")
+    #
+    # if ylabel:
+    #     ax.set_ylabel("northing [km]")
+
+    ax.set_xlabel("easting [km]") if xlabel else ax.set_xlabel("")
+    ax.set_ylabel("northing [km]") if ylabel else ax.set_ylabel("")
+
+    p = ax.text(.05, .9, panel,transform=ax.transAxes,zorder=999)
+    p.set_bbox(dict(facecolor='white', alpha =0.8, linewidth=0.1))
+
     if log:
         plt.text(1.1, -.05, '1e^',
                  transform=ax.transAxes)
 
+    return pcm
 
 # not working yet
 def plot_syn_PPI_temp_ring(nc_file,
@@ -613,18 +630,20 @@ def mom_plot_dict(mom_name='zh'):
         return dict(mom_name=mom_name, mom_min=0.925, mom_max=1.025,
                     bins_mom=25, )
                     # bins_mom=40, )
-    elif mom_name in ['Nt_totice', 'Nt_totice_qvp','Nt_r','Nt_rain_qvp',
-                      'vol_qntotice', 'vol_qnr', 'vol_qnh', 'vol_qnc',
+    elif mom_name in ['Nt_totice', 'Nt_totice_qvp',
+                      'vol_qntotice', 'vol_qnh',
                       'vol_qni', 'vol_qng', 'vol_qns', ]:
         return dict(mom_name=mom_name, mom_min=-1.6, mom_max=2.1,bins_mom=40, )
-        # return dict(mom_name=mom_name, mom_min=-2, mom_max=4.1,bins_mom=40, )
+    elif mom_name in ['Nt_r','Nt_rain_qvp',
+                      'vol_qnr', 'vol_qnc', ]:
+        return dict(mom_name=mom_name, mom_min=-2.8, mom_max=2.1,bins_mom=40, )
     elif mom_name in ['vol_qtotice', 'IWC', 'IWC_qvp',
                       'LWC', 'LWC_qvp',  'vol_qr',
                       'vol_qh', 'vol_qg', 'vol_qs', 'vol_qc', 'vol_qi',]:
         return dict(mom_name=mom_name, mom_min=0, mom_max=.45,
                     bins_mom=35, )
     elif mom_name in ['D0_totice', 'Dm_totice', 'Dm_totice_qvp',
-                      'D0_r','Dm_r', 'D0_bringi',
+                      'D0_r','Dm_r', 'D0_bringi','Dm_bringi',
                       'D0_h', 'D0_g', 'D0_s', 'D0_c', 'D0_i',]:
         return dict(mom_name=mom_name, mom_min=0, mom_max=3.3,
                     bins_mom=50, )
@@ -823,18 +842,18 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             file_nc = xr.where(file_nc['min_entropy'] > filter_entr_at,
                                file_nc, np.nan)
 
-        if filter_moms:
-            if da_icon_emvorado_run:  # Synthetic
-                zh = file_nc['zrsim']
-                zdr = file_nc['zdrsim']
-                kdp = file_nc['kdpsim']
-                rho = file_nc['rhvsim']
-            else:  # Observations
-                zh = file_nc['ZH_AC']
-                zdr = file_nc['ZDR_AC_OC']
-                kdp = file_nc['KDP_NC']
-                rho = file_nc['RHOHV_NC2P']
+        if da_icon_emvorado_run:  # Synthetic
+            zh = file_nc['zrsim']
+            zdr = file_nc['zdrsim']
+            kdp = file_nc['kdpsim']
+            rho = file_nc['rhvsim']
+        else:  # Observations
+            zh = file_nc['ZH_AC']
+            zdr = file_nc['ZDR_AC_OC']
+            kdp = file_nc['KDP_NC']
+            rho = file_nc['RHOHV_NC2P']
 
+        if filter_moms:
             file_nc = xr.where(zh > 10, file_nc, np.nan)
             file_nc = xr.where(zh < 80, file_nc, np.nan)
             file_nc = xr.where(zdr > -1, file_nc, np.nan)
@@ -870,53 +889,85 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
         elif moment == 'Nt_totice_qvp':
             print('Nt_totice_qvp')
             lamb = 50
+            # zh_lin = 10 ** (0.1 * zhC)
+            # zdr_lin = 10 ** (0.1 * zdr)
             zh_lin = 10 ** (0.1 * file_nc.ZH_AC)
             zdr_lin = 10 ** (0.1 * file_nc.ZDR_AC_OC)
             mom = xr.where(
-                file_nc.ZDR_AC_OC < 0.4,
-                0.033 * (file_nc.KDP_NC * lamb) ** 0.67 * zh_lin ** 0.33,
-                0.004 * file_nc.KDP_NC * lamb / (1 - zdr_lin ** (-1))
+                zdr < 0.4,
+                0.033 * (kdp * lamb) ** 0.67 * zh_lin ** 0.33,
+                0.004 * kdp * lamb / (1 - zdr_lin ** (-1))
+                # file_nc.ZDR_AC_OC < 0.4,
+                # 0.033 * (file_nc.KDP_NC * lamb) ** 0.67 * zh_lin ** 0.33,
+                # 0.004 * file_nc.KDP_NC * lamb / (1 - zdr_lin ** (-1))
             ).values
             mom[mom < 0] = np.nan
-            mom[file_nc['KDP_NC'].values < 0.01] = np.nan
+            # mom[file_nc['KDP_NC'].values < 0.01] = np.nan
+            mom[kdp.values < 0.01] = np.nan
             # mom now: nt instead of iwc:
-            mom = 6.69 - 3 + 2 * np.log10(mom) - 0.1 * file_nc.ZH_AC.values
+            # mom = 6.69 - 3 + 2 * np.log10(mom) - 0.1 * file_nc.ZH_AC.values
+            mom = 6.69 - 3 + 2 * np.log10(mom) - 0.1 * zh.values
         elif moment == 'Dm_totice_qvp':
             print('Dm_totice_qvp')
             lamb = 50
-            zh_lin = 10 ** (0.1 * file_nc.ZH_AC)
-            mom = (0.67 * (zh_lin / (file_nc.KDP_NC * lamb)) ** (1 / 3)).values
-            mom[file_nc.KDP_NC.values <= 0.01] = np.nan
+            # zh_lin = 10 ** (0.1 * file_nc.ZH_AC)
+            zh_lin = 10 ** (0.1 * zh)
+            # mom = (0.67 * (zh_lin / (file_nc.KDP_NC * lamb)) ** (1 / 3)).values
+            mom = (0.67 * (zh_lin / (kdp * lamb)) ** (1 / 3)).values
+            # mom[file_nc.KDP_NC.values <= 0.01] = np.nan
+            mom[kdp.values <= 0.01] = np.nan
         elif moment == 'IWC_qvp':
             print('IWC_qvp')
             lamb = 50
-            zh_lin = 10 ** (0.1 * file_nc.ZH_AC)
-            zdr_lin = 10 ** (0.1 * file_nc.ZDR_AC_OC)
+            zh_lin = 10 ** (0.1 * zh)
+            zdr_lin = 10 ** (0.1 * zdr)
+            # zh_lin = 10 ** (0.1 * file_nc.ZH_AC)
+            # zdr_lin = 10 ** (0.1 * file_nc.ZDR_AC_OC)
             mom = xr.where(
-                file_nc.ZDR_AC_OC < 0.4,
-                0.033 * (file_nc.KDP_NC * lamb) ** 0.67 * zh_lin ** 0.33,
-                0.004 * file_nc.KDP_NC * lamb / (1 - zdr_lin ** (-1))
+                # file_nc.ZDR_AC_OC < 0.4,
+                # 0.033 * (file_nc.KDP_NC * lamb) ** 0.67 * zh_lin ** 0.33,
+                # 0.004 * file_nc.KDP_NC * lamb / (1 - zdr_lin ** (-1))
+                zdr < 0.4,
+                0.033 * (kdp * lamb) ** 0.67 * zh_lin ** 0.33,
+                0.004 * kdp * lamb / (1 - zdr_lin ** (-1))
             ).values
             mom[mom<0]=np.nan
-            mom[file_nc['KDP_NC'].values < 0.01] = np.nan
+            # mom[file_nc['KDP_NC'].values < 0.01] = np.nan
+            mom[kdp.values < 0.01] = np.nan
         elif moment == 'LWC_qvp':
             print('LWC_qvp')
             # Reimann Simmer Troemel 2021
-            mom = 10**(0.058 * file_nc.ZH_AC - 0.118 * file_nc.ZDR_AC_OC - 2.36).values
+            # mom = 10**(0.058 * file_nc.ZH_AC - 0.118 * file_nc.ZDR_AC_OC - 2.36).values
+            mom = 10**(0.058 * zh - 0.118 * zdr - 2.36).values
             mom[mom<0]=np.nan
-            mom[file_nc['KDP_NC'].values<0]=np.nan
+            # mom[file_nc['KDP_NC'].values<0]=np.nan
+            mom[kdp.values<0]=np.nan
         elif moment == 'Nt_rain_qvp':
             print('Nt_rain_qvp')
-            mom = (-2.37 + 0.1 * file_nc.ZH_AC -
-                   2.89 * file_nc.ZDR_AC_OC +
-                   1.28 * file_nc.ZDR_AC_OC ** 2 -
-                   0.213 * file_nc.ZDR_AC_OC ** 3).values
-            mom[file_nc['KDP_NC'].values<0]=np.nan
+            # mom = (-2.37 + 0.1 * file_nc.ZH_AC -
+            #        2.89 * file_nc.ZDR_AC_OC +
+            #        1.28 * file_nc.ZDR_AC_OC ** 2 -
+            #        0.213 * file_nc.ZDR_AC_OC ** 3).values
+            mom = (-2.37 + 0.1 * zh -
+                   2.89 * zdr +
+                   1.28 * zdr ** 2 -
+                   0.213 * zdr ** 3).values
+            # mom[file_nc['KDP_NC'].values<0]=np.nan
+            mom[kdp.values<0]=np.nan
         elif moment == 'D0_bringi':
             print('D0_bringi')
-            mom = d0_bringi(file_nc.ZDR_AC_OC.values)['d0']
+            # mom = d0_bringi(file_nc.ZDR_AC_OC.values)['d0']
+            mom = d0_bringi(zdr.values)['d0']
             mom[mom<0]=np.nan
-            mom[file_nc['KDP_NC'].values<0]=np.nan
+            # mom[file_nc['KDP_NC'].values<0]=np.nan
+            mom[kdp<0]=np.nan
+        elif moment == 'Dm_bringi':
+            print('Dm_bringi')
+            # mom = d0_bringi(file_nc.ZDR_AC_OC.values)['dm']
+            mom = d0_bringi(zdr.values)['dm']
+            mom[mom<0]=np.nan
+            # mom[file_nc['KDP_NC'].values<0]=np.nan
+            mom[kdp<0]=np.nan
         else:
             print(moment + ' not in ' + file_in)
             continue
