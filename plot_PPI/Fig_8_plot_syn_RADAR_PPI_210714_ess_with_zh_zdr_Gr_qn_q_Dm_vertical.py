@@ -168,14 +168,11 @@ for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
     nc_file_comb['qn' + hm[0]] = nc_file_comb['qn' + hm[0]].where(
         nc_file_comb['qn' + hm[0]] >= locals()['qn_' + hm[0]], np.nan)
 
-    # nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]]*1000
-    # nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]].assign_attrs(dict(units='g m-3'))
+    nc_file_comb['q' + hm[0]]=np.log10(nc_file_comb['q' + hm[0]])
+    nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]].assign_attrs(dict(units='log_10(kg kg-1)'))
 
-    nc_file_comb['q' + hm[0]]=np.log10(nc_file_comb['q' + hm[0]]*1000)
-    nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]].assign_attrs(dict(units='log_10(g m-3)'))
-
-    nc_file_comb['qn' + hm[0]]=np.log10(nc_file_comb['qn' + hm[0]]/1000)
-    nc_file_comb['qn' + hm[0]]=nc_file_comb['qn' + hm[0]].assign_attrs(dict(units='log_10(L-1)'))
+    nc_file_comb['qn' + hm[0]]=np.log10(nc_file_comb['qn' + hm[0]])
+    nc_file_comb['qn' + hm[0]]=nc_file_comb['qn' + hm[0]].assign_attrs(dict(units='log_10(kg-1)'))
 
 time_i_mod = 0
 # ------------------------------------- #
@@ -190,11 +187,11 @@ moments = ['zrsim', 'zdrsim', 'D0_g', 'qg', 'qng']
 cmaps = [radar_colors.cmap_radar, radar_colors.cmap_radar, radar_colors.cmap_radar_dm2,
          radar_colors.cmap_radar_nt2, radar_colors.cmap_radar_nt2, ]
 norms = [radar_colors.norm_zh, radar_colors.norm_zdr, radar_colors.norm_dm2,
-         radar_colors.norm_nt2, radar_colors.norm_nt2, ]
+         radar_colors.norm_nt2, radar_colors.norm_qnt2, ]
 levelss = [radar_colors.levels_zh, radar_colors.levels_zdr,radar_colors.levels_dm2,
-           radar_colors.levels_nt2, radar_colors.levels_nt2, ]
-labels = ['$Z_{H}$ [dBZ]', '$Z_{DR}$ [dB]', '$D_{m,g}$ [mm]',
-          '$q_g$ [$log_{10}(g/m³)$]', '$qn_g$ [$log_{10}(L^{-1})$]', ]
+           radar_colors.levels_nt2, radar_colors.levels_qnt2, ]
+labels = ['$Z_{H}$ [dBZ]', '$Z_{DR}$ [dB]', '$D_{m,\,g}$ [mm]',
+          '$q_g$ [$log_{10}(kg\,\,kg^{-1})$]', '$qn_{g}$ [$log_{10}(kg^{-1})$]', ]
 for moment, cmap, norm, levels, label in zip(
             moments, cmaps, norms, levelss, labels):
     # col = col + 1
@@ -342,14 +339,11 @@ for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
     nc_file_comb['qn' + hm[0]] = nc_file_comb['qn' + hm[0]].where(
         nc_file_comb['qn' + hm[0]] >= locals()['qn_' + hm[0]], np.nan)
 
-    # nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]]*1000
-    # nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]].assign_attrs(dict(units='g m-3'))
+    nc_file_comb['q' + hm[0]]=np.log10(nc_file_comb['q' + hm[0]])
+    nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]].assign_attrs(dict(units='log_10(kg kg-1)'))
 
-    nc_file_comb['q' + hm[0]]=np.log10(nc_file_comb['q' + hm[0]]*1000)
-    nc_file_comb['q' + hm[0]]=nc_file_comb['q' + hm[0]].assign_attrs(dict(units='log_10(g m-3)'))
-
-    nc_file_comb['qn' + hm[0]]=np.log10(nc_file_comb['qn' + hm[0]]/1000)
-    nc_file_comb['qn' + hm[0]]=nc_file_comb['qn' + hm[0]].assign_attrs(dict(units='log_10(L-1)'))
+    nc_file_comb['qn' + hm[0]]=np.log10(nc_file_comb['qn' + hm[0]])
+    nc_file_comb['qn' + hm[0]]=nc_file_comb['qn' + hm[0]].assign_attrs(dict(units='log_10(kg-1)'))
 
 time_i_mod = 0
 # ------------------------------------- #
@@ -364,11 +358,11 @@ moments = ['zrsim', 'zdrsim', 'D0_g', 'qg', 'qng']
 cmaps = [radar_colors.cmap_radar, radar_colors.cmap_radar, radar_colors.cmap_radar_dm2,
          radar_colors.cmap_radar_nt2, radar_colors.cmap_radar_nt2, ]
 norms = [radar_colors.norm_zh, radar_colors.norm_zdr, radar_colors.norm_dm2,
-         radar_colors.norm_nt2, radar_colors.norm_nt2, ]
+         radar_colors.norm_nt2, radar_colors.norm_qnt2, ]
 levelss = [radar_colors.levels_zh, radar_colors.levels_zdr,radar_colors.levels_dm2,
-           radar_colors.levels_nt2, radar_colors.levels_nt2, ]
-labels = ['$Z_{H}$ [dBZ]', '$Z_{DR}$ [dB]', '$D_{m,g}$ [mm]',
-          '$q_g$ [$log_{10}(g/m³)$]', '$qn_g$ [$log_{10}(L^{-1})$]', ]
+           radar_colors.levels_nt2, radar_colors.levels_qnt2, ]
+labels = ['$Z_{H}$ [dBZ]', '$Z_{DR}$ [dB]', '$D_{m,\,g}$ [mm]',
+          '$q_g$ [$log_{10}(kg\,\,kg^{-1})$]', '$qn_{g}$ [$log_{10}(kg^{-1})$]', ]
 for moment, cmap, norm, levels, label in zip(
             moments, cmaps, norms, levelss, labels):
     # col = col + 1

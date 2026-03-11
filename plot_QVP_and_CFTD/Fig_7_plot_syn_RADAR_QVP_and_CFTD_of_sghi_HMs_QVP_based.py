@@ -309,7 +309,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$D_{0,\,hm}\,[mm]$'.replace('hm', hm),
+        cbar_title='$D_{m,\,hm}\,[mm]$'.replace('hm', hm),
         ax=axs[current_row, current_col],
         scale_font=scale_font,
         scale_numbers=scale_numbers,

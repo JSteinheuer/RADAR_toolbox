@@ -268,7 +268,7 @@ plot_qvp_of_polarimetric_variable(
     levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title='$D_{m,\,rain}\,[mm]$',
+    cbar_title='$D_{m,\,r}\,[mm]$',
     title='',
     ax=axs[current_row, current_col],
     mom_height_unit='km',
@@ -315,7 +315,7 @@ plot_qvp_of_polarimetric_variable(
     levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title='$N_{t,\,totice}\,[log_{10}(L^{-1})]$',
+    cbar_title='$N_{t,\,r}\,[log_{10}(L^{-1})]$',
     title='',
     ax=axs[current_row, current_col],
     mom_height_unit='km',
@@ -541,7 +541,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$D_{m,\,rain}\,[mm]$',
+        cbar_title='$D_{m,\,r}\,[mm]$',
         title='',
         ax=axs[current_row, current_col],
         mom_height_unit='km',
@@ -590,7 +590,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$N_{t,\,totice}\,[log_{10}(L^{-1})]$',
+        cbar_title='$N_{t,\,r}\,[log_{10}(L^{-1})]$',
         title='',
         ax=axs[current_row, current_col],
         add_colorbar=add_colorbar,
@@ -1302,13 +1302,6 @@ axs[-1,-1].set_xlim([mom_plot_dict('Nt_r')['mom_min'],
                      mom_plot_dict('Nt_r')['mom_min']+
                      (mom_plot_dict('Nt_r')['mom_max']-
                       mom_plot_dict('Nt_r')['mom_min'])*.8])
-
-
-# axs[0,2].get_shared_y_axes().get_siblings(axs[0,2])[0].set_xticks(
-#     axs[0,2].get_shared_y_axes().get_siblings(axs[0,2])[0].get_xticks(),
-#     [str(int(i/1000))+'k' for i in
-#          axs[0,2].get_shared_y_axes().get_siblings(axs[0,2])[0].get_xticks()
-#      ],color='gray')
 
 gs.tight_layout(fig, rect=[0, 0, 0.5, 1.0])
 if not os.path.exists(folder_plot):

@@ -62,11 +62,11 @@ data_max = 125000
 elevation_degs = [8,12,17]
 testing = False
 # testing: --------------------------- #
-locations = ['ESS']  # TODO: remove
-dates = ['20210714']  # TODO: remove
-data_max = 2200  # TODO: remove
-elevation_degs = [12]  # TODO: remove
-testing = True
+# locations = ['ESS']  # TODO: remove
+# dates = ['20210714']  # TODO: remove
+# data_max = 2200  # TODO: remove
+# elevation_degs = [12]  # TODO: remove
+# testing = True
 # ------------------------------------ #
 
 # CFADs ? ---------------------------- #
@@ -280,7 +280,7 @@ for location in [location]:
         levels_cs=np.arange(-50, 60, 25),
         mom_cf=qvp_temp_obs,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$K_{DP}$ [°/km]',
+        cbar_title='$K_{DP}$ [°\,km$^{-1}$]',
         # title='K$_{DP}$ (C-band Obs. at ' + location + ')',
         title='',
         ax=axs[current_row, current_col],
@@ -304,7 +304,7 @@ for location in [location]:
         levels_cs=np.arange(-50, 60, 25),
         mom_cf=qvp_temp_obs,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$\u03C1_{HV}$ [1]',
+        cbar_title='$\u03C1_{HV}$ [-]',
         # title='$\u03C1_{hv}$ (C-band Obs. at ' + location + ')',
         title='',
         ax=axs[current_row, current_col],
@@ -455,7 +455,7 @@ for location in [location]:
             levels_cs=np.arange(-50, 60, 25),
             mom_cf=qvp_temp_syn,
             levels_cf=np.arange(-50, 60, 5),
-            cbar_title='$K_{DP}$ [°/km]',
+            cbar_title='$K_{DP}$ [°\,km$^{-1}$]',
             # title='K$_{DP}$ (%s)' % model_name,
             ax=axs[current_row, current_col],
             scale_font=scale_font,
@@ -479,7 +479,7 @@ for location in [location]:
             levels_cs=np.arange(-50, 60, 25),
             mom_cf=qvp_temp_syn,
             levels_cf=np.arange(-50, 60, 5),
-            cbar_title='$\u03C1_{HV}$ [1]',
+            cbar_title='$\u03C1_{HV}$ [-]',
             # title='$\u03C1_{hv}$ (%s)' % model_name,
             ax=axs[current_row, current_col],
             scale_font=scale_font,
@@ -567,13 +567,13 @@ ax_mean2.set_xlabel('$Z_{DR}$ [dB]')
 ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],2.1])  # JM wish
 ax_mean3 = axs[-1, 2]
 ax_mean3.set_ylabel('temperature [°C]')
-ax_mean3.set_xlabel('$K_{DP}$ [°/km]')
+ax_mean3.set_xlabel('$K_{DP}$ [°\,km$^{-1}$]')
 ax_mean3.set_xlim([mom_plot_dict('KDP')['mom_min'],
                    mom_plot_dict('KDP')['mom_max']])
 ax_mean4 = axs[-1, 3]
 ax_mean4.set_ylabel('temperature [°C]')
 ax_mean4.set_ylabel('temperature [°C]')
-ax_mean4.set_xlabel('$\u03C1_{HV}$ [1]')
+ax_mean4.set_xlabel('$\u03C1_{HV}$ [-]')
 ax_mean4.set_xlim([mom_plot_dict('RHOHV')['mom_min'],
                    mom_plot_dict('RHOHV')['mom_max']])
 # --------------------------------------------------------------------------- #
