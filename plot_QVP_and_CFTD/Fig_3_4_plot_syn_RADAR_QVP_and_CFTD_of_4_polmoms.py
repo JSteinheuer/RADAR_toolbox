@@ -60,6 +60,13 @@ locations = list(rad_dict().keys())
 dates = ['20210714', '20210713']
 data_max = 125000
 elevation_degs = [8,12,17]
+zdr_max=2.3  # JM
+zdr_max=4.1  # JSt
+zdr_max=3.2  # enough?!
+ticks=[[0,10,20,30,40],
+       [0,1,2,3],
+       [0.0, 0.1, 0.2],
+       [0.94, 0.97, 1.00]]
 testing = False
 # testing: --------------------------- #
 # locations = ['ESS']  # TODO: remove
@@ -78,6 +85,9 @@ bins_height = 20
 vert_temp = True
 temp_min = -20
 temp_max = 16
+bins_temp = 18
+temp_min = -22
+temp_max = 14
 bins_temp = 18
 # ------------------------------------ #
 
@@ -564,7 +574,7 @@ ax_mean2.set_xlabel('$Z_{DR}$ [dB]')
 # ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],
 #                    mom_plot_dict('ZDR')['mom_max']])
 # ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],3.3])
-ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],2.1])  # JM wish
+ax_mean2.set_xlim([mom_plot_dict('ZDR')['mom_min'],zdr_max])
 ax_mean3 = axs[-1, 2]
 ax_mean3.set_ylabel('temperature [°C]')
 ax_mean3.set_xlabel('$K_{DP}$ [°\,km$^{-1}$]')
@@ -612,6 +622,7 @@ x ,y = plot_CFAD_or_CFTD_from_QVP_with_list(
     data_max=data_max,
     panel=letters[letters_i] + ') obs',
 )
+axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
 # ------------------------------------ #
 letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
@@ -666,6 +677,7 @@ x ,y = plot_CFAD_or_CFTD_from_QVP_with_list(
     data_max=data_max,
     panel=letters[letters_i] + ') obs',
 )
+axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
 # ------------------------------------ #
 letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
@@ -720,6 +732,7 @@ x ,y = plot_CFAD_or_CFTD_from_QVP_with_list(
     data_label=True,
     panel=letters[letters_i] + ') obs',
 )
+axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
 # ------------------------------------ #
 letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
@@ -773,6 +786,7 @@ x ,y = plot_CFAD_or_CFTD_from_QVP_with_list(
     data_max=data_max,
     panel=letters[letters_i] + ') obs',
 )
+axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
 # ------------------------------------ #
 letters_i=letters_i+1
 y_bins = np.linspace(temp_min,temp_max,bins_temp+1)
@@ -841,6 +855,7 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
         data_max=data_max,
         panel= letters[letters_i] +') ' + short_name,
     )
+    axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
     letters_i=letters_i+1
     # ------------------------------------ #
     y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
@@ -897,6 +912,7 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
         data_max=data_max,
         panel= letters[letters_i] +') ' + short_name,
     )
+    axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
     letters_i=letters_i+1
     # ------------------------------------ #
     y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
@@ -952,6 +968,7 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
         data_max=data_max,
         panel= letters[letters_i] +') ' + short_name,
     )
+    axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
     letters_i=letters_i+1
     # ------------------------------------ #
     y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
@@ -1007,6 +1024,7 @@ for da_run, icon_emvorado_run, spin_up_mm, color, short_name in zip(
         data_max=data_max,
         panel= letters[letters_i] +') ' + short_name,
     )
+    axs[current_row, current_col].set_xticks(ticks[current_col], ticks[current_col])
     letters_i=letters_i+1
     # ------------------------------------ #
     y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
@@ -1039,6 +1057,7 @@ current_row=1
 
 ax_mean1.plot(quant_prof_obs1[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
+ax_mean1.set_xticks(ticks[0], ticks[0])
 ax_mean1.plot(quant_prof_obs1[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
 ax_mean1.plot(quant_prof_obs1[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
@@ -1046,6 +1065,7 @@ ax_mean1.plot(quant_prof_obs1[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
 
 ax_mean2.plot(quant_prof_obs2[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
+ax_mean2.set_xticks(ticks[1], ticks[1])
 ax_mean2.plot(quant_prof_obs2[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
 ax_mean2.plot(quant_prof_obs2[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
@@ -1053,6 +1073,7 @@ ax_mean2.plot(quant_prof_obs2[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
 
 ax_mean3.plot(quant_prof_obs3[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
+ax_mean3.set_xticks(ticks[2], ticks[2])
 ax_mean3.plot(quant_prof_obs3[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4, label='', alpha=.5)
 ax_mean3.plot(quant_prof_obs3[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
@@ -1060,6 +1081,7 @@ ax_mean3.plot(quant_prof_obs3[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
 
 ax_mean4.plot(quant_prof_obs4[0, ], y_mid, color='black', ls='dashed',alpha=0.8,
          linewidth=1, label='_nolegend_')
+ax_mean4.set_xticks(ticks[3], ticks[3])
 ax_mean4.plot(quant_prof_obs4[1, ], y_mid, color='black', ls='solid',# TODO: mean and median swapped
          linewidth=2+(n_rows-current_row-3)/4, label='_nolegend_', alpha=.5)
 ax_mean4.plot(quant_prof_obs4[2, ], y_mid, color='black', ls='dashed',alpha=0.8,
@@ -1098,7 +1120,7 @@ for i_r in range(n_rows):
             axs[i_r, i_c].set_yticklabels('')
 
         if i_c==1:
-            axs[i_r,i_c].set_xlim([-.2, 2.3])
+            axs[i_r,i_c].set_xlim([-.2, zdr_max])
 
 cmap = mpl.cm.terrain_r  #TODO
 norm = mpl.colors.Normalize(vmin=0, vmax=16)
@@ -1131,7 +1153,7 @@ else:
 
 plt.savefig(
     folder_plot +
-    '/CFTDs_' + str(n_rows)+ 'x4polmoms_' +
+    '/CFTDs_' + str(n_rows)+ 'x4polmoms_45_' + str(zdr_max) +
     str(elevation_degs) + '°_' + dates_str + locations_str +
     ['', 'entr_'][filter_entr] +
     ['', str(filter_entr_at)+'_'][filter_entr] +
@@ -1140,7 +1162,7 @@ plt.savefig(
     '.pdf', format='pdf', transparent=False, bbox_inches='tight')
 plt.savefig(
     folder_plot +
-    '/CFTDs_' + str(n_rows) + 'x4polmoms_' +
+    '/CFTDs_' + str(n_rows) + 'x4polmoms_45_' + str(zdr_max) +
     str(elevation_degs) + '°_' + dates_str + locations_str +
     ['', 'entr_'][filter_entr] +
     ['', str(filter_entr_at) + '_'][filter_entr] +

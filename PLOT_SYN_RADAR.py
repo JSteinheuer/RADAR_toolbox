@@ -618,12 +618,12 @@ def plot_syn_PPI_temp_ring(nc_file,
 
 def mom_plot_dict(mom_name='zh'):
     if mom_name in ['zh', 'ZH', 'ZH_AC', 'zrsim']:
-        return dict(mom_name=mom_name, mom_min=0, mom_max=40, bins_mom=30, )
+        return dict(mom_name=mom_name, mom_min=0, mom_max=45, bins_mom=30, )
     elif mom_name in ['zdr', 'zdrsim', 'ZDR', 'ZDR_AC_OC']:
         return dict(mom_name=mom_name, mom_min=-0.5, mom_max=3, bins_mom=40, )
     elif mom_name in ['kdpsim', 'KDP',  'KDP_NC',
                     'kdpsim_ml_corrected', 'KDP_ML_corrected']:
-        return dict(mom_name=mom_name, mom_min=-.1, mom_max=0.3, bins_mom=40, )
+        return dict(mom_name=mom_name, mom_min=-.08, mom_max=0.28, bins_mom=40, )
         # return dict(mom_name=mom_name, mom_min=0, mom_max=0.3, bins_mom=40, )
     elif mom_name in ['rho', 'rhvsim', 'RHOHV', 'RHOHV_NC2P', ]:
         # return dict(mom_name=mom_name, mom_min=0.951, mom_max=1.051,
@@ -636,7 +636,7 @@ def mom_plot_dict(mom_name='zh'):
         return dict(mom_name=mom_name, mom_min=-1.6, mom_max=2.1,bins_mom=40, )
     elif mom_name in ['Nt_r','Nt_rain_qvp',
                       'vol_qnr', 'vol_qnc', ]:
-        return dict(mom_name=mom_name, mom_min=-2.8, mom_max=2.1,bins_mom=40, )
+        return dict(mom_name=mom_name, mom_min=-2.6, mom_max=2.1,bins_mom=40, )
     elif mom_name in ['vol_qtotice', 'IWC', 'IWC_qvp',
                       'LWC', 'LWC_qvp',  'vol_qr',
                       'vol_qh', 'vol_qg', 'vol_qs', 'vol_qc', 'vol_qi',]:
