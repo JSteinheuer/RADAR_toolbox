@@ -35,7 +35,7 @@ from statsmodels.stats.weightstats import DescrStatsW
 # ------------------------------------ #
 # QVPs                                 #
 # ------------------------------------ #
-location = 'ESS'
+location = 'NHB'
 date = '20210714'
 hhmm_start_qvp = '00:00'
 hhmm_end_qvp = '20:00'
@@ -69,11 +69,11 @@ ticks=[[0,10,20,30,40],
        [0.94, 0.97, 1.00]]
 testing = False
 # testing: --------------------------- #
-# locations = ['ESS']  # TODO: remove
-# dates = ['20210714']  # TODO: remove
-# data_max = 2200  # TODO: remove
-# elevation_degs = [12]  # TODO: remove
-# testing = True
+locations = ['ESS']  # TODO: remove
+dates = ['20210714']  # TODO: remove
+data_max = 2200  # TODO: remove
+elevation_degs = [12]  # TODO: remove
+testing = True
 # ------------------------------------ #
 
 # CFADs ? ---------------------------- #

@@ -95,7 +95,7 @@ def icon_hydromets():
         {'nu': 1.0, 'mu': 1.0, 'xmax': 2.6e-10, 'xmin': 4.2e-15,
          'a': 1.24e-01, 'b': 0.333333})
     hydromets['rain'] = seifert2general(
-        {'nu': 0.0, 'mu': 0.333333, 'xmax': 3.0e-6, 'xmin': 2.6e-10,
+        {'nu': 0.0, 'mu': 0.333333, 'xmax': 3.0e-6, 'xmin': 2.6e-10,           # TODO: nu is changing towards 1.0 for both: in_/off_
          'a': 1.24e-01, 'b': 0.333333})
     hydromets['ice'] = seifert2general(
         {'nu': 0.0, 'mu': 0.333333, 'xmax': 1.0e-5, 'xmin': 1.0e-12,
@@ -122,7 +122,7 @@ def seifert2general(hymet_seif):
                       m(D) = a * D^b   [ -> D = (m/a)^(1/b)
     """
     hymet_gen = {}
-    hymet_gen['mu'] = (1.0 / hymet_seif['b']) * (hymet_seif['nu'] + 1.0) - 1.0
+    hymet_gen['mu'] = (1.0 / hymet_seif['b']) * (hymet_seif['nu'] + 1.0) - 1.0 # TODO: change for off-cloud
     hymet_gen['nu'] = (1.0 / hymet_seif['b']) * hymet_seif['mu']
     hymet_gen['xmax'] = hymet_seif['xmax']
     hymet_gen['xmin'] = hymet_seif['xmin']
@@ -134,7 +134,7 @@ def seifert2general(hymet_seif):
 # J. Mendrok 22.11.24
 def muDrain(Dmm, cmu0=None, cmu1=None, cmu2=None, cmu3=None, cmu4=None):
     # Ansatz is from Seifert (2008, JAS)
-    icmu0 = 6.;
+    icmu0 = 6.;                                                                # TODO: differing 6/-1
     icmu1 = 30.0;
     icmu2 = 1e3;
     icmu3 = 1.1e-3;
