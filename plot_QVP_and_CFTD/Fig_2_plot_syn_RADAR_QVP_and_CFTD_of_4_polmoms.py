@@ -69,11 +69,11 @@ ticks=[[0,10,20,30,40],
        [0.94, 0.97, 1.00]]
 testing = False
 # testing: --------------------------- #
-# locations = ['ESS']  # TODO: remove
-# dates = ['20210714']  # TODO: remove
-# data_max = 2200  # TODO: remove
-# elevation_degs = [12]  # TODO: remove
-# testing = True
+locations = ['ESS']  # TODO: remove
+dates = ['20210714']  # TODO: remove
+data_max = 2200  # TODO: remove
+elevation_degs = [12]  # TODO: remove
+testing = True
 # ------------------------------------ #
 
 # CFADs ? ---------------------------- #
@@ -119,40 +119,39 @@ icon_emvorado_runs.append('MAIN_2411.0/EMVO_20010000.2')
 spin_up_mms.append('120')
 short_names.append('I1E1')
 # colors.append('cyan')
-# ------------------------------------ #
-# SYN data row 2                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
-spin_up_mms.append('120')
-short_names.append('I1E2')
-# colors.append('green')
-# ------------------------------------ #
-# SYN data row 3                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.0/EMVO_20510000.2')
-spin_up_mms.append('120')
-short_names.append('I1E3')
-# colors.append('yellow')
-# ------------------------------------ #
-# SYN data row 4                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510000.2')
-spin_up_mms.append('120')
-short_names.append('I2E3')
-# colors.append('orange')
-# ------------------------------------ #
-# SYN data row 5                       #
-# ------------------------------------ #
-da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
+# # ------------------------------------ #
+# # SYN data row 2                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.0/EMVO_20410000.2')
+# spin_up_mms.append('120')
+# short_names.append('I1E2')
+# # colors.append('green')
+# # ------------------------------------ #
+# # SYN data row 3                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.0/EMVO_20510000.2')
+# spin_up_mms.append('120')
+# short_names.append('I1E3')
+# # colors.append('yellow')
+# # ------------------------------------ #
+# # SYN data row 4                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2411')
+# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510000.2')
+# spin_up_mms.append('120')
+# short_names.append('I2E3')
+# # colors.append('orange')
+# # ------------------------------------ #
+# # SYN data row 5                       #
+# # ------------------------------------ #
+# da_runs.append('ASS_2411')
+# # icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2')
 # icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnxoff')
-spin_up_mms.append('120')
-short_names.append('I2E4')
-# colors.append('red')
+# spin_up_mms.append('120')
+# short_names.append('I2E4')
+# # colors.append('red')
 # ------------------------------------ #
 colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 5))
 colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
@@ -189,8 +188,8 @@ for location in [location]:
     scale_font = 1.
     scale_numbers = 1.
     factor=.8
-    fig = plt.figure(figsize=(factor*n_cols * 2.7, factor*n_rows * 2.7), layout='constrained') # 6-7 rows
-    # fig = plt.figure(figsize=(factor*n_cols * 2.7, factor*n_rows * 3.3), layout='constrained') # 2 rows
+    # fig = plt.figure(figsize=(factor*n_cols * 2.7, factor*n_rows * 2.7), layout='constrained') # 6-7 rows
+    fig = plt.figure(figsize=(factor*n_cols * 2.7, factor*n_rows * 3.3), layout='constrained') # 2 rows
     gs = fig.add_gridspec(n_rows, n_cols, hspace=0.0,wspace=0.06)
     # gs = fig.add_gridspec(n_rows, n_cols)
     axs = gs.subplots(sharex=True, sharey=True)

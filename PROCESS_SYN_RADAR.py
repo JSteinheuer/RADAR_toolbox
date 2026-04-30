@@ -86,6 +86,42 @@ def entropy_of_vars(pol_vars, dim='azimuth', n_lowest=30):
     return entropy
 
 
+def icon_hydromets_kwarg(**kwargs):
+    """
+    Preparing dict with ICON 2mom micro-physics (original PSD- and m-D-params)
+    """
+    seifert = {}
+    hydromets = {}
+
+    seifert['c'] = {'nu': 1.0, 'mu': 1.0, 'xmax': 2.6e-10,
+                    'xmin': 4.2e-15,'a': 1.24e-01, 'b': 0.333333}
+    seifert['r'] = {'nu': 0.0, 'mu': 0.333333, 'xmax': 3.0e-6,
+                    'xmin': 2.6e-10, 'a': 1.24e-01, 'b': 0.333333}
+    seifert['i'] = {'nu': 0.0, 'mu': 0.333333, 'xmax': 1.0e-5,
+                    'xmin': 1.0e-12, 'a': 0.835, 'b': 0.39}
+    seifert['s'] = {'nu': 0.0, 'mu': 0.5, 'xmax': 2.0e-5,
+                    'xmin': 1.0e-10, 'a': 5.13, 'b': 0.5}
+    seifert['g'] = {'nu': 1.0, 'mu': 0.333333, 'xmax': 5.3e-4,
+                    'xmin': 4.19e-9, 'a': 1.42e-1, 'b': 0.314}
+    seifert['h'] = {'nu': 1.0, 'mu': 0.333333, 'xmax': 5.0e-3,
+                    'xmin': 2.6e-9,'a': 0.1366, 'b': 0.333333}
+    for key, value in kwargs.items():
+        if value !='':
+            hm=key[-1]
+            mom=key[:-2]
+            if hm in ['r', 's', 'c', 'h', 'g', 'i']:
+                if mom in ['nu', 'mu', 'xmax', 'xmin','a', 'b']:
+                    print(f"{key} = {value}")
+                    seifert[hm][mom]=value
+
+    hydromets['cloud'] = seifert2general(seifert['c'])
+    hydromets['rain'] = seifert2general(seifert['r'])
+    hydromets['ice'] = seifert2general(seifert['i'])
+    hydromets['snow'] = seifert2general(seifert['s'])
+    hydromets['graupel'] = seifert2general(seifert['g'])
+    hydromets['hail'] = seifert2general(seifert['h'])
+    return hydromets
+
 def icon_hydromets():
     """
     Preparing dict with ICON 2mom micro-physics (original PSD- and m-D-params)
@@ -95,7 +131,7 @@ def icon_hydromets():
         {'nu': 1.0, 'mu': 1.0, 'xmax': 2.6e-10, 'xmin': 4.2e-15,
          'a': 1.24e-01, 'b': 0.333333})
     hydromets['rain'] = seifert2general(
-        {'nu': 0.0, 'mu': 0.333333, 'xmax': 3.0e-6, 'xmin': 2.6e-10,           # TODO: nu is changing towards 1.0 for both: in_/off_
+        {'nu': 0.0, 'mu': 0.333333, 'xmax': 3.0e-6, 'xmin': 2.6e-10,
          'a': 1.24e-01, 'b': 0.333333})
     hydromets['ice'] = seifert2general(
         {'nu': 0.0, 'mu': 0.333333, 'xmax': 1.0e-5, 'xmin': 1.0e-12,
@@ -131,55 +167,55 @@ def seifert2general(hymet_seif):
     return hymet_gen
 
 
-# J. Mendrok 22.11.24
-def muDrain(Dmm, cmu0=None, cmu1=None, cmu2=None, cmu3=None, cmu4=None):
-    # Ansatz is from Seifert (2008, JAS)
-    icmu0 = 6.;                                                                # TODO: differing 6/-1
-    icmu1 = 30.0;
-    icmu2 = 1e3;
-    icmu3 = 1.1e-3;
-    icmu4 = 1.0
-    if cmu0 is not None: icmu0 = cmu0
-    if cmu1 is not None: icmu1 = cmu1
-    if cmu2 is not None: icmu2 = cmu2
-    if cmu3 is not None: icmu3 = cmu3
-    if cmu4 is not None: icmu4 = cmu4
-
-    delta = icmu2 * (Dmm - icmu3)
-
-    mu = xr.where(Dmm <= icmu3,  # JSt
-                  icmu0 * np.tanh((4.0 * delta) ** 2) + icmu4,  # JSt
-                  icmu1 * np.tanh(delta ** 2) + icmu4)  # JSt
-
-    # mu = np.zeros_like(Dmm)  # JM
-    # mu[Dmm <= icmu3] = icmu0 * np.tanh((4.0 * delta[Dmm <= icmu3]) ** 2  # JM
-    #                                    ) + icmu4  # JM
-    # mu[Dmm > icmu3] = icmu1 * np.tanh(delta[Dmm > icmu3] ** 2) + icmu4  # JM
-    return mu
-
-
-# J. Mendrok 22.11.24
-def ICON2D0rain(qr, qnr, qc, qc0=1e-8,
-                am=0.124, bm=1. / 3.,
-                cloudmu=5.,
-                cmu0=-1., cmu1=None, cmu2=None, cmu3=None, cmu4=None):
-    # mean-mass diameter
-    Dmm = am * (qr / qnr) ** bm
-
-    # off-cloud mu
-    muD = muDrain(Dmm, cmu0=cmu0, cmu1=cmu1, cmu2=cmu2, cmu3=cmu3, cmu4=cmu4)
-    # where in-cloud, replace variable mu with constant
-    muD = muD.where(qc > qc0, cloudmu)  # JSt
-    # muD[qc > qc0] = cloudmu  #JM
-
-    lamD = ((muD + 3.) * (muD + 2) * (muD + 1)) ** (1. / 3.) / Dmm
-    # Dvol=(muD+4.)/lamD
-    # return Dvol
-    D0 = (muD + 3.673) / lamD
-    return D0
+# # J. Mendrok 22.11.24
+# def muDrain(Dmm, cmu0=None, cmu1=None, cmu2=None, cmu3=None, cmu4=None):
+#     # Ansatz is from Seifert (2008, JAS)
+#     icmu0 = 6.;                                                                # TODO: differing 6/-1
+#     icmu1 = 30.0;
+#     icmu2 = 1e3;
+#     icmu3 = 1.1e-3;
+#     icmu4 = 1.0
+#     if cmu0 is not None: icmu0 = cmu0
+#     if cmu1 is not None: icmu1 = cmu1
+#     if cmu2 is not None: icmu2 = cmu2
+#     if cmu3 is not None: icmu3 = cmu3
+#     if cmu4 is not None: icmu4 = cmu4
+#
+#     delta = icmu2 * (Dmm - icmu3)
+#
+#     mu = xr.where(Dmm <= icmu3,  # JSt
+#                   icmu0 * np.tanh((4.0 * delta) ** 2) + icmu4,  # JSt
+#                   icmu1 * np.tanh(delta ** 2) + icmu4)  # JSt
+#
+#     # mu = np.zeros_like(Dmm)  # JM
+#     # mu[Dmm <= icmu3] = icmu0 * np.tanh((4.0 * delta[Dmm <= icmu3]) ** 2  # JM
+#     #                                    ) + icmu4  # JM
+#     # mu[Dmm > icmu3] = icmu1 * np.tanh(delta[Dmm > icmu3] ** 2) + icmu4  # JM
+#     return mu
 
 
-def adjust_icon_fields(infields, hymets=icon_hydromets(), spec2dens=1):
+# # J. Mendrok 22.11.24
+# def ICON2D0rain(qr, qnr, qc, qc0=1e-8,
+#                 am=0.124, bm=1. / 3.,
+#                 cloudmu=5.,
+#                 cmu0=-1., cmu1=None, cmu2=None, cmu3=None, cmu4=None):
+#     # mean-mass diameter
+#     Dmm = am * (qr / qnr) ** bm
+#
+#     # off-cloud mu
+#     muD = muDrain(Dmm, cmu0=cmu0, cmu1=cmu1, cmu2=cmu2, cmu3=cmu3, cmu4=cmu4)
+#     # where in-cloud, replace variable mu with constant
+#     muD = muD.where(qc > qc0, cloudmu)  # JSt
+#     # muD[qc > qc0] = cloudmu  #JM
+#
+#     lamD = ((muD + 3.) * (muD + 2) * (muD + 1)) ** (1. / 3.) / Dmm
+#     # Dvol=(muD+4.)/lamD
+#     # return Dvol
+#     D0 = (muD + 3.673) / lamD
+#     return D0
+
+
+def adjust_icon_fields(infields, hymets=None, spec2dens=1,**kwargs):
     """
     Take hydrometeor fields with qx and qnx, convert them to mass/number
     densities (from specific mass/number contents to densities) if necessary
@@ -191,6 +227,9 @@ def adjust_icon_fields(infields, hymets=icon_hydromets(), spec2dens=1):
     Output:
         volume specific qx, qnx.
     """
+    if hymets is None:
+        hymets=icon_hydromets_kwarg(**kwargs)
+
     r_d = 287.05  # dry air gas constant
     r_v = 461.51  # water vapor gas constant
     q = {}
@@ -260,31 +299,73 @@ def gfct(x):
     return g_fct
 
 
-def mgdparams(q, qn, hymets=icon_hydromets()):
+def mgdparams(q, qn, hymets=None, **kwargs):
     """
     Derive non-constant MGD-PSD parameters N0 and lam (mu & nu set constant
     from ICON microphysics)
     """
+    if hymets is None:
+        hymets=icon_hydromets_kwarg(**kwargs)
+
     mgd = {}
     for key in q:
-        mgd[key] = {}
-        tmp1 = (hymets[key]['mu'] + 1.0) / hymets[key]['nu']
-        tmp2 = (hymets[key]['mu'] + hymets[key]['b'] + 1.0) / hymets[key]['nu']
-        gfct_tmp1 = gfct(tmp1)
-        gfct_tmp2 = gfct(tmp2)
-        mgd[key]['lam'] = np.ones_like(q[key])
-        mgd[key]['n0'] = np.zeros_like(q[key])
-        mgd[key]['lam'][q[key] > 0.] = \
-            ((hymets[key]['a'] * qn[key][q[key] > 0.] * gfct_tmp2) /
-             (q[key][q[key] > 0.] * gfct_tmp1)) ** (hymets[key]['nu'] /
-                                                    hymets[key]['b'])
-        mgd[key]['n0'][q[key] > 0.] = \
-            qn[key][q[key] > 0.] * hymets[key]['nu'] * \
-            mgd[key]['lam'][q[key] > 0.] ** tmp1 / gfct_tmp1
+        if key != 'rain':
+            mgd[key] = {}
+            tmp1 = (hymets[key]['mu'] + 1.0) / hymets[key]['nu']
+            tmp2 = (hymets[key]['mu'] + hymets[key]['b'] + 1.0) / hymets[key]['nu']
+            gfct_tmp1 = gfct(tmp1)
+            gfct_tmp2 = gfct(tmp2)
+            mgd[key]['lam'] = np.ones_like(q[key])
+            mgd[key]['n0'] = np.zeros_like(q[key])
+            mgd[key]['lam'][q[key] > 0.] = \
+                ((hymets[key]['a'] * qn[key][q[key] > 0.] * gfct_tmp2) /
+                 (q[key][q[key] > 0.] * gfct_tmp1)) ** (hymets[key]['nu'] /
+                                                        hymets[key]['b'])
+            mgd[key]['n0'][q[key] > 0.] = \
+                qn[key][q[key] > 0.] * hymets[key]['nu'] * \
+                mgd[key]['lam'][q[key] > 0.] ** tmp1 / gfct_tmp1
+
+    key='rain'
+    cmu0_r_off = 6
+    for item, value in kwargs.items():
+        if item=='cmu0_r_off':
+            cmu0_r_off=value
+
+    cmu1_r_off = 30.0
+    cmu2_r_off  = 1.00e+3
+    cmu3_r_off  = 1.10e-3
+    cmu4_r_off  = 1.
+
+    D=(q[key]/qn[key]/hymets[key]['a'])**(1./hymets[key]['b'])
+    # off_cloud (small and big):
+    mu_r = xr.where(D <= cmu3_r_off,
+                    cmu0_r_off * np.tanh((4.0 * cmu2_r_off * (
+                                D - cmu3_r_off)) ** 2) + cmu4_r_off,
+                    cmu1_r_off * np.tanh((1.0 * cmu2_r_off * (
+                                D - cmu3_r_off)) ** 2) + cmu4_r_off)
+    # combine: in cloud (qc>1e-7) off cloud else
+    mu_r = xr.where(q['cloud']>1e-7, hymets[key]['mu'], mu_r)
+
+    mgd[key] = {}
+    tmp1 = (mu_r + 1.0) / hymets[key]['nu']
+    tmp2 = (mu_r + hymets[key]['b'] + 1.0) / hymets[key]['nu']
+    gfct_tmp1 = gfct(tmp1)
+    gfct_tmp2 = gfct(tmp2)
+    mgd[key]['lam'] = np.ones_like(q[key])
+    mgd[key]['n0'] = np.zeros_like(q[key])
+    mgd[key]['mu'] = mu_r  # save as well
+    mgd[key]['lam'][q[key] > 0.] = \
+        ((hymets[key]['a'] * qn[key][q[key] > 0.] * gfct_tmp2[q[key] > 0.]) /
+         (q[key][q[key] > 0.] * gfct_tmp1[q[key] > 0.])) ** (hymets[key]['nu'] /
+                                                hymets[key]['b'])
+    mgd[key]['n0'][q[key] > 0.] = \
+        qn[key][q[key] > 0.] * hymets[key]['nu'] * \
+        mgd[key]['lam'][q[key] > 0.] ** tmp1[q[key] > 0.] / gfct_tmp1[q[key] > 0.]
+
     return mgd
 
 
-def calc_moments(mgd, k=[0, 3, 4], hymets=icon_hydromets(), adjust=0):
+def calc_moments(mgd, k=[0, 3, 4], hymets=None, adjust=0, **kwargs):
     """
     Calculate (fields of) (Dmax-based) PSD moments from given constant (mu,nu)
     and qx/qnx derived fields of variable (N0,lam) MGD-parameters.
@@ -296,22 +377,43 @@ def calc_moments(mgd, k=[0, 3, 4], hymets=icon_hydromets(), adjust=0):
             differently to multi-PSD statistics, zero all remaining if one of
             them has number issues.
     """
+    if hymets is None:
+        hymets=icon_hydromets_kwarg(**kwargs)
+
     Mk = {}
     for key in mgd:
-        Mk[key] = {}
-        for kk in k:
-            c1 = (hymets[key]['mu'] + kk + 1) / hymets[key]['nu']
-            c2 = gfct(c1) / hymets[key]['nu']
-            # initialize Mk[kk]
-            Mk[key][kk] = np.zeros_like(mgd[key]['n0'])
-            # calculate Mk[kk] only if q, ie n0, is non-zero
-            Mk[key][kk][mgd[key]['n0'] > 0.] = \
-                c2 * mgd[key]['n0'][mgd[key]['n0'] > 0.] / \
-                mgd[key]['lam'][mgd[key]['n0'] > 0.] ** c1
-        if adjust:
+        if key != 'rain':
+            Mk[key] = {}
             for kk in k:
-                for ik in k:
-                    Mk[key][kk][Mk[key][ik] == 0.] = 0.
+                c1 = (hymets[key]['mu'] + kk + 1) / hymets[key]['nu']  # TODO for off cloud
+                c2 = gfct(c1) / hymets[key]['nu']
+                # initialize Mk[kk]
+                Mk[key][kk] = np.zeros_like(mgd[key]['n0'])
+                # calculate Mk[kk] only if q, ie n0, is non-zero
+                Mk[key][kk][mgd[key]['n0'] > 0.] = \
+                    c2 * mgd[key]['n0'][mgd[key]['n0'] > 0.] / \
+                    mgd[key]['lam'][mgd[key]['n0'] > 0.] ** c1
+            if adjust:
+                for kk in k:
+                    for ik in k:
+                        Mk[key][kk][Mk[key][ik] == 0.] = 0.
+
+    key = 'rain'
+    Mk[key] = {}
+    for kk in k:
+        c1 = (mgd[key]['mu'] + kk + 1) / hymets[key]['nu']
+        c2 = gfct(c1) / hymets[key]['nu']
+        # initialize Mk[kk]
+        Mk[key][kk] = np.zeros_like(mgd[key]['n0'])
+        # calculate Mk[kk] only if q, ie n0, is non-zero
+        Mk[key][kk][mgd[key]['n0'] > 0.] = \
+            c2[mgd[key]['n0'] > 0.] * mgd[key]['n0'][mgd[key]['n0'] > 0.] / \
+            mgd[key]['lam'][mgd[key]['n0'] > 0.] ** c1[mgd[key]['n0'] > 0.]
+    if adjust:
+        for kk in k:
+            for ik in k:
+                Mk[key][kk][Mk[key][ik] == 0.] = 0.
+
     return Mk
 
 
@@ -540,7 +642,8 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                      overwrite=False, merge=True, lowest_rhv=0.7,
                      lowest_zh=0, highest_zh=None,
                      lowest_kdp=0,
-                     highest_kdp=None, n_lowest=30):
+                     highest_kdp=None, n_lowest=30,
+                     cmu0_r_off=-1,nu_r=1,xmax_r=6.5e-5):
     """
     Create QVP for one day out of 8 synthetic volume scans from EMVORADO and
     ICON data (each 4times 6hourly).
@@ -582,7 +685,8 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
               str(spin_up_mm) + 'min_spinup/'
     file_qvp_4 = 'QVP_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
                  dti[0].strftime('%Y%m%d%H%M') + '_' + \
-                 dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+                 dti[-1].strftime('%Y%m%d%H%M') + \
+                 str(cmu0_r_off)+str(nu_r)+str(xmax_r)+'.nc'
     files_qvp = []
     if type(overwrite) == str and os.path.isfile(dir_qvp + file_qvp_4):
         out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
@@ -637,7 +741,8 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                     dti[-1].strftime('%Y%m%d%H%M') + '.nc'
         file_qvp = 'QVP_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
                    dti[0].strftime('%Y%m%d%H%M') + '_' + \
-                   dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+                   dti[-1].strftime('%Y%m%d%H%M') + \
+                   str(cmu0_r_off)+str(nu_r)+str(xmax_r)+'.nc'
         files_qvp.append(file_qvp)
         if type(overwrite) == str and os.path.isfile(dir_qvp + file_qvp):
             out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
@@ -851,24 +956,40 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
         # ------------------------------------------------------------------- #
         # PPI: qi,qni -> diameters                                            #
         # ------------------------------------------------------------------- #
-        # now this form 'adjust_icon_fields' is here
-        # q[key][q[key] < 1e-7] = 0.
-        # qn[key][q[key] < 1e-7] = 1.  # for numeric stability.
+        q_dens, qn_dens = adjust_icon_fields(
+            icon_nc, None, 1, nu_r=nu_r, xmax_r=xmax_r)
         for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
-            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
-                icon_nc['q' + hm[0]] >= 1e-7, 0)
-            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
-                icon_nc['qn' + hm[0]] >= 1e-7, 1)
-            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
-                icon_nc['q' + hm[0]] >= 1e-7, 1)
-            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
-                icon_nc['qn' + hm[0]] >= 1e-7, 0)
+            q_dens[hm] = np.where(q_dens[hm]>= locals()['q_' + hm[0]],
+                                  q_dens[hm], 0)
+            qn_dens[hm] = np.where(qn_dens[hm]>= locals()['qn_' + hm[0]],
+                                   qn_dens[hm], 0)
+            qn_dens[hm] = np.where(q_dens[hm]>= locals()['q_' + hm[0]],
+                                  qn_dens[hm], 0)
+            q_dens[hm] = np.where(qn_dens[hm]>= locals()['qn_' + hm[0]],
+                                   q_dens[hm], 0)
 
-        q_dens, qn_dens = adjust_icon_fields(icon_nc)
-        multi_params = mgdparams(q_dens, qn_dens)
-        moments = calc_moments(mgd=multi_params)
-        multimoments = calc_multimoments(moments)
-        mean_volume_diameter = calc_Dmean(multimoments)
+
+            # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+
+        multi_params = mgdparams(q_dens, qn_dens, None,nu_r=nu_r,xmax_r=xmax_r, cmu0_r_off=cmu0_r_off)
+        moments = calc_moments(multi_params, [0, 3, 4], None, 0, nu_r=nu_r,xmax_r=xmax_r) #TODO
+        multimoments = calc_multimoments(moments) #NOT TODO
+        mean_volume_diameter = calc_Dmean(multimoments)#NOT TODO
+
+        import matplotlib.pyplot as plt
+        plt.hist(mean_volume_diameter['rain'].flatten())
+        plt.xlabel('D_mean_vol')
+        plt.ylabel('#')
+        plt.savefig('D_mean_vol')
+        plt.close()
+
         for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
             icon_nc['vol_q' + hm[0]] = (
                 ['time', 'range', 'azimuth', ], q_dens[hm], dict(
@@ -883,6 +1004,7 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
             # mean_volume_diameter[hm]=np.where(icon_nc['q'+hm[0]]>1e-6,mean_volume_diameter[hm], 0)
 
             # TODO: check qi threshold for calc diameters
+
             icon_nc['D0_' + hm[0]] = (
                 ['time', 'range', 'azimuth', ],
                 mean_volume_diameter[hm] * 1000,
@@ -890,14 +1012,14 @@ def qvp_from_syn_vol(day='20170725', da_run='ASS_2211',
                                    icon_nc['qn' + hm[0]].standard_name[21:],
                      units='mm'))
 
-        # TODO: usefull? it differs somehow
-        icon_nc['D0_rain_new'] = (
-            ['time', 'range', 'azimuth', ],
-            ICON2D0rain(icon_nc['qr'], icon_nc['qnr'], icon_nc['qc']
-                        ).data[:] * 1000,
-            dict(standard_name='mean volume diameter of rain new',
-                 units='mm'))
-        # TODO: usefull? it differs somehow
+        # # TODO: usefull? it differs somehow
+        # icon_nc['D0_rain_new'] = (
+        #     ['time', 'range', 'azimuth', ],
+        #     ICON2D0rain(icon_nc['qr'], icon_nc['qnr'], icon_nc['qc']
+        #                 ).data[:] * 1000,
+        #     dict(standard_name='mean volume diameter of rain new',
+        #          units='mm'))
+        # # TODO: usefull? it differs somehow
 
         vol_qtotice = xr.concat(
             [icon_nc.vol_qi, icon_nc.vol_qs, icon_nc.vol_qh,
@@ -999,6 +1121,7 @@ def qvp_from_syn_vol_with_qn_qnx(day='20170725', da_run='ASS_2211',
                      lowest_zh=0, highest_zh=None,
                      lowest_kdp=0,
                      highest_kdp=None, n_lowest=30,
+                     cmu0_r_off=-1,nu_r=1,xmax_r=6.5e-5,
                      qn_i=1e-0,
                      q_i=1e-7,
                      qn_c=1e-0,
@@ -1065,7 +1188,8 @@ def qvp_from_syn_vol_with_qn_qnx(day='20170725', da_run='ASS_2211',
               str(spin_up_mm) + 'min_spinup/'
     file_qvp_4 = 'QVPqnx_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
                  dti[0].strftime('%Y%m%d%H%M') + '_' + \
-                 dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+                 dti[-1].strftime('%Y%m%d%H%M') + \
+                 str(cmu0_r_off)+str(nu_r)+str(xmax_r)+'.nc'
     files_qvp = []
     if type(overwrite) == str and os.path.isfile(dir_qvp + file_qvp_4):
         out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
@@ -1120,7 +1244,8 @@ def qvp_from_syn_vol_with_qn_qnx(day='20170725', da_run='ASS_2211',
                     dti[-1].strftime('%Y%m%d%H%M') + '.nc'
         file_qvp = 'QVPqnx_' + str(elevation_deg) + '_Syn_' + radar_loc + '_' + \
                    dti[0].strftime('%Y%m%d%H%M') + '_' + \
-                   dti[-1].strftime('%Y%m%d%H%M') + '.nc'
+                   dti[-1].strftime('%Y%m%d%H%M') + \
+                   str(cmu0_r_off)+str(nu_r)+str(xmax_r)+'.nc'
         files_qvp.append(file_qvp)
         if type(overwrite) == str and os.path.isfile(dir_qvp + file_qvp):
             out_of_date = dt.datetime.strptime(overwrite, '%Y-%m-%d')
@@ -1337,19 +1462,33 @@ def qvp_from_syn_vol_with_qn_qnx(day='20170725', da_run='ASS_2211',
         # ------------------------------------------------------------------- #
         # PPI: qi,qni -> diameters                                            #
         # ------------------------------------------------------------------- #
+        q_dens, qn_dens = adjust_icon_fields(
+            icon_nc, None, 1, nu_r=nu_r, xmax_r=xmax_r)
         for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
-            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
-                icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
-            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
-                icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
-            icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
-                icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
-            icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
-                icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            q_dens[hm] = np.where(q_dens[hm]>= locals()['q_' + hm[0]],
+                                  q_dens[hm], 0)
+            qn_dens[hm] = np.where(qn_dens[hm]>= locals()['qn_' + hm[0]],
+                                   qn_dens[hm], 0)
+            qn_dens[hm] = np.where(q_dens[hm]>= locals()['q_' + hm[0]],
+                                  qn_dens[hm], 0)
+            q_dens[hm] = np.where(qn_dens[hm]>= locals()['qn_' + hm[0]],
+                                   q_dens[hm], 0)
 
-        q_dens, qn_dens = adjust_icon_fields(icon_nc)
-        multi_params = mgdparams(q_dens, qn_dens)
-        moments = calc_moments(mgd=multi_params)
+
+            # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+            # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+            #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+            # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+            #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+
+
+        multi_params = mgdparams(q_dens, qn_dens, None, nu_r=nu_r,
+                                 xmax_r=xmax_r, cmu0_r_off=cmu0_r_off)
+        moments = calc_moments(multi_params, [0, 3, 4], None, 0, nu_r=nu_r,
+                               xmax_r=xmax_r)
         multimoments = calc_multimoments(moments)
         mean_volume_diameter = calc_Dmean(multimoments)
         for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
@@ -1396,14 +1535,14 @@ def qvp_from_syn_vol_with_qn_qnx(day='20170725', da_run='ASS_2211',
             # icon_nc['D0_' + hm[0]] = icon_nc['D0_' + hm[0]].where(
             #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
 
-        # TODO: usefull? it differs somehow
-        icon_nc['D0_rain_new'] = (
-            ['time', 'range', 'azimuth', ],
-            ICON2D0rain(icon_nc['qr'], icon_nc['qnr'], icon_nc['qc']
-                        ).data[:] * 1000,
-            dict(standard_name='mean volume diameter of rain new',
-                 units='mm'))
-        # TODO: usefull? it differs somehow
+        # # TODO: usefull? it differs somehow
+        # icon_nc['D0_rain_new'] = (
+        #     ['time', 'range', 'azimuth', ],
+        #     ICON2D0rain(icon_nc['qr'], icon_nc['qnr'], icon_nc['qc']
+        #                 ).data[:] * 1000,
+        #     dict(standard_name='mean volume diameter of rain new',
+        #          units='mm'))
+        # # TODO: usefull? it differs somehow
 
         vol_qtotice = xr.concat(
             [icon_nc.vol_qi, icon_nc.vol_qs, icon_nc.vol_qh,

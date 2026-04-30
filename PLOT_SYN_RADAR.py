@@ -744,21 +744,27 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
         else:  # mod
             if da_icon_emvorado_run[-3:] == 'qnx':
                 da_icon_emvorado_run = da_icon_emvorado_run[:-3]
-                qnx = True
+                qnx = 1
+            elif da_icon_emvorado_run[-6:] == 'qnxoff':
+                da_icon_emvorado_run = da_icon_emvorado_run[:-6]
+                qnx = 2
+            elif da_icon_emvorado_run[-3:] == 'off':
+                da_icon_emvorado_run = da_icon_emvorado_run[:-3]
+                qnx = 3
             else:
-                qnx = False
+                qnx = 0
 
             paths_in = glob.glob('/'.join([header.dir_data_qvp + '*',
                                            da_icon_emvorado_run + '/' +
                                            str(spin_up_mm) +
-                                           'min_spinup/QVP'+['','qnx'][qnx]+'_*_Syn_*', ]))
+                                           'min_spinup/QVP'+['','qnx','qnxoff', 'off'][qnx]+'_*_Syn_*', ]))
 
             if paths_in == []:
                 print('nothing found in ' +
                       '/'.join([header.dir_data_qvp + '*',
                                 da_icon_emvorado_run + '/' +
                                 str(spin_up_mm) +
-                                'min_spinup/QVP'+['','qnx'][qnx]+'_*_Syn_*', ]))
+                                'min_spinup/QVP'+['','qnx','qnxoff', 'off'][qnx]+'_*_Syn_*', ]))
                 return
 
     if not isinstance(paths_in, list):
@@ -800,7 +806,7 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
             if da_icon_emvorado_run:  # Synthetic
                 date = file_in.split('_')[4][:8]
                 if (da_icon_emvorado_run + '/' + str(spin_up_mm) +
-                    'min_spinup/QVP'+['','qnx'][qnx]+'_' in path_in) \
+                    'min_spinup/QVP'+['','qnx','qnxoff', 'off'][qnx]+'_' in path_in) \
                         and (file_in.split('_')[1] in
                              [str(e) for e in elevation_deg]) \
                         and (file_in.split('_')[3] in locations) \

@@ -148,7 +148,7 @@ colors.append('orange')
 # SYN data row 5                       #
 # ------------------------------------ #
 da_runs.append('ASS_2411')
-icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
+icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnxoff')
 spin_up_mms.append('120')
 short_names.append('I2E4')
 colors.append('red')
@@ -311,7 +311,7 @@ plot_qvp_of_polarimetric_variable(
     levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title='$N_{t,\,totice}\,[log_{10}(L^{-1})]$',
+    cbar_title='$N_{totice}\,[log_{10}(L^{-1})]$',
     title='',
     ax=axs[current_row, current_col],
     mom_height_unit='km',
@@ -338,7 +338,12 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
                              str(spin_up_mm) + 'min_spinup', 'QVPqnx_' +
                              str(elevation_deg) + '_Syn_' + location + '_' +
                              date + '0000_' + date + '2355.nc'])
-
+    elif icon_emvorado_run[-6:] == 'qnxoff':
+        path_mod = '/'.join(
+            [header.dir_data_qvp + date, da_run, icon_emvorado_run[:-6],
+             str(spin_up_mm) + 'min_spinup', 'QVPqnxoff_' +
+             str(elevation_deg) + '_Syn_' + location + '_' +
+             date + '0000_' + date + '2355.nc'])
     else:
         path_mod = '/'.join([header.dir_data_qvp + date, da_run, icon_emvorado_run,
                              str(spin_up_mm) + 'min_spinup', 'QVP_' +
@@ -468,7 +473,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$N_{t,\,totice}\,[log_{10}(L^{-1})]$',
+        cbar_title='$N_{totice}\,[log_{10}(L^{-1})]$',
         ax=axs[current_row, current_col],
         scale_font=scale_font,
         scale_numbers=scale_numbers,
@@ -485,16 +490,21 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
 # --------------------------------------------------------------------------- #
 # QVPs SAVE                                                                   #
 # --------------------------------------------------------------------------- #
-hh_at = np.arange(int(hhmm_start_qvp[:2]) + 2, int(hhmm_end_qvp[:2]) + 2, 2)
-hh_25 = np.linspace(np.round(axs[-1, -1].get_xticks()[0]),
-                    np.round(axs[-1, -1].get_xticks()[0]) + 1, 25,
-                    endpoint=True)
-str_hh_at = [str(z).zfill(2) for z in hh_at]
-axs[-1,-1].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
+step=3
+hh_25=np.linspace(np.round(axs[-1,-1].get_xticks()[0]),
+                   np.round(axs[-1,-1].get_xticks()[0])+1,25,
+                  endpoint=True)
+hh_ticks=np.arange(int(hhmm_start_qvp[:2]),
+                   int(hhmm_end_qvp[:2])+1, step)
+str_hh_at=[str(z).zfill(2) for z in hh_ticks]
+hh_minor=np.arange(int(hhmm_start_qvp[:2]), int(hhmm_end_qvp[:2])+1)
+str_hh_at_minor=['' for z in hh_minor]
+axs[-1, -1].set_xticks(hh_25[hh_minor], str_hh_at_minor, minor=True)
+axs[-1,-1].set_xticks(hh_25[hh_ticks],str_hh_at, minor=False, rotation=90, ha='center')
 axs[-1,-1].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-axs[-1,-2].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
+axs[-1,-2].set_xticks(hh_25[hh_ticks],str_hh_at, rotation=90, ha='center')
 axs[-1,-2].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-axs[-1,-3].set_xticks(hh_25[hh_at],str_hh_at, rotation=60)
+axs[-1,-3].set_xticks(hh_25[hh_ticks],str_hh_at, rotation=90, ha='center')
 axs[-1,-3].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
 if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
@@ -560,7 +570,7 @@ ax_mean2.set_ylim([temp_min,
 
 ax_mean3 = axs[-1, 2]
 ax_mean3.set_ylabel('temperature [°C]')
-ax_mean3.set_xlabel('$N_{t,\,totice}\,[log_{10}(L^{-1})]$')
+ax_mean3.set_xlabel('$N_{totice}\,[log_{10}(L^{-1})]$')
 ax_mean3.set_xlim([mom_plot_dict('Nt_totice')['mom_min'],
                    mom_plot_dict('Nt_totice')['mom_max']])
 ax_mean3.set_ylim([temp_min,

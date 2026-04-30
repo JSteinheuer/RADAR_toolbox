@@ -121,17 +121,27 @@ nc_file_comb = nc_file_comb.isel(time=[time_i_mod, time_i_mod + 1])
 # ----------------------------------------------------------------------- #
 # row 3: hm Dm                                                            #
 # ----------------------------------------------------------------------- #
+q_dens, qn_dens = adjust_icon_fields(
+    nc_file_comb, None, 1, nu_r=1,xmax_r=6.5e-5) # TODO only valid for last models
 for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
-    nc_file_comb['q' + hm[0]] = nc_file_comb['q' + hm[0]].where(
-        nc_file_comb['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
-    nc_file_comb['qn' + hm[0]] = nc_file_comb['qn' + hm[0]].where(
-        nc_file_comb['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
-    nc_file_comb['qn' + hm[0]] = nc_file_comb['qn' + hm[0]].where(
-        nc_file_comb['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
-    nc_file_comb['q' + hm[0]] = nc_file_comb['q' + hm[0]].where(
-        nc_file_comb['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+    q_dens[hm] = np.where(q_dens[hm] >= locals()['q_' + hm[0]],
+                          q_dens[hm], 0)
+    qn_dens[hm] = np.where(qn_dens[hm] >= locals()['qn_' + hm[0]],
+                           qn_dens[hm], 0)
+    qn_dens[hm] = np.where(q_dens[hm] >= locals()['q_' + hm[0]],
+                           qn_dens[hm], 0)
+    q_dens[hm] = np.where(qn_dens[hm] >= locals()['qn_' + hm[0]],
+                          q_dens[hm], 0)
 
-q_dens, qn_dens = adjust_icon_fields(nc_file_comb)
+    # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+    #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+    # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+    #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+    # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+    #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+    # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+    #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+
 multi_params = mgdparams(q_dens, qn_dens)
 moments = calc_moments(mgd=multi_params)
 multimoments = calc_multimoments(moments)
@@ -173,11 +183,16 @@ for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
 
     nc_file_comb['qn' + hm[0]]=np.log10(nc_file_comb['qn' + hm[0]])
     nc_file_comb['qn' + hm[0]]=nc_file_comb['qn' + hm[0]].assign_attrs(dict(units='log_10(kg-1)'))
+    nc_file_comb['vol_q' + hm[0]] = (
+        ['time', 'range', 'azimuth', ], np.log10(q_dens[hm] * 1000), dict(
+            standard_name='volume ' + nc_file_comb[
+                'q' + hm[0]].standard_name,
+            units='log_10(g m-3)'))
 
 time_i_mod = 0
 # ------------------------------------- #
-# moments = ['zrsim', 'zdrsim', 'D0_g', 'vol_qg', 'vol_qng']
-moments = ['zrsim', 'zdrsim', 'D0_g', 'qg', 'qng']
+moments = ['zrsim', 'zdrsim', 'D0_g', 'vol_qg', 'vol_qng']
+# moments = ['zrsim', 'zdrsim', 'D0_g', 'qg', 'qng']
 # cmaps = [radar_colors.cmap_radar, radar_colors.cmap_radar, radar_colors.cmap_radar_dm,
 #          radar_colors.cmap_radar_cont, radar_colors.cmap_radar_nt2, ]
 # norms = [radar_colors.norm_zh, radar_colors.norm_zdr, radar_colors.norm_dm,
@@ -191,7 +206,7 @@ norms = [radar_colors.norm_zh, radar_colors.norm_zdr, radar_colors.norm_dm2,
 levelss = [radar_colors.levels_zh, radar_colors.levels_zdr,radar_colors.levels_dm2,
            radar_colors.levels_nt2, radar_colors.levels_qnt2, ]
 labels = ['$Z_{H}$ [dBZ]', '$Z_{DR}$ [dB]', '$D_{m,\,g}$ [mm]',
-          '$q_g$ [$log_{10}(kg\,\,kg^{-1})$]', '$qn_{g}$ [$log_{10}(kg^{-1})$]', ]
+          '$L_g$ [$log_{10}(g\,\,m^{-3})$]', '$N_{g}$ [$log_{10}(L^{-1})$]', ]
 for moment, cmap, norm, levels, label in zip(
             moments, cmaps, norms, levelss, labels):
     # col = col + 1
@@ -292,17 +307,27 @@ nc_file_comb = nc_file_comb.isel(time=[time_i_mod, time_i_mod + 1])
 # ----------------------------------------------------------------------- #
 # row 3: hm Dm                                                            #
 # ----------------------------------------------------------------------- #
+q_dens, qn_dens = adjust_icon_fields(
+    nc_file_comb, None, 1, nu_r=1,xmax_r=6.5e-5) # TODO only valid for last models
 for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
-    nc_file_comb['q' + hm[0]] = nc_file_comb['q' + hm[0]].where(
-        nc_file_comb['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
-    nc_file_comb['qn' + hm[0]] = nc_file_comb['qn' + hm[0]].where(
-        nc_file_comb['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
-    nc_file_comb['qn' + hm[0]] = nc_file_comb['qn' + hm[0]].where(
-        nc_file_comb['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
-    nc_file_comb['q' + hm[0]] = nc_file_comb['q' + hm[0]].where(
-        nc_file_comb['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+    q_dens[hm] = np.where(q_dens[hm] >= locals()['q_' + hm[0]],
+                          q_dens[hm], 0)
+    qn_dens[hm] = np.where(qn_dens[hm] >= locals()['qn_' + hm[0]],
+                           qn_dens[hm], 0)
+    qn_dens[hm] = np.where(q_dens[hm] >= locals()['q_' + hm[0]],
+                           qn_dens[hm], 0)
+    q_dens[hm] = np.where(qn_dens[hm] >= locals()['qn_' + hm[0]],
+                          q_dens[hm], 0)
 
-q_dens, qn_dens = adjust_icon_fields(nc_file_comb)
+    # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+    #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+    # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+    #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+    # icon_nc['qn' + hm[0]] = icon_nc['qn' + hm[0]].where(
+    #     icon_nc['q' + hm[0]] >= locals()['q_' + hm[0]], 0)
+    # icon_nc['q' + hm[0]] = icon_nc['q' + hm[0]].where(
+    #     icon_nc['qn' + hm[0]] >= locals()['qn_' + hm[0]], 0)
+
 multi_params = mgdparams(q_dens, qn_dens)
 moments = calc_moments(mgd=multi_params)
 multimoments = calc_multimoments(moments)
@@ -344,11 +369,16 @@ for hm in ['graupel', 'ice', 'rain', 'hail', 'cloud', 'snow']:
 
     nc_file_comb['qn' + hm[0]]=np.log10(nc_file_comb['qn' + hm[0]])
     nc_file_comb['qn' + hm[0]]=nc_file_comb['qn' + hm[0]].assign_attrs(dict(units='log_10(kg-1)'))
+    nc_file_comb['vol_q' + hm[0]] = (
+        ['time', 'range', 'azimuth', ], np.log10(q_dens[hm] * 1000), dict(
+            standard_name='volume ' + nc_file_comb[
+                'q' + hm[0]].standard_name,
+            units='log_10(g m-3)'))
 
 time_i_mod = 0
 # ------------------------------------- #
-# moments = ['zrsim', 'zdrsim', 'D0_g', 'vol_qg', 'vol_qng']
-moments = ['zrsim', 'zdrsim', 'D0_g', 'qg', 'qng']
+moments = ['zrsim', 'zdrsim', 'D0_g', 'vol_qg', 'vol_qng']
+# moments = ['zrsim', 'zdrsim', 'D0_g', 'qg', 'qng']
 # cmaps = [radar_colors.cmap_radar, radar_colors.cmap_radar, radar_colors.cmap_radar_dm,
 #          radar_colors.cmap_radar_cont, radar_colors.cmap_radar_nt2, ]
 # norms = [radar_colors.norm_zh, radar_colors.norm_zdr, radar_colors.norm_dm,
@@ -362,7 +392,7 @@ norms = [radar_colors.norm_zh, radar_colors.norm_zdr, radar_colors.norm_dm2,
 levelss = [radar_colors.levels_zh, radar_colors.levels_zdr,radar_colors.levels_dm2,
            radar_colors.levels_nt2, radar_colors.levels_qnt2, ]
 labels = ['$Z_{H}$ [dBZ]', '$Z_{DR}$ [dB]', '$D_{m,\,g}$ [mm]',
-          '$q_g$ [$log_{10}(kg\,\,kg^{-1})$]', '$qn_{g}$ [$log_{10}(kg^{-1})$]', ]
+          '$L_g$ [$log_{10}(g\,\,m^{-3})$]', '$N_{g}$ [$log_{10}(L^{-1})$]', ]
 for moment, cmap, norm, levels, label in zip(
             moments, cmaps, norms, levelss, labels):
     # col = col + 1

@@ -114,7 +114,7 @@ da_runs.append('ASS_2411')
 icon_emvorado_runs.append('MAIN_2411.0/EMVO_20010000.2off')
 spin_up_mms.append('120')
 short_names.append('I1E1')
-colors.append('cyan')
+colors.append(mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 5))[0])
 colors2.append('blue')
 # ------------------------------------ #
 # # SYN data row 2                       #
@@ -191,7 +191,7 @@ colors2.append('magenta')
 # ------------------------------------ #
 mod_names = ''
 letters_i = 0
-n_rows = 2*len(da_runs)+1
+n_rows = len(da_runs)+2
 n_cols = 3
 current_row = -1
 current_col = -1
@@ -325,7 +325,7 @@ plot_qvp_of_polarimetric_variable(
     levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title='$N_{t,\,r}\,[log_{10}(L^{-1})]$',
+    cbar_title='$N_{r}\,[log_{10}(L^{-1})]$',
     title='',
     ax=axs[current_row, current_col],
     mom_height_unit='km',
@@ -501,7 +501,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$N_{t,\,r}\,[log_{10}(L^{-1})]$',
+        cbar_title='$N_{r}\,[log_{10}(L^{-1})]$',
         ax=axs[current_row, current_col],
         scale_font=scale_font,
         scale_numbers=scale_numbers,
@@ -518,7 +518,6 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
     # ----------------------------------------------------------------------- #
     # Syn Retrievals                                                          #
     # ----------------------------------------------------------------------- #
-
     print('Nt_rain_qvp')
     mom = (-2.37 + 0.1 * qvp_zh_syn -
            2.89 * qvp_zdr_syn +
@@ -544,105 +543,110 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
     extend = 'both'
 
     # ------------------------------------ #
-    current_row = current_row +1
     add_colorbar = False
     xlabel = None
-    if current_row == n_rows - 1:
+    if current_row == n_rows - 2:
+        current_row = current_row +1
         add_colorbar = True
         xlabel='UTC [mm-dd hh]'
 
-    # ------------------------------------ #
-    current_col = 0
-    plot_qvp_of_polarimetric_variable(
-        mom=qvp_1_syn,
-        cmap=radar_colors.cmap_radar_dm,
-        norm=radar_colors.norm_dm_r,
-        levels=radar_colors.levels_dm_r,
-        mom_cs=qvp_zdr_syn,
-        levels_cs=np.array([1]),
-        mom_cf=qvp_temp_syn,
-        levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$D_{m,\,r}\,[mm]$',
-        title='',
-        ax=axs[current_row, current_col],
-        mom_height_unit='km',
-        add_colorbar=add_colorbar,
-        scale_font=scale_font,
-        scale_numbers=scale_numbers,
-        top_height=top_height,
-        xlabel=xlabel,
-        extend=extend,
-        panel= letters[letters_i] +') R(' + short_name + ')' ,
-    )
-    letters_i = letters_i + 1
-    # ------------------------------------ #
-    current_col = current_col + 1
-    plot_qvp_of_polarimetric_variable(
-        mom=qvp_2_syn,
-        cmap=radar_colors.cmap_radar_cont,
-        norm=radar_colors.norm_cont,
-        levels=radar_colors.levels_cont,
-        mom_cs=qvp_zdr_syn,
-        levels_cs=np.array([1]),
-        mom_cf=qvp_temp_syn,
-        levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$RWC\,[g\,m^{-3}]$',
-        title='',
-        ax=axs[current_row, current_col],
-        mom_height_unit='km',
-        add_colorbar=add_colorbar,
-        scale_font=scale_font,
-        scale_numbers=scale_numbers,
-        top_height=top_height,
-        xlabel=xlabel,
-        ylabel='',
-        extend=extend,
-        panel= letters[letters_i] +') R(' + short_name + ')' ,
-    )
-    letters_i = letters_i + 1
-    # ------------------------------------ #
-    current_col = current_col + 1
-    plot_qvp_of_polarimetric_variable(
-        mom=qvp_3_syn,
-        cmap=radar_colors.cmap_radar_nt,
-        norm=radar_colors.norm_nt,
-        levels=radar_colors.levels_nt,
-        mom_cs=qvp_zdr_syn,
-        levels_cs=np.array([1]),
-        mom_cf=qvp_temp_syn,
-        levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$N_{t,\,r}\,[log_{10}(L^{-1})]$',
-        title='',
-        ax=axs[current_row, current_col],
-        add_colorbar=add_colorbar,
-        mom_height_unit='km',
-        scale_font=scale_font,
-        scale_numbers=scale_numbers,
-        top_height=top_height,
-        xlabel=xlabel,
-        ylabel='',
-        extend=extend,
-        panel= letters[letters_i] +') R(' + short_name + ')' ,
-    )
-    letters_i = letters_i + 1
-    # ------------------------------------ #
+        # ------------------------------------ #
+        current_col = 0
+        plot_qvp_of_polarimetric_variable(
+            mom=qvp_1_syn,
+            cmap=radar_colors.cmap_radar_dm,
+            norm=radar_colors.norm_dm_r,
+            levels=radar_colors.levels_dm_r,
+            mom_cs=qvp_zdr_syn,
+            levels_cs=np.array([1]),
+            mom_cf=qvp_temp_syn,
+            levels_cf=np.arange(-50, 60, 5),
+            cbar_title='$D_{m,\,r}\,[mm]$',
+            title='',
+            ax=axs[current_row, current_col],
+            mom_height_unit='km',
+            add_colorbar=add_colorbar,
+            scale_font=scale_font,
+            scale_numbers=scale_numbers,
+            top_height=top_height,
+            xlabel=xlabel,
+            extend=extend,
+            panel= letters[letters_i] +') R(' + short_name + ')' ,
+        )
+        letters_i = letters_i + 1
+        # ------------------------------------ #
+        current_col = current_col + 1
+        plot_qvp_of_polarimetric_variable(
+            mom=qvp_2_syn,
+            cmap=radar_colors.cmap_radar_cont,
+            norm=radar_colors.norm_cont,
+            levels=radar_colors.levels_cont,
+            mom_cs=qvp_zdr_syn,
+            levels_cs=np.array([1]),
+            mom_cf=qvp_temp_syn,
+            levels_cf=np.arange(-50, 60, 5),
+            cbar_title='$RWC\,[g\,m^{-3}]$',
+            title='',
+            ax=axs[current_row, current_col],
+            mom_height_unit='km',
+            add_colorbar=add_colorbar,
+            scale_font=scale_font,
+            scale_numbers=scale_numbers,
+            top_height=top_height,
+            xlabel=xlabel,
+            ylabel='',
+            extend=extend,
+            panel= letters[letters_i] +') R(' + short_name + ')' ,
+        )
+        letters_i = letters_i + 1
+        # ------------------------------------ #
+        current_col = current_col + 1
+        plot_qvp_of_polarimetric_variable(
+            mom=qvp_3_syn,
+            cmap=radar_colors.cmap_radar_nt,
+            norm=radar_colors.norm_nt,
+            levels=radar_colors.levels_nt,
+            mom_cs=qvp_zdr_syn,
+            levels_cs=np.array([1]),
+            mom_cf=qvp_temp_syn,
+            levels_cf=np.arange(-50, 60, 5),
+            cbar_title='$N_{r}\,[log_{10}(L^{-1})]$',
+            title='',
+            ax=axs[current_row, current_col],
+            add_colorbar=add_colorbar,
+            mom_height_unit='km',
+            scale_font=scale_font,
+            scale_numbers=scale_numbers,
+            top_height=top_height,
+            xlabel=xlabel,
+            ylabel='',
+            extend=extend,
+            panel= letters[letters_i] +') R(' + short_name + ')' ,
+        )
+        letters_i = letters_i + 1
+        # ------------------------------------ #
 
     syn_nc.close()
 
 # --------------------------------------------------------------------------- #
 # QVPs SAVE                                                                   #
 # --------------------------------------------------------------------------- #
-hh_at = np.arange(int(hhmm_start_qvp[:2]) + 2, int(hhmm_end_qvp[:2]) + 2, 2)
-hh_25 = np.linspace(np.round(axs[-1, -1].get_xticks()[0]),
-                    np.round(axs[-1, -1].get_xticks()[0]) + 1, 25,
-                    endpoint=True)
-str_hh_at = [str(z).zfill(2) for z in hh_at]
-axs[-1, -1].set_xticks(hh_25[hh_at], str_hh_at, rotation=60)
-axs[-1, -1].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-axs[-1, -2].set_xticks(hh_25[hh_at], str_hh_at, rotation=60)
-axs[-1, -2].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
-axs[-1, -3].set_xticks(hh_25[hh_at], str_hh_at, rotation=60)
-axs[-1, -3].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
+step=3
+hh_25=np.linspace(np.round(axs[-1,-1].get_xticks()[0]),
+                   np.round(axs[-1,-1].get_xticks()[0])+1,25,
+                  endpoint=True)
+hh_ticks=np.arange(int(hhmm_start_qvp[:2]),
+                   int(hhmm_end_qvp[:2])+1, step)
+str_hh_at=[str(z).zfill(2) for z in hh_ticks]
+hh_minor=np.arange(int(hhmm_start_qvp[:2]), int(hhmm_end_qvp[:2])+1)
+str_hh_at_minor=['' for z in hh_minor]
+axs[-1, -1].set_xticks(hh_25[hh_minor], str_hh_at_minor, minor=True)
+axs[-1,-1].set_xticks(hh_25[hh_ticks],str_hh_at, minor=False, rotation=90, ha='center')
+axs[-1,-1].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
+axs[-1,-2].set_xticks(hh_25[hh_ticks],str_hh_at, rotation=90, ha='center')
+axs[-1,-2].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
+axs[-1,-3].set_xticks(hh_25[hh_ticks],str_hh_at, rotation=90, ha='center')
+axs[-1,-3].set_xlabel('UTC [hh]', fontsize=12 * scale_font)
 if not os.path.exists(folder_plot):
     os.makedirs(folder_plot)
 
@@ -655,7 +659,7 @@ plt.savefig(
     ['', 'entr_'][filter_entr] +
     ['', str(filter_entr_at) + '_'][filter_entr] +
     ['', 'mom_'][filter_moms] + mod_names[1:] +
-    '2.png', format='png', transparent=False, dpi=300, bbox_inches='tight')
+    '3.png', format='png', transparent=False, dpi=300, bbox_inches='tight')
 plt.savefig(
     folder_plot +
     '/QVPs_Fig_9_syn_ret_' + str(n_rows) + 'x3rainretrievals_QVP_' +
@@ -665,7 +669,7 @@ plt.savefig(
     ['', 'entr_'][filter_entr] +
     ['', str(filter_entr_at) + '_'][filter_entr] +
     ['', 'mom_'][filter_moms] + mod_names[1:] +
-    '2.pdf', format='pdf', transparent=True)
+    '3.pdf', format='pdf', transparent=True)
 plt.close()
 
 
@@ -679,7 +683,7 @@ plt.close()
 bins_dr=40  # 50 # default
 mod_names = ''
 letters_i=0
-n_rows = 2*len(da_runs) + 1 + 1  # add one once more for mean of all
+n_rows = 1*len(da_runs) + 1 + 1 +1 # add one once more for mean of all
 n_cols = 3
 factor=0.7
 fig = plt.figure(figsize=(factor*n_cols * 2.8, factor*n_rows * 2.4),)
@@ -704,7 +708,7 @@ ax_mean2.set_ylim([temp_min,
 
 ax_mean3 = axs[-1, 2]
 ax_mean3.set_ylabel('temperature [°C]')
-ax_mean3.set_xlabel('$N_{t,\,r}\,[log_{10}(L^{-1})]$')
+ax_mean3.set_xlabel('$N_{r}\,[log_{10}(L^{-1})]$')
 ax_mean3.set_xlim([mom_plot_dict('Nt_r')['mom_min'],
                    mom_plot_dict('Nt_r')['mom_max']])
 ax_mean3.set_ylim([temp_min,
@@ -1074,183 +1078,184 @@ for da_run, icon_emvorado_run, spin_up_mm, color, color2,short_name in zip(
     # syn Retrievals                                                          #
     # ----------------------------------------------------------------------- #
 
-    current_row = current_row + 1
-    current_col = 0
-    print(current_row)
-    print(current_col)
-    ax = axs[current_row, current_col]
-    x, y = plot_CFAD_or_CFTD_from_QVP_with_list(
-        locations=locations,
-        dates=dates,
-        hhmm_start=hhmm_start_cftds,
-        hhmm_end=hhmm_end_cftds,
-        elevation_deg=elevation_degs,
-        da_icon_emvorado_run=da_icon_emvorado_run,
-        spin_up_mm=spin_up_mm,
-        moment='Dm_bringi',
-        vert_temp=vert_temp,
-        temp_min=temp_min,
-        temp_max=temp_max,
-        bins_temp=bins_temp,
-        height_min=height_min,  # in km
-        height_max=height_max,  # in km
-        bins_height=bins_height,
-        filter_entr=filter_entr,
-        filter_entr_at=filter_entr_at,
-        filter_moms=filter_moms,
-        ax=ax,
-        save=False,
-        color=color2,
-        plot_legend=False,
-        plot_data=False,
-        data_max=data_max,
-        panel= letters[letters_i] +') R(' + short_name + ')' ,
-    )
-    letters_i = letters_i + 1
-    # ------------------------------------ #
-    y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
-    y_step = y_bins[1] - y_bins[0]
-    y_mid = np.linspace(temp_min + 1, temp_max - 1, bins_temp)
-    quant_prof = np.zeros([3, len(y_mid)])
-    quant_prof[:] = np.nan
-    mean_prof = np.repeat(np.nan, len(y_mid))
-    for t_i in range(len(y_mid)):
-        x_layer = x[
-            (y > y_mid[t_i] - y_step / 2) * (y <= y_mid[t_i] + y_step / 2)]
-        if x_layer.size > 3:
-            wq = DescrStatsW(data=x_layer)
-            quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
-                                             return_pandas=False)
-            mean_prof[t_i] = wq.mean
+    if current_row==n_rows-3:
+        current_row = current_row + 1
+        current_col = 0
+        print(current_row)
+        print(current_col)
+        ax = axs[current_row, current_col]
+        x, y = plot_CFAD_or_CFTD_from_QVP_with_list(
+            locations=locations,
+            dates=dates,
+            hhmm_start=hhmm_start_cftds,
+            hhmm_end=hhmm_end_cftds,
+            elevation_deg=elevation_degs,
+            da_icon_emvorado_run=da_icon_emvorado_run,
+            spin_up_mm=spin_up_mm,
+            moment='Dm_bringi',
+            vert_temp=vert_temp,
+            temp_min=temp_min,
+            temp_max=temp_max,
+            bins_temp=bins_temp,
+            height_min=height_min,  # in km
+            height_max=height_max,  # in km
+            bins_height=bins_height,
+            filter_entr=filter_entr,
+            filter_entr_at=filter_entr_at,
+            filter_moms=filter_moms,
+            ax=ax,
+            save=False,
+            color=color2,
+            plot_legend=False,
+            plot_data=False,
+            data_max=data_max,
+            panel= letters[letters_i] +') R(' + short_name + ')' ,
+        )
+        letters_i = letters_i + 1
+        # ------------------------------------ #
+        y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
+        y_step = y_bins[1] - y_bins[0]
+        y_mid = np.linspace(temp_min + 1, temp_max - 1, bins_temp)
+        quant_prof = np.zeros([3, len(y_mid)])
+        quant_prof[:] = np.nan
+        mean_prof = np.repeat(np.nan, len(y_mid))
+        for t_i in range(len(y_mid)):
+            x_layer = x[
+                (y > y_mid[t_i] - y_step / 2) * (y <= y_mid[t_i] + y_step / 2)]
+            if x_layer.size > 3:
+                wq = DescrStatsW(data=x_layer)
+                quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+                                                 return_pandas=False)
+                mean_prof[t_i] = wq.mean
 
-    ax_mean1.plot(quant_prof[0,], y_mid, color=color2, ls='dashed', alpha=0.8,
-                  linewidth=1, label='_nolegend_')
-    ax_mean1.plot(quant_prof[1,], y_mid, color=color2, ls='solid',
-                  # TODO: mean and median swapped
-                  linewidth=2 + (n_rows - current_row - 3) / 4,
-                  label='R('+short_name+')')
-    ax_mean1.plot(quant_prof[2,], y_mid, color=color2, ls='dashed', alpha=0.8,
-                  linewidth=1, label='_nolegend_')
-    # ax_mean1.plot(mean_prof, y_mid, color=color2, ls='solid', alpha=0.8,
-    #               linewidth=2,label='_nolegend_')
-    # ----------------------------------------------------------------------- #
-    current_col = current_col + 1
-    print(current_row)
-    print(current_col)
-    ax = axs[current_row, current_col]
-    x, y = plot_CFAD_or_CFTD_from_QVP_with_list(
-        locations=locations,
-        dates=dates,
-        hhmm_start=hhmm_start_cftds,
-        hhmm_end=hhmm_end_cftds,
-        elevation_deg=elevation_degs,
-        da_icon_emvorado_run=da_icon_emvorado_run,
-        spin_up_mm=spin_up_mm,
-        moment='LWC_qvp',
-        vert_temp=vert_temp,
-        temp_min=temp_min,
-        temp_max=temp_max,
-        bins_temp=bins_temp,
-        height_min=height_min,  # in km
-        height_max=height_max,  # in km
-        bins_height=bins_height,
-        filter_entr=filter_entr,
-        filter_entr_at=filter_entr_at,
-        filter_moms=filter_moms,
-        ax=ax,
-        save=False,
-        color=color2,
-        plot_legend=True,
-        plot_data=False,
-        data_max=data_max,
-        panel= letters[letters_i] +') R(' + short_name + ')' ,
-    )
-    letters_i = letters_i + 1
-    # ------------------------------------ #
-    y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
-    y_step = y_bins[1] - y_bins[0]
-    y_mid = np.linspace(temp_min + 1, temp_max - 1, bins_temp)
-    quant_prof = np.zeros([3, len(y_mid)])
-    quant_prof[:] = np.nan
-    mean_prof = np.repeat(np.nan, len(y_mid))
-    for t_i in range(len(y_mid)):
-        x_layer = x[
-            (y > y_mid[t_i] - y_step / 2) * (y <= y_mid[t_i] + y_step / 2)]
-        if x_layer.size > 3:
-            wq = DescrStatsW(data=x_layer)
-            quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
-                                             return_pandas=False)
-            mean_prof[t_i] = wq.mean
+        ax_mean1.plot(quant_prof[0,], y_mid, color=color2, ls='dashed', alpha=0.8,
+                      linewidth=1, label='_nolegend_')
+        ax_mean1.plot(quant_prof[1,], y_mid, color=color2, ls='solid',
+                      # TODO: mean and median swapped
+                      linewidth=2 + (n_rows - current_row - 3) / 4,
+                      label='R('+short_name+')')
+        ax_mean1.plot(quant_prof[2,], y_mid, color=color2, ls='dashed', alpha=0.8,
+                      linewidth=1, label='_nolegend_')
+        # ax_mean1.plot(mean_prof, y_mid, color=color2, ls='solid', alpha=0.8,
+        #               linewidth=2,label='_nolegend_')
+        # ----------------------------------------------------------------------- #
+        current_col = current_col + 1
+        print(current_row)
+        print(current_col)
+        ax = axs[current_row, current_col]
+        x, y = plot_CFAD_or_CFTD_from_QVP_with_list(
+            locations=locations,
+            dates=dates,
+            hhmm_start=hhmm_start_cftds,
+            hhmm_end=hhmm_end_cftds,
+            elevation_deg=elevation_degs,
+            da_icon_emvorado_run=da_icon_emvorado_run,
+            spin_up_mm=spin_up_mm,
+            moment='LWC_qvp',
+            vert_temp=vert_temp,
+            temp_min=temp_min,
+            temp_max=temp_max,
+            bins_temp=bins_temp,
+            height_min=height_min,  # in km
+            height_max=height_max,  # in km
+            bins_height=bins_height,
+            filter_entr=filter_entr,
+            filter_entr_at=filter_entr_at,
+            filter_moms=filter_moms,
+            ax=ax,
+            save=False,
+            color=color2,
+            plot_legend=True,
+            plot_data=False,
+            data_max=data_max,
+            panel= letters[letters_i] +') R(' + short_name + ')' ,
+        )
+        letters_i = letters_i + 1
+        # ------------------------------------ #
+        y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
+        y_step = y_bins[1] - y_bins[0]
+        y_mid = np.linspace(temp_min + 1, temp_max - 1, bins_temp)
+        quant_prof = np.zeros([3, len(y_mid)])
+        quant_prof[:] = np.nan
+        mean_prof = np.repeat(np.nan, len(y_mid))
+        for t_i in range(len(y_mid)):
+            x_layer = x[
+                (y > y_mid[t_i] - y_step / 2) * (y <= y_mid[t_i] + y_step / 2)]
+            if x_layer.size > 3:
+                wq = DescrStatsW(data=x_layer)
+                quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+                                                 return_pandas=False)
+                mean_prof[t_i] = wq.mean
 
-    ax_mean2.plot(quant_prof[0,], y_mid, color=color2, ls='dashed', alpha=0.8,
-                  linewidth=1, label='_nolegend_')
-    ax_mean2.plot(quant_prof[1,], y_mid, color=color2, ls='solid',
-                  # TODO: mean and median swapped
-                  linewidth=2 + (n_rows - current_row - 3) / 4,
-                  label='R('+short_name+')')
-    ax_mean2.plot(quant_prof[2,], y_mid, color=color2, ls='dashed', alpha=0.8,
-                  linewidth=1, label='_nolegend_')
-    # ax_mean2.plot(mean_prof, y_mid, color=color2, ls='solid', alpha=0.8,
-    #               linewidth=2,label='_nolegend_')
-    # ----------------------------------------------------------------------- #
-    current_col = current_col + 1
-    print(current_row)
-    print(current_col)
-    ax = axs[current_row, current_col]
-    x, y = plot_CFAD_or_CFTD_from_QVP_with_list(
-        locations=locations,
-        dates=dates,
-        hhmm_start=hhmm_start_cftds,
-        hhmm_end=hhmm_end_cftds,
-        elevation_deg=elevation_degs,
-        da_icon_emvorado_run=da_icon_emvorado_run,
-        spin_up_mm=spin_up_mm,
-        moment='Nt_rain_qvp',
-        vert_temp=vert_temp,
-        temp_min=temp_min,
-        temp_max=temp_max,
-        bins_temp=bins_temp,
-        height_min=height_min,  # in km
-        height_max=height_max,  # in km
-        bins_height=bins_height,
-        filter_entr=filter_entr,
-        filter_entr_at=filter_entr_at,
-        filter_moms=filter_moms,
-        ax=ax,
-        save=False,
-        color=color2,
-        plot_legend=False,
-        plot_data=False,
-        data_max=data_max,
-        panel= letters[letters_i] +') R(' + short_name + ')' ,
-    )
-    letters_i = letters_i + 1
-    # ------------------------------------ #
-    y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
-    y_step = y_bins[1] - y_bins[0]
-    y_mid = np.linspace(temp_min + 1, temp_max - 1, bins_temp)
-    quant_prof = np.zeros([3, len(y_mid)])
-    quant_prof[:] = np.nan
-    mean_prof = np.repeat(np.nan, len(y_mid))
-    for t_i in range(len(y_mid)):
-        x_layer = x[
-            (y > y_mid[t_i] - y_step / 2) * (y <= y_mid[t_i] + y_step / 2)]
-        if x_layer.size > 3:
-            wq = DescrStatsW(data=x_layer)
-            quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
-                                             return_pandas=False)
-            mean_prof[t_i] = wq.mean
+        ax_mean2.plot(quant_prof[0,], y_mid, color=color2, ls='dashed', alpha=0.8,
+                      linewidth=1, label='_nolegend_')
+        ax_mean2.plot(quant_prof[1,], y_mid, color=color2, ls='solid',
+                      # TODO: mean and median swapped
+                      linewidth=2 + (n_rows - current_row - 3) / 4,
+                      label='R('+short_name+')')
+        ax_mean2.plot(quant_prof[2,], y_mid, color=color2, ls='dashed', alpha=0.8,
+                      linewidth=1, label='_nolegend_')
+        # ax_mean2.plot(mean_prof, y_mid, color=color2, ls='solid', alpha=0.8,
+        #               linewidth=2,label='_nolegend_')
+        # ----------------------------------------------------------------------- #
+        current_col = current_col + 1
+        print(current_row)
+        print(current_col)
+        ax = axs[current_row, current_col]
+        x, y = plot_CFAD_or_CFTD_from_QVP_with_list(
+            locations=locations,
+            dates=dates,
+            hhmm_start=hhmm_start_cftds,
+            hhmm_end=hhmm_end_cftds,
+            elevation_deg=elevation_degs,
+            da_icon_emvorado_run=da_icon_emvorado_run,
+            spin_up_mm=spin_up_mm,
+            moment='Nt_rain_qvp',
+            vert_temp=vert_temp,
+            temp_min=temp_min,
+            temp_max=temp_max,
+            bins_temp=bins_temp,
+            height_min=height_min,  # in km
+            height_max=height_max,  # in km
+            bins_height=bins_height,
+            filter_entr=filter_entr,
+            filter_entr_at=filter_entr_at,
+            filter_moms=filter_moms,
+            ax=ax,
+            save=False,
+            color=color2,
+            plot_legend=False,
+            plot_data=False,
+            data_max=data_max,
+            panel= letters[letters_i] +') R(' + short_name + ')' ,
+        )
+        letters_i = letters_i + 1
+        # ------------------------------------ #
+        y_bins = np.linspace(temp_min, temp_max, bins_temp + 1)
+        y_step = y_bins[1] - y_bins[0]
+        y_mid = np.linspace(temp_min + 1, temp_max - 1, bins_temp)
+        quant_prof = np.zeros([3, len(y_mid)])
+        quant_prof[:] = np.nan
+        mean_prof = np.repeat(np.nan, len(y_mid))
+        for t_i in range(len(y_mid)):
+            x_layer = x[
+                (y > y_mid[t_i] - y_step / 2) * (y <= y_mid[t_i] + y_step / 2)]
+            if x_layer.size > 3:
+                wq = DescrStatsW(data=x_layer)
+                quant_prof[:, t_i] = wq.quantile(probs=np.array([0.2, 0.5, 0.8]),
+                                                 return_pandas=False)
+                mean_prof[t_i] = wq.mean
 
-    ax_mean3.plot(quant_prof[0,], y_mid, color=color2, ls='dashed', alpha=0.8,
-                  linewidth=1, label='_nolegend_')
-    ax_mean3.plot(quant_prof[1,], y_mid, color=color2, ls='solid',
-                  # TODO: mean and median swapped
-                  linewidth=2 + (n_rows - current_row - 3) / 4,
-                  label='R('+short_name+')')
-    ax_mean3.plot(quant_prof[2,], y_mid, color=color2, ls='dashed', alpha=0.8,
-                  linewidth=1, label='_nolegend_')
-    # ax_mean3.plot(mean_prof, y_mid, color=color2, ls='solid', alpha=0.8,
-    #               linewidth=2,label='_nolegend_')
+        ax_mean3.plot(quant_prof[0,], y_mid, color=color2, ls='dashed', alpha=0.8,
+                      linewidth=1, label='_nolegend_')
+        ax_mean3.plot(quant_prof[1,], y_mid, color=color2, ls='solid',
+                      # TODO: mean and median swapped
+                      linewidth=2 + (n_rows - current_row - 3) / 4,
+                      label='R('+short_name+')')
+        ax_mean3.plot(quant_prof[2,], y_mid, color=color2, ls='dashed', alpha=0.8,
+                      linewidth=1, label='_nolegend_')
+        # ax_mean3.plot(mean_prof, y_mid, color=color2, ls='solid', alpha=0.8,
+        #               linewidth=2,label='_nolegend_')
 
 
 
@@ -1351,7 +1356,7 @@ plt.savefig(
     ['', str(filter_entr_at)+'_'][filter_entr] +
     ['', 'mom_'][filter_moms] + mod_names[1:] +
     ['', '_2e14'][testing] +
-    '.pdf', format='pdf', transparent=True, bbox_inches='tight')
+    '3.pdf', format='pdf', transparent=True, bbox_inches='tight')
 plt.savefig(
     folder_plot +
     '/CFTDs_Fig_10_syn_ret_' + str(n_rows) + 'x3rainretrievals_QVP_' +
@@ -1360,7 +1365,7 @@ plt.savefig(
     ['', str(filter_entr_at) + '_'][filter_entr] +
     ['', 'mom_'][filter_moms] + mod_names[1:] +
     ['', '_2e14'][testing] +
-    '.png', format='png', transparent=True, dpi=300, bbox_inches='tight')
+    '3.png', format='png', transparent=True, dpi=300, bbox_inches='tight')
 plt.close()
 
 # --------------------------------------------------------------------------- #
