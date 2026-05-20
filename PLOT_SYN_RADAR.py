@@ -1025,6 +1025,9 @@ def plot_CFAD_or_CFTD_from_QVP_with_list(
     else:
         extend = 'neither'
 
+    # if 'D0_r' == moment:
+    #     mom_all = np.where(mom_all < 0.8, 0.8, mom_all)
+
     # if contour:
     h2d, mom2d, y2d, fg = ax.hist2d(mom_all, y_all,
                                      bins=[bins_mom * 3, bins_y],

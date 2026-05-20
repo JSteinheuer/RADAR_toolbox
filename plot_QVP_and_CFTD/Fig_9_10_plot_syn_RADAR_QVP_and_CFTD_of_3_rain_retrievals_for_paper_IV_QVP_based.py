@@ -45,7 +45,7 @@ mon = date[4:6]
 day = date[6:8]
 date_start = '-'.join([year, mon, day, hhmm_start_qvp])
 date_end = '-'.join([year, mon, day, hhmm_end_qvp])
-top_height = 6
+top_height = 4
 mode = 'vol'
 elevation_deg = 12
 sweep = '0' + str(np.where(header.ELEVATIONS_ALL ==
@@ -96,6 +96,8 @@ letters=('abcdefghijklmnopqrstuvwxyz'
 filter_entr = False
 filter_entr_at = 0
 filter_moms = False
+filter_temp_above = 444
+filter_temp_below = 273.15
 folder_plot = header.folder_plot + 'Paper_IV/'
 
 # ------------------------------------ #
@@ -154,14 +156,14 @@ colors.append(colorsX[np.array([ -1])])
 # ------------------------------------ #
 # SYN data row 5                       #
 # ------------------------------------ #
-# da_runs.append('ASS_2411')
-# icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
-# spin_up_mms.append('120')
-# short_names.append('I2E4')
-# colors.append('red')
-# colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 5))
-# colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
-# colors = colors[np.array([-2, -1])]
+da_runs.append('ASS_2411')
+icon_emvorado_runs.append('MAIN_2411.3/EMVO_20510840.2qnx')
+spin_up_mms.append('120')
+short_names.append('I2E4')
+colors.append('red')
+colors = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 5))
+colors[3] = mpl.colormaps._cmaps['HomeyerRainbow'](np.linspace(0, 1, 7))[-3]
+colors = colors[np.array([-2, -1])]
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -209,6 +211,8 @@ obs_nc = xr.open_dataset(path_obs)
 if filter_entr:
     obs_nc=obs_nc.where(obs_nc['min_entropy']>filter_entr_at)
 
+obs_nc=obs_nc.where(obs_nc['temp']>filter_temp_below)
+obs_nc=obs_nc.where(obs_nc['temp']<filter_temp_above)
 # ------------------------------------ #
 qvp_kdp_obs = obs_nc['KDP_NC'].sel(
     time=slice(date_start, date_end)).transpose(..., 'time')
@@ -307,7 +311,7 @@ plot_qvp_of_polarimetric_variable(
     levels_cs=np.array([1]),
     mom_cf=qvp_temp_obs,
     levels_cf=np.arange(-50, 60, 5),
-    cbar_title='$N_{t,\,totice}\,[log_{10}(L^{-1})]$',
+    cbar_title='$N_{totice}\,[log_{10}(L^{-1})]$',
     title='',
     ax=axs[current_row, current_col],
     mom_height_unit='km',
@@ -366,6 +370,9 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
 
     if filter_entr:
         syn_nc = syn_nc.where(syn_nc['min_entropy'] > filter_entr_at)
+
+    syn_nc = syn_nc.where(syn_nc['temp'] > filter_temp_below)
+    syn_nc = syn_nc.where(syn_nc['temp'] < filter_temp_above)
 
     model_name_file = '-'.join([icon_emvorado_run.split('/')[0][9:],
                                 icon_emvorado_run.split('/')[1][5:]])
@@ -469,7 +476,7 @@ for da_run, icon_emvorado_run, spin_up_mm, short_name in zip(
         levels_cs=np.array([1]),
         mom_cf=qvp_temp_syn,
         levels_cf=np.arange(-50, 60, 5),
-        cbar_title='$N_{t,\,r}\,[log_{10}(L^{-1})]$',
+        cbar_title='$N_{r}\,[log_{10}(L^{-1})]$',
         ax=axs[current_row, current_col],
         scale_font=scale_font,
         scale_numbers=scale_numbers,
@@ -558,7 +565,7 @@ ax_mean2.set_ylim([temp_min,
 
 ax_mean3 = axs[-1, 2]
 ax_mean3.set_ylabel('temperature [°C]')
-ax_mean3.set_xlabel('$N_{t,\,r}\,[log_{10}(L^{-1})]$')
+ax_mean3.set_xlabel('$N_{r}\,[log_{10}(L^{-1})]$')
 ax_mean3.set_xlim([mom_plot_dict('Nt_r')['mom_min'],
                    mom_plot_dict('Nt_r')['mom_max']])
 ax_mean3.set_ylim([temp_min,
